@@ -11,13 +11,13 @@ using System.Xml;
 using CryptoPro.Sharpei.Xml;
 using CryptoPro.Sharpei;
 
-namespace dsproc.SigantureProcessor {
-	public enum SigningMode : int { Simple = 1, Smev2 = 2, Smev3 = 3, Detached = 4, SimpleEnveloped = 5 };
-	public enum StoreType : int {
-		LocalMachine = 1, CurrentUser = 2
-	}
-	public static class Signing {
+namespace dsproc.SignatureProcessor {
+
+	public enum SigningMode {Simple = 1, Smev2 = 2, Smev3 = 3, Detached = 4, SimpleEnveloped = 5};
+	public enum SignatureType {Enveloped = 1, SideBySide = 2, Detached = 3};
 	
+
+	public static class Signing {
 		public static string Sign(SigningMode mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign) {
 
 			XmlDocument signedXmlDoc = new XmlDocument();
@@ -86,9 +86,9 @@ namespace dsproc.SigantureProcessor {
 			//----------------------------------------------------------------------------------------------REFERNCE
 			Reference reference = new Reference {
 				Uri = nodeId,
-#pragma warning disable 612
+				#pragma warning disable 612
 				DigestMethod = CryptoPro.Sharpei.Xml.CPSignedXml.XmlDsigGost3411UrlObsolete
-#pragma warning disable 612
+				#pragma warning disable 612
 			};
 
 			XmlDsigExcC14NTransform c14 = new XmlDsigExcC14NTransform();
@@ -130,9 +130,9 @@ namespace dsproc.SigantureProcessor {
 			//----------------------------------------------------------------------------------------------REFERNCE
 			Reference reference = new Reference {
 				Uri = nodeId,
-#pragma warning disable 612
+				#pragma warning disable 612
 				DigestMethod = CryptoPro.Sharpei.Xml.CPSignedXml.XmlDsigGost3411UrlObsolete
-#pragma warning disable 612
+				#pragma warning disable 612
 			};
 
 			XmlDsigEnvelopedSignatureTransform env = new XmlDsigEnvelopedSignatureTransform();
@@ -168,7 +168,7 @@ namespace dsproc.SigantureProcessor {
 
 		#endregion
 
-		#region [SMEV 2]
+		#region [SMEV 2 (side by side)]
 
 		#region [UTILITY]
 
@@ -197,7 +197,7 @@ namespace dsproc.SigantureProcessor {
 
 		#region [TEMPLATE GENERATION]
 
-		static XmlDocument add_template(XmlDocument base_document, X509Certificate2 certificate) {
+		static XmlDocument AddRemplate(XmlDocument base_document, X509Certificate2 certificate) {
 
 			base_document.PreserveWhitespace = true;
 
@@ -246,7 +246,7 @@ namespace dsproc.SigantureProcessor {
 			XmlNode root = doc.SelectSingleNode("/*");
 			string rootPrefix = root?.Prefix;
 			//----------------------------------------------------------------------------------------------CREATE STRUCTURE
-			XmlDocument tDoc = add_template(doc, certificate);
+			XmlDocument tDoc = AddRemplate(doc, certificate);
 			//----------------------------------------------------------------------------------------------ROOT PREFIX 
 			XmlElement bodyElement = tDoc.GetElementsByTagName(rootPrefix + ":Body")[0] as XmlElement;
 			string referenceUri = bodyElement?.GetAttribute("wsu:Id");
@@ -319,10 +319,10 @@ namespace dsproc.SigantureProcessor {
 			//=====================================================================================REFERENCE TRASFORMS
 			Reference reference = new Reference {
 				Uri = "#" + signingNodeId,
-#pragma warning disable 612
+				#pragma warning disable 612
 				//Расчет хеш-суммы ГОСТ Р 34.11-94 http://www.w3.org/2001/04/xmldsig-more#gostr3411
 				DigestMethod = CryptoPro.Sharpei.Xml.CPSignedXml.XmlDsigGost3411UrlObsolete
-#pragma warning disable 612
+				#pragma warning disable 612
 			};
 
 			XmlDsigExcC14NTransform excC14n = new XmlDsigExcC14NTransform();

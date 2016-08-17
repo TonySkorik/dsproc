@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using dsproc.DataModel;
 
-namespace dsproc.SigantureProcessor {
+namespace dsproc.SignatureProcessor {
 	public static class Verification {
 
 		#region [STANDARD]
