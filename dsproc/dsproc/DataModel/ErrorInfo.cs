@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace dsproc.DataModel {
-	public enum ErrorType { ArgumentParsing };
+	public enum ErrorType { ArgumentParsing, Signing };
 
 	[DataContract(Name = "error")]
 	public class ErrorInfo:IJsonable {

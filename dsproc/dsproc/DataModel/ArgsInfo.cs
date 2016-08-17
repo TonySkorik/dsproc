@@ -21,9 +21,10 @@ namespace dsproc.DataModel {
 		private const string _nodeIdKey = "node_id";
 		private const string _nodeNameKey = "node_name";
 		private const string _nodeNamespaceKey = "node_namespace";
-		private const string _thumbprintKey = "thumbprint";
+		private const string _certificateThumbprintKey = "thumbprint";
 		private const string _cerFilePathKey = "cer_file";
-		private const string _verboseKey = "verbose";
+		//private const string _verboseKey = "verbose";
+		private const string _setDsKey = "ds";
 
 		private Dictionary<string,PropertyInfo> _knownKeys = new Dictionary<string,PropertyInfo>{
 			{_signatureTypeKey,typeof(ArgsInfo).GetProperty("SigType")},
@@ -31,9 +32,10 @@ namespace dsproc.DataModel {
 			{_nodeIdKey,typeof(ArgsInfo).GetProperty("NodeId")},
 			{_nodeNameKey,typeof(ArgsInfo).GetProperty("NodeName")},
 			{_nodeNamespaceKey,typeof(ArgsInfo).GetProperty("NodeNamespace")},
-			{_thumbprintKey,typeof(ArgsInfo).GetProperty("CertThumbprint")},
+			{_certificateThumbprintKey,typeof(ArgsInfo).GetProperty("CertThumbprint")},
 			{_cerFilePathKey,typeof(ArgsInfo).GetProperty("CertFilePath")},
-			{_verboseKey,typeof(ArgsInfo).GetProperty("IsDebugModeOn")}
+			//{_verboseKey,typeof(ArgsInfo).GetProperty("IsDebugModeOn")},
+			{_setDsKey,typeof(ArgsInfo).GetProperty("AssignDsInSignature")}
 		};
 		#endregion
 
@@ -47,7 +49,8 @@ namespace dsproc.DataModel {
 		public string NodeNamespace { set; get; }
 		public string CertThumbprint { set; get; }
 		public string CertFilePath { set; get; }
-		public bool IsDebugModeOn { set; get; }
+		//public bool IsDebugModeOn { set; get; }
+		public bool AssignDsInSignature { set; get; }
 		//================================
 		public SigningMode SigMode { set; get; }
 		public string InputFile { get; }
@@ -60,12 +63,17 @@ namespace dsproc.DataModel {
 
 		public ArgsInfo(string[] args) {
 			Ok = false;
+
+			SigType = SignatureType.Unknown;
+			SmevMode = 0;
+
 			string function = args[0];
 			if(!ProgramFunction.TryParse(function, true, out Function)) {
 				Ok = false;
 				InitError = new ErrorInfo(ErrorCodes.UnknownFunction, ErrorType.ArgumentParsing, $"Unknown program command - <{function}>");
 			}
 
+			#region [SWITCHES PARSING]
 			Dictionary<string, string> switches = new Dictionary<string, string>();
 			try {
 				switches =
@@ -84,7 +92,7 @@ namespace dsproc.DataModel {
 							if (_knownKeys.ContainsKey(keyName)) {
 								if (_knownKeys[keyName].PropertyType.Name == typeof(bool).Name) {
 									//bool
-									_knownKeys[keyName].SetValue(this, argvs[1]=="true" || argvs[1] == "1");
+									_knownKeys[keyName].SetValue(this, argvs[1].ToLower() == "true" || argvs[1] == "1" || argvs[1].ToLower() == "on");
 								} else if (_knownKeys[keyName].PropertyType.Name == typeof(byte).Name) {
 									//byte
 									byte smevNum;
@@ -128,9 +136,35 @@ namespace dsproc.DataModel {
 				InitError = new ErrorInfo(ErrorCodes.UnknownException, ErrorType.ArgumentParsing, $"Unknown exception : {e.Message}");
 				return;
 			}
+			#endregion
+
+			#region [FUNCTION BASED ARGS CHECK]
 
 			switch(Function) {
 				case ProgramFunction.Sign:
+					//check args
+					if (string.IsNullOrEmpty(CertThumbprint)) {
+						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_certificateThumbprintKey}> value is empty! This value is required!");
+						return;
+					}
+
+					if (SigType == SignatureType.Unknown) {
+						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_signatureTypeKey}> value is empty! This value is required!");
+						return;
+					}
+
+					switch (SigType) {
+						case SignatureType.Detached:
+							SigMode = SigningMode.Detached;
+							break;
+						case SignatureType.Enveloped:
+							SigMode = SmevMode == 2 ? SigningMode.Smev2 : SigningMode.SimpleEnveloped;
+							break;
+						case SignatureType.SideBySide:
+							SigMode = SmevMode != 3 ? SigningMode.Simple : SigningMode.Smev3; 
+							break;
+					}
+
 					string infile = args[args.Length - 2];
 					string outfile = args[args.Length - 1];
 
@@ -139,17 +173,26 @@ namespace dsproc.DataModel {
 						OutputFile = outfile;
 						Ok = true;
 					} else {
-						InitError = new ErrorInfo(ErrorCodes.FileNotExist,ErrorType.ArgumentParsing,$"Input file <{infile}> doesn't exist");
+						InitError = new ErrorInfo(ErrorCodes.FileNotExist,ErrorType.ArgumentParsing,$"Input file <{infile}> not found");
 					}
 
 					break;
 				case ProgramFunction.Extract:
-					throw new NotImplementedException();
+					//check args
+					string extractFile = args[args.Length - 1];
+					if (File.Exists(extractFile)) {
+						InputFile = extractFile;
+						Ok = true;
+					}else {
+						InitError = new ErrorInfo(ErrorCodes.FileNotExist, ErrorType.ArgumentParsing, $"Input file <{extractFile}> not found");
+					}
+					break;
 				case ProgramFunction.Verify:
 					throw new NotImplementedException();
 				case ProgramFunction.VerifyAndExtract:
 					throw new NotImplementedException();
 			}
+			#endregion
 		}
 	}
 }

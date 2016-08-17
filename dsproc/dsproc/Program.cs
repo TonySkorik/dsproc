@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -15,7 +16,7 @@ namespace dsproc {
 				//args successfully loaded - continue
 				switch (a.Function) {
 					case ProgramFunction.Sign:
-						sign(a);
+						Console.WriteLine(sign(a).ToJsonString());
 						break;
 					case ProgramFunction.Verify:
 						verify(a);
@@ -35,8 +36,17 @@ namespace dsproc {
 		}
 
 		#region [FUNCTIONS]
-		private static void sign(ArgsInfo args) {
-
+		private static StatusInfo sign(ArgsInfo args) {
+			string signedData = SignatureProcessor.Signing.Sign(args.SigMode, args.CertThumbprint, args.InputFile,
+																args.AssignDsInSignature, args.NodeId);
+			if (!string.IsNullOrEmpty(signedData)) {
+				//all OK
+				File.WriteAllText(args.OutputFile, signedData);
+				return new StatusInfo($"OK. Signed file path: {args.OutputFile}");
+			} else {
+				//report error
+				return new StatusInfo(new ErrorInfo(ErrorCodes.SigningFailed,ErrorType.Signing,"File signing failed!"));
+			}
 		}
 
 		private static bool verify(ArgsInfo args) {
