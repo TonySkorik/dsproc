@@ -24,7 +24,7 @@ namespace dsproc.DataModel {
 		public ErrorInfo(string errorCode, ErrorType errorType, string msg) {
 			ErrorCode = errorCode;
 			Type = errorType;
-			Message = msg;
+			Message = msg.Split('\r')[0]; // because error message from exception contains unwanted string seperated by \r\n
 		}
 
 		public string ToJsonString() {

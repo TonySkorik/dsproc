@@ -22,6 +22,7 @@ namespace dsproc.DataModel {
 		private const string _nodeNameKey = "node_name";
 		private const string _nodeNamespaceKey = "node_namespace";
 		private const string _thumbprintKey = "thumbprint";
+		private const string _cerFilePathKey = "cer_file";
 		private const string _verboseKey = "verbose";
 
 		private Dictionary<string,PropertyInfo> _knownKeys = new Dictionary<string,PropertyInfo>{
@@ -31,6 +32,7 @@ namespace dsproc.DataModel {
 			{_nodeNameKey,typeof(ArgsInfo).GetProperty("NodeName")},
 			{_nodeNamespaceKey,typeof(ArgsInfo).GetProperty("NodeNamespace")},
 			{_thumbprintKey,typeof(ArgsInfo).GetProperty("CertThumbprint")},
+			{_cerFilePathKey,typeof(ArgsInfo).GetProperty("CertFilePath")},
 			{_verboseKey,typeof(ArgsInfo).GetProperty("IsDebugModeOn")}
 		};
 		#endregion
@@ -44,6 +46,7 @@ namespace dsproc.DataModel {
 		public string NodeName { set; get; }
 		public string NodeNamespace { set; get; }
 		public string CertThumbprint { set; get; }
+		public string CertFilePath { set; get; }
 		public bool IsDebugModeOn { set; get; }
 		//================================
 		public SigningMode SigMode { set; get; }
@@ -104,6 +107,10 @@ namespace dsproc.DataModel {
 										throw new ArgumentNullException(keyName,$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <enveloped>, <sidebyside>, <detached>");
 									}
 								} else {
+									//string
+									if (keyName == _cerFilePathKey && !File.Exists(argvs[1])) {
+										throw new ArgumentNullException(keyName, $"Argument <{keyName}> value <{argvs[1]}> is invalid. File not found.");
+									}
 									_knownKeys[keyName].SetValue(this, argvs[1]);
 								}
 							}
