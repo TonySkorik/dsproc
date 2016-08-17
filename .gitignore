@@ -1,6 +1,6 @@
-﻿
-.vs
-bin/
+﻿bin/
 obj/
 packages/
-Unisign-cache/
+.vs/
+bin
+obj

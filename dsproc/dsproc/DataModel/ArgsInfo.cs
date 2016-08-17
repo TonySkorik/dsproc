@@ -4,10 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace dsproc {
-	class Program {
-		static void Main(string[] args) {
-
-		}
+namespace dsproc.DataModel {
+	class ArgsInfo {
 	}
 }
