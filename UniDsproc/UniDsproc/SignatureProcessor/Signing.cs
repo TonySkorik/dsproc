@@ -20,7 +20,12 @@ namespace UniDsproc.SignatureProcessor {
 		public static string Sign(SigningMode mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign, string nodeNamespace) {
 
 			XmlDocument signedXmlDoc = new XmlDocument();
+
 			AsymmetricAlgorithm privateKey;
+			if (nodeNamespace != null) {
+				//means signed node is being searched by name, not ID
+				//TODO: sign node, referenced by name
+			}
 
 			try {
 				privateKey = cert.PrivateKey;
@@ -51,21 +56,24 @@ namespace UniDsproc.SignatureProcessor {
 
 			return signedXmlDoc.InnerXml;
 		}
-		public static string Sign(SigningMode mode, string certificateThumbprint, string signThisPath, bool assignDs, string nodeToSign = "ID_SIGN", string nodeNamespace = null) {
+		public static string Sign(SigningMode mode, string certificateThumbprint, string signThisPath, bool assignDs, bool ignoreExpiredCert=false, string nodeToSign = "ID_SIGN", string nodeNamespace = null) {
 			XmlDocument signThis = new XmlDocument();
 			signThis.Load(signThisPath);
-			return Sign(mode, certificateThumbprint, signThis, assignDs, nodeToSign,nodeNamespace);
+			return Sign(mode, certificateThumbprint, signThis, assignDs, ignoreExpiredCert, nodeToSign, nodeNamespace);
 		}
 
-		public static string Sign(SigningMode mode, string certificateThumbprint, XmlDocument signThis, bool assignDs, string nodeToSign = "ID_SIGN", string nodeNamespace=null) {
+		public static string Sign(SigningMode mode, string certificateThumbprint, XmlDocument signThis, bool assignDs, bool ignoreExpiredCert=false, string nodeToSign = "ID_SIGN", string nodeNamespace=null) {
 			if(nodeToSign == null) {
 				nodeToSign = "ID_SIGN";
 			}
-			X509Certificate2 certificate = new X509Certificate2();
+			
+			X509Certificate2 certificate = CertificateProcessing.SearchCertificateByThumbprint(certificateThumbprint);
 
-			certificate = CertificateProcessing.SearchCertificateByThumbprint(certificateThumbprint);
+			if (!ignoreExpiredCert && CertificateProcessing.IsCertificateExpired(certificate)) {
+				throw new Exception($"CERT_EXPIRED] Certificate with thumbprint <{certificate.Thumbprint}> expired!");
+			}
 
-			return Sign(mode, certificate, signThis, assignDs, nodeToSign,nodeNamespace);
+			return Sign(mode, certificate, signThis, assignDs, nodeToSign, nodeNamespace);
 		}
 
 		#region [SIMPLE NODE SIGN]

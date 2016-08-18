@@ -141,6 +141,16 @@ namespace UniDsproc.SignatureProcessor {
 		}
 		#endregion
 
+		#region [CHECK]
+
+		public static bool IsCertificateExpired(X509Certificate2 cert) {
+			if (cert == null) return true;
+			DateTime dtNow = DateTime.Now.ToUniversalTime();
+			return !(dtNow > cert.NotBefore.ToUniversalTime() && dtNow < cert.NotAfter.ToUniversalTime());
+		}
+
+		#endregion
+
 		#region [TO JSON]
 		public static string CertificateToJson(XDocument signedXml) {
 			X509Certificate2 ci = ReadCertificateFromXml(signedXml);

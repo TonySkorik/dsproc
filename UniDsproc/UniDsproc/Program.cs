@@ -36,7 +36,7 @@ namespace UniDsproc {
 		private static StatusInfo sign(ArgsInfo args) {
 			try {
 				string signedData = SignatureProcessor.Signing.Sign(args.SigMode, args.CertThumbprint, args.InputFile,
-																	args.AssignDsInSignature, args.NodeId);
+																	args.AssignDsInSignature,args.IgnoreExpiredCert, args.NodeId);
 				File.WriteAllText(args.OutputFile, signedData);
 				return new StatusInfo($"OK. Signed file path: {args.OutputFile}");
 			} catch (Exception e) {

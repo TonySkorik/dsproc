@@ -48,9 +48,9 @@ namespace UniDsproc.DataModel {
 		public string CertFilePath { set; get; }
 		//public bool IsDebugModeOn { set; get; }
 		[ArgBinding("ds")]
-		public bool AssignDsInSignature { set; get; }
-		[ArgBinding("no_expiration_check")]
-		public bool NoExpirationCheck { set; get; }
+		public bool AssignDsInSignature { set; get; } // digital signature nodes will be put in XML namespace ds:
+		[ArgBinding("ignore_expired")]
+		public bool IgnoreExpiredCert { set; get; } //means there will be no expiration check before signing
 		//================================
 		public SigningMode SigMode { set; get; }
 		public string InputFile { get; }
@@ -66,7 +66,8 @@ namespace UniDsproc.DataModel {
 
 			SigType = SignatureType.Unknown;
 			SmevMode = 0;
-
+			IgnoreExpiredCert = false;
+			
 			if (args.Length == 0) {
 				InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, "Command line is empty!");
 				return;
