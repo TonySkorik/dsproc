@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 
 using dsproc.SignatureProcessor;
+using SmartBind;
 
 namespace dsproc.DataModel {
 	public enum ProgramFunction {Sign = 1, Verify = 2, Extract = 3, VerifyAndExtract = 4}
@@ -23,10 +24,9 @@ namespace dsproc.DataModel {
 		private const string _nodeNamespaceKey = "node_namespace";
 		private const string _certificateThumbprintKey = "thumbprint";
 		private const string _cerFilePathKey = "cer_file";
-		//private const string _verboseKey = "verbose";
 		private const string _setDsKey = "ds";
 
-		private Dictionary<string,PropertyInfo> _knownKeys = new Dictionary<string,PropertyInfo>{
+		/*private Dictionary<string,PropertyInfo> _knownArgs = new Dictionary<string,PropertyInfo>{
 			{_signatureTypeKey,typeof(ArgsInfo).GetProperty("SigType")},
 			{_smevModeKey,typeof(ArgsInfo).GetProperty("SmevMode")},
 			{_nodeIdKey,typeof(ArgsInfo).GetProperty("NodeId")},
@@ -36,20 +36,31 @@ namespace dsproc.DataModel {
 			{_cerFilePathKey,typeof(ArgsInfo).GetProperty("CertFilePath")},
 			//{_verboseKey,typeof(ArgsInfo).GetProperty("IsDebugModeOn")},
 			{_setDsKey,typeof(ArgsInfo).GetProperty("AssignDsInSignature")}
-		};
+		};*/
+
+		private readonly Dictionary<string, PropertyInfo> _knownArgs = SmartBind.CommandLineBind.BuildBindings(typeof(ArgsInfo));
+
 		#endregion
 
 		#region [P & F]
 		public readonly ProgramFunction Function;
 		//=============================== via reflection set
+		[ArgBinding("signature_type")]
 		public SignatureType SigType { set; get; }
+		[ArgBinding("smev_mode")]
 		public byte SmevMode { set; get; }
+		[ArgBinding("node_id")]
 		public string NodeId { set; get; }
+		[ArgBinding("node_name")]
 		public string NodeName { set; get; }
+		[ArgBinding("node_namespace")]
 		public string NodeNamespace { set; get; }
+		[ArgBinding("thumbprint")]
 		public string CertThumbprint { set; get; }
+		[ArgBinding("cer_file")]
 		public string CertFilePath { set; get; }
 		//public bool IsDebugModeOn { set; get; }
+		[ArgBinding("ds")]
 		public bool AssignDsInSignature { set; get; }
 		//================================
 		public SigningMode SigMode { set; get; }
@@ -82,23 +93,23 @@ namespace dsproc.DataModel {
 					.Select((arg) => arg.Split('='))
 					.ToDictionary((argvs) => {
 						string keyName = argvs[0].Substring(1);
-						if(_knownKeys.ContainsKey(keyName)) {
+						if(_knownArgs.ContainsKey(keyName)) {
 							return argvs[0].Substring(1);
 						}
 						throw new ArgumentOutOfRangeException($"Unknown argument <{keyName}>");
 					}, (argvs) => {
 						string keyName = argvs[0].Substring(1);
 						if(!string.IsNullOrEmpty(argvs[1])) {
-							if (_knownKeys.ContainsKey(keyName)) {
-								if (_knownKeys[keyName].PropertyType.Name == typeof(bool).Name) {
+							if (_knownArgs.ContainsKey(keyName)) {
+								if (_knownArgs[keyName].PropertyType.Name == typeof(bool).Name) {
 									//bool
-									_knownKeys[keyName].SetValue(this, argvs[1].ToLower() == "true" || argvs[1] == "1" || argvs[1].ToLower() == "on");
-								} else if (_knownKeys[keyName].PropertyType.Name == typeof(byte).Name) {
+									_knownArgs[keyName].SetValue(this, argvs[1].ToLower() == "true" || argvs[1] == "1" || argvs[1].ToLower() == "on");
+								} else if (_knownArgs[keyName].PropertyType.Name == typeof(byte).Name) {
 									//byte
 									byte smevNum;
 									if (byte.TryParse(argvs[1], out smevNum)) {
 										if (smevNum == 2 || smevNum == 3) {
-											_knownKeys[keyName].SetValue(this, smevNum);
+											_knownArgs[keyName].SetValue(this, smevNum);
 										} else {
 											throw new ArgumentNullException(keyName,$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values : <2> or <3>");
 										}
@@ -106,11 +117,11 @@ namespace dsproc.DataModel {
 										throw new ArgumentNullException(keyName,$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values : <2> or <3>");
 									}
 
-								} else if(_knownKeys[keyName].PropertyType.Name == typeof(SignatureType).Name) {
+								} else if(_knownArgs[keyName].PropertyType.Name == typeof(SignatureType).Name) {
 									//SignatureType
 									SignatureType stype;
 									if (SignatureType.TryParse(argvs[1], true, out stype)) {
-										_knownKeys[keyName].SetValue(this, stype);
+										_knownArgs[keyName].SetValue(this, stype);
 									} else {
 										throw new ArgumentNullException(keyName,$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <enveloped>, <sidebyside>, <detached>");
 									}
@@ -119,7 +130,7 @@ namespace dsproc.DataModel {
 									if (keyName == _cerFilePathKey && !File.Exists(argvs[1])) {
 										throw new ArgumentNullException(keyName, $"Argument <{keyName}> value <{argvs[1]}> is invalid. File not found.");
 									}
-									_knownKeys[keyName].SetValue(this, argvs[1]);
+									_knownArgs[keyName].SetValue(this, argvs[1]);
 								}
 							}
 							return argvs[1];
