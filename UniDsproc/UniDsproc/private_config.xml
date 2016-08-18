@@ -4,5 +4,5 @@
 		<GetFileUri>https://corp.gsen.ru/unisign/api_unisign/server_result.xml</GetFileUri>
 		<CertificateThumbprint>8D6079A1AC1215F2E92AA86A5C897C48E15B5782</CertificateThumbprint>
 	</Server>
-	<Signature/>
+	<!--<Signature/>-->
 </Configuration>
