@@ -5,17 +5,19 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace UniDsproc.DataModel {
 	public enum ErrorType { ArgumentParsing, Signing };
 
 	[DataContract(Name = "error")]
-	public class ErrorInfo:IJsonable {
+	public class ErrorInfo:PrintableInfo {
 
 		[DataMember(Name = "error_code")]
 		public string ErrorCode { get; }
 
 		[DataMember(Name = "type")]
+		[JsonConverter(typeof(ErrorTypeEnumConverter))]
 		public ErrorType Type { get; }
 
 		[DataMember(Name = "message")]
@@ -24,11 +26,14 @@ namespace UniDsproc.DataModel {
 		public ErrorInfo(string errorCode, ErrorType errorType, string msg) {
 			ErrorCode = errorCode;
 			Type = errorType;
-			Message = msg.Split('\r')[0]; // because error message from exception contains unwanted string seperated by \r\n
-		}
-
-		public string ToJsonString() {
-			return JsonConvert.SerializeObject(this,Formatting.Indented);
+			string[] msgParts = (msg.Split('\r')[0]).Split(']'); // because error message from exception contains unwanted string seperated by \r\n
+			if (msgParts.Length == 2) {
+				ErrorCode = msgParts[0].Trim();
+				Message = msgParts[1].Trim();
+			} else {
+				Message = msg.Split('\r')[0]; // because error message from exception contains unwanted string seperated by \r\n
+			}
+			
 		}
 	}
 }

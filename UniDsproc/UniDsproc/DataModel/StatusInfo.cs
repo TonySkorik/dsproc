@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace UniDsproc.DataModel {
 	[DataContract(Name = "status")]
-	public class StatusInfo: IJsonable {
+	public class StatusInfo: PrintableInfo {
 
 		[DataMember(Name = "is_error")]
 		public bool IsError { get; }
@@ -16,11 +16,7 @@ namespace UniDsproc.DataModel {
 		public ErrorInfo Error { set; get; }
 		[DataMember(Name = "result")]
 		public string Result { get; }
-
-		public string ToJsonString() {
-			return JsonConvert.SerializeObject(this, Formatting.Indented);
-		}
-
+		
 		public StatusInfo(ErrorInfo errorInfo) {
 			Result = null;
 			IsError = true;

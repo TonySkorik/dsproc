@@ -67,7 +67,7 @@
     <Compile Include="DataModel\ArgsInfo.cs" />
     <Compile Include="DataModel\ErrorCodes.cs" />
     <Compile Include="DataModel\ErrorInfo.cs" />
-    <Compile Include="DataModel\IJsonable.cs" />
+    <Compile Include="DataModel\PrintableInfo.cs" />
     <Compile Include="SmartBind.cs" />
     <Compile Include="DataModel\StatusInfo.cs" />
     <Compile Include="DataModel\XdocExtensions.cs" />

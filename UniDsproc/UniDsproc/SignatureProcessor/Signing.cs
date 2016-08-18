@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
@@ -16,61 +17,36 @@ namespace UniDsproc.SignatureProcessor {
 	public enum SignatureType {Enveloped = 1, SideBySide = 2, Detached = 3, Unknown = 4};
 	
 	public static class Signing {
-		/*private static void printError(Exception e) {
-			Console.WriteLine($"SIGNING ERROR! Signing failed.\nMessage: {e.Message}");
-		}*/
-
 		public static string Sign(SigningMode mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign, string nodeNamespace) {
 
 			XmlDocument signedXmlDoc = new XmlDocument();
 			AsymmetricAlgorithm privateKey;
 
-			//try {
+			try {
 				privateKey = cert.PrivateKey;
-			/*} catch(Exception e) {
-				throw;
-			}*/
-
-			switch(mode) {
-				case SigningMode.Simple:
-					//try {
+			} catch(Exception e) {
+				throw new Exception($"PRIVATE_KEY_MISSING] Certificate (subject: <{cert.Subject}>) private key not found. Original message: <{e.Message}>");
+			}
+			try {
+				switch (mode) {
+					case SigningMode.Simple:
 						signedXmlDoc = SignXmlNode(signThis, privateKey, cert, nodeToSign);
-					/*} catch(Exception e) {
-						throw;
-					}*/
-					break;
-				case SigningMode.SimpleEnveloped:
-					//try {
+						break;
+					case SigningMode.SimpleEnveloped:
 						signedXmlDoc = SignXmlFileEnveloped(signThis, privateKey, cert, nodeToSign);
-					/*} catch(Exception e) {
-						throw;
-						return string.Empty;
-					}*/
-					break;
-				case SigningMode.Smev2:
-					//try {
+						break;
+					case SigningMode.Smev2:
 						signedXmlDoc = SignXmlFileSmev2(signThis, privateKey, cert);
-					/*} catch(Exception e) {
-						throw;
-						return string.Empty;
-					}*/
-					break;
-				case SigningMode.Smev3:
-					//try {
+						break;
+					case SigningMode.Smev3:
 						signedXmlDoc = SignXmlFileSmev3(signThis, privateKey, cert, nodeToSign, assignDs);
-					/*} catch(Exception e) {
-						throw;
-						return string.Empty;
-					}*/
-					break;
-				case SigningMode.Detached:
-					//try {
+						break;
+					case SigningMode.Detached:
 						return Convert.ToBase64String(SignXmlFileDetached(signThis, privateKey, cert, nodeToSign, assignDs));
-					/*} catch(Exception e) {
-						throw;
-						return string.Empty;
-					}*/
-					break;
+						break;
+				}
+			} catch (Exception e) {
+				throw new Exception($"UNKNOWN_CRYPTO_EX] Original message: {e.Message}");
 			}
 
 			return signedXmlDoc.InnerXml;
@@ -85,7 +61,10 @@ namespace UniDsproc.SignatureProcessor {
 			if(nodeToSign == null) {
 				nodeToSign = "ID_SIGN";
 			}
-			X509Certificate2 certificate = CertificateProcessing.SearchCertificateByThumbprint(certificateThumbprint);
+			X509Certificate2 certificate = new X509Certificate2();
+
+			certificate = CertificateProcessing.SearchCertificateByThumbprint(certificateThumbprint);
+
 			return Sign(mode, certificate, signThis, assignDs, nodeToSign,nodeNamespace);
 		}
 

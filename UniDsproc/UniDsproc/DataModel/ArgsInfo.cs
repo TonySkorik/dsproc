@@ -17,26 +17,14 @@ namespace UniDsproc.DataModel {
 
 		#region [AVAILABLE KEYS]
 		private const string _signatureTypeKey = "signature_type";
-		private const string _smevModeKey = "smev_mode";
-		private const string _nodeIdKey = "node_id";
-		private const string _nodeNameKey = "node_name";
-		private const string _nodeNamespaceKey = "node_namespace";
+		//private const string _smevModeKey = "smev_mode";
+		//private const string _nodeIdKey = "node_id";
+		//private const string _nodeNameKey = "node_name";
+		//private const string _nodeNamespaceKey = "node_namespace";
 		private const string _certificateThumbprintKey = "thumbprint";
 		private const string _cerFilePathKey = "cer_file";
-		private const string _setDsKey = "ds";
-
-		/*private Dictionary<string,PropertyInfo> _knownArgs = new Dictionary<string,PropertyInfo>{
-			{_signatureTypeKey,typeof(ArgsInfo).GetProperty("SigType")},
-			{_smevModeKey,typeof(ArgsInfo).GetProperty("SmevMode")},
-			{_nodeIdKey,typeof(ArgsInfo).GetProperty("NodeId")},
-			{_nodeNameKey,typeof(ArgsInfo).GetProperty("NodeName")},
-			{_nodeNamespaceKey,typeof(ArgsInfo).GetProperty("NodeNamespace")},
-			{_certificateThumbprintKey,typeof(ArgsInfo).GetProperty("CertThumbprint")},
-			{_cerFilePathKey,typeof(ArgsInfo).GetProperty("CertFilePath")},
-			//{_verboseKey,typeof(ArgsInfo).GetProperty("IsDebugModeOn")},
-			{_setDsKey,typeof(ArgsInfo).GetProperty("AssignDsInSignature")}
-		};*/
-
+		//private const string _setDsKey = "ds";
+		
 		private readonly Dictionary<string, PropertyInfo> _knownArgs = SmartBind.CommandLineBind.BuildBindings(typeof(ArgsInfo));
 
 		#endregion
@@ -61,6 +49,8 @@ namespace UniDsproc.DataModel {
 		//public bool IsDebugModeOn { set; get; }
 		[ArgBinding("ds")]
 		public bool AssignDsInSignature { set; get; }
+		[ArgBinding("no_expiration_check")]
+		public bool NoExpirationCheck { set; get; }
 		//================================
 		public SigningMode SigMode { set; get; }
 		public string InputFile { get; }
@@ -76,6 +66,11 @@ namespace UniDsproc.DataModel {
 
 			SigType = SignatureType.Unknown;
 			SmevMode = 0;
+
+			if (args.Length == 0) {
+				InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, "Command line is empty!");
+				return;
+			}
 
 			string function = args[0];
 			if(!ProgramFunction.TryParse(function, true, out Function)) {
@@ -148,6 +143,9 @@ namespace UniDsproc.DataModel {
 			}
 			#endregion
 
+			//remove switches from comand line
+			args = args.Where(arg => !arg.StartsWith("-")).ToArray();
+
 			#region [FUNCTION BASED ARGS CHECK]
 
 			switch(Function) {
@@ -175,8 +173,20 @@ namespace UniDsproc.DataModel {
 							break;
 					}
 
-					string infile = args[args.Length - 2];
-					string outfile = args[args.Length - 1];
+					string infile = string.Empty;
+					string outfile = string.Empty;
+					if (args.Length == 3) {
+						infile = args[args.Length - 2];
+						outfile = args[args.Length - 1];
+					} else if(args.Length==2) {
+						//means there is only one file passed - let it be input
+						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, "Output file not specified!");
+						return;
+					}else if (args.Length == 1) {
+						//means no files passed
+						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, "Neither input nor output file is specified!");
+						return;
+					}
 
 					if(File.Exists(infile)) {
 						InputFile = infile;

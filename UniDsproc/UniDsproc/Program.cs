@@ -18,20 +18,18 @@ namespace UniDsproc {
 						Console.WriteLine(sign(a).ToJsonString());
 						break;
 					case ProgramFunction.Verify:
-						verify(a);
+						Console.WriteLine(verify(a));
 						break;
 					case ProgramFunction.Extract:
-						extract(a);
+						Console.WriteLine(extract(a));
 						break;
 					case ProgramFunction.VerifyAndExtract:
-						verifyAndExtract(a);
+						Console.WriteLine(verifyAndExtract(a));
 						break;
 				}
 			} else {
 				Console.WriteLine(a.InitError.ToJsonString());
-				//args loading error - break, report error
 			}
-			Console.ReadKey();
 		}
 
 		#region [FUNCTIONS]
@@ -42,7 +40,7 @@ namespace UniDsproc {
 				File.WriteAllText(args.OutputFile, signedData);
 				return new StatusInfo($"OK. Signed file path: {args.OutputFile}");
 			} catch (Exception e) {
-				return new StatusInfo(new ErrorInfo(ErrorCodes.SigningFailed,ErrorType.Signing,$"Signing failed! Message: <{e.Message}>"));
+				return new StatusInfo(new ErrorInfo(ErrorCodes.SigningFailed,ErrorType.Signing,$"{e.Message}"));
 			}
 		}
 
@@ -60,11 +58,11 @@ namespace UniDsproc {
 
 		private static StatusInfo verifyAndExtract(ArgsInfo args) {
 			StatusInfo si = new StatusInfo("OK");
-			if (!verify(args).IsError) {
-				return extract(args);
-			} else {
-				return si;
+			si = verify(args);
+			if (!si.IsError) {
+				si = extract(args);
 			}
+			return si;
 		}
 		#endregion
 

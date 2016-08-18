@@ -47,7 +47,7 @@ namespace UniDsproc.SignatureProcessor {
 					if(found.Count != 0) {
 						// means found in Current User store
 					} else {
-						throw new Exception($"Certificate with thumbprint {certificateThumbprint} not found");
+						throw new Exception($"CERT_SEARCH_EX] Certificate with thumbprint {certificateThumbprint} not found");
 					}
 				} else {
 					// means found in LocalMachine store
@@ -56,10 +56,10 @@ namespace UniDsproc.SignatureProcessor {
 				if(found.Count == 1) {
 					return found[0];
 				} else {
-					throw new Exception($"More than one certificate with thumbprint {certificateThumbprint} found!");
+					throw new Exception($"CERT_SEARC_EX] More than one certificate with thumbprint {certificateThumbprint} found!");
 				}
 			} catch(CryptographicException e) {
-				throw new Exception($"Unnknown cryptographic exception! Original message : {e.Message}");
+				throw new Exception($"UNKNOWN_CRYPTO_EX] Original message : {e.Message}");
 			}
 		}
 
