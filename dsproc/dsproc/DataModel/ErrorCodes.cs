@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace dsproc.DataModel {
+namespace UniDsproc.DataModel {
 	public static class ErrorCodes {
 		#region [CONFIG PARSING]
 		public static string ArgumentInvalidValue = "ArgumentInvalidValue";

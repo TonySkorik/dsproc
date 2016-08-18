@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace dsproc.DataModel {
+namespace UniDsproc.DataModel {
 	public enum ErrorType { ArgumentParsing, Signing };
 
 	[DataContract(Name = "error")]

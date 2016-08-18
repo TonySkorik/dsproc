@@ -5,9 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using dsproc.DataModel;
+using UniDsproc.DataModel;
 
-namespace dsproc {
+namespace UniDsproc {
 	class Program {
 		private static void Main(string[] args) {
 			ArgsInfo a = new ArgsInfo(args);

@@ -7,11 +7,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-
-using dsproc.SignatureProcessor;
 using SmartBind;
+using UniDsproc.SignatureProcessor;
 
-namespace dsproc.DataModel {
+namespace UniDsproc.DataModel {
 	public enum ProgramFunction {Sign = 1, Verify = 2, Extract = 3, VerifyAndExtract = 4}
 
 	public class ArgsInfo {

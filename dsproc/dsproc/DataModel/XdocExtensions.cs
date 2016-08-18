@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace dsproc.DataModel {
+namespace UniDsproc.DataModel {
 
 	#region [XDOC <=> XMLDOC] extension methods
 	public static class XdocConversionExtensions {

@@ -11,7 +11,7 @@ using System.Xml.Linq;
 using Newtonsoft.Json;
 using Formatting = System.Xml.Formatting;
 
-namespace dsproc.SignatureProcessor {
+namespace UniDsproc.SignatureProcessor {
 	public enum StoreType {LocalMachine = 1, CurrentUser = 2}
 	public static class CertificateProcessing {
 

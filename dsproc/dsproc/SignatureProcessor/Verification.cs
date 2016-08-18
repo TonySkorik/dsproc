@@ -11,9 +11,9 @@ using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using dsproc.DataModel;
+using UniDsproc.DataModel;
 
-namespace dsproc.SignatureProcessor {
+namespace UniDsproc.SignatureProcessor {
 	public static class Verification {
 
 		#region [STANDARD]

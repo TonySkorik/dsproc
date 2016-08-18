@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace dsproc.DataModel {
+namespace UniDsproc.DataModel {
 	interface IJsonable {
 		string ToJsonString();
 	}

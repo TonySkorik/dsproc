@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using CryptoPro.Sharpei.Xml;
 
-namespace dsproc.SignatureProcessor {
+namespace UniDsproc.SignatureProcessor {
 
 	public enum SigningMode {Simple = 1, Smev2 = 2, Smev3 = 3, Detached = 4, SimpleEnveloped = 5};
 	public enum SignatureType {Enveloped = 1, SideBySide = 2, Detached = 3, Unknown = 4};
