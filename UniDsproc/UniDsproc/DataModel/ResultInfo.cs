@@ -16,6 +16,7 @@ namespace UniDsproc.DataModel {
 		public string Message { get; }
 
 		[JsonProperty("certificate",DefaultValueHandling = DefaultValueHandling.Ignore)]
+		[JsonConverter(typeof(CertToJsonConverter))]
 		public X509Certificate2 Certificate { get; }
 
 		public ResultInfo(string msg) {

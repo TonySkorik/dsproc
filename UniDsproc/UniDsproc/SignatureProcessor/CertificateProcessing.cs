@@ -136,7 +136,8 @@ namespace UniDsproc.SignatureProcessor {
 					throw new Exception("CERTIFICATE_NOT_FOUND] Certificate not found in passed document");
 					// means signatureInfo appears to be empty
 				} else {
-					cert = new X509Certificate2(Encoding.UTF8.GetBytes(certificateNodeContent));
+					//cert = new X509Certificate2(Encoding.UTF8.GetBytes(certificateNodeContent));
+					cert = new X509Certificate2(Convert.FromBase64String(certificateNodeContent));
 				}
 			} else {
 				throw new Exception("NO_SIGNATURE_FOUND] Signature not found in passed document");

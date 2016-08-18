@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -40,6 +41,32 @@ namespace UniDsproc.DataModel {
 		public override bool CanConvert(Type objectType) {
 			return objectType == typeof(bool);
 		}
+	}
+
+	public class CertToJsonConverter : JsonConverter {
+		private bool _canRead;
+
+		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
+			X509Certificate2 ci = (X509Certificate2) value;
+			
+			JsonSerializerSettings js = new JsonSerializerSettings() {
+				StringEscapeHandling = StringEscapeHandling.Default
+			};
+			string jsonCert = JsonConvert.SerializeObject(ci, Newtonsoft.Json.Formatting.Indented, js);
+			
+			writer.WriteValue(jsonCert);
+		}
+
+
+		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
+			throw new NotSupportedException();
+		}
+
+		public override bool CanConvert(Type objectType) {
+			return objectType == typeof(X509Certificate2);
+		}
+
+		public override bool CanRead => false;
 	}
 
 	public class PrintableInfo {

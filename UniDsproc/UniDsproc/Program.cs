@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using UniDsproc.DataModel;
 
 namespace UniDsproc {
@@ -24,13 +25,13 @@ namespace UniDsproc {
 							Console.WriteLine(sign(a).ToJsonString());
 							break;
 						case ProgramFunction.Verify:
-							Console.WriteLine(verify(a));
+							Console.WriteLine(verify(a).ToJsonString());
 							break;
 						case ProgramFunction.Extract:
-							Console.WriteLine(extract(a));
+							Console.WriteLine(extract(a).ToJsonString());
 							break;
 						case ProgramFunction.VerifyAndExtract:
-							Console.WriteLine(verifyAndExtract(a));
+							Console.WriteLine(verifyAndExtract(a).ToJsonString());
 							break;
 					}
 				} else {
@@ -121,6 +122,7 @@ namespace UniDsproc {
 		}
 
 		private static StatusInfo extract(ArgsInfo args) {
+			
 			StatusInfo si = new StatusInfo(new ErrorInfo(ErrorCodes.UnknownException,ErrorType.CertificateExtraction, "Unknown certificate extraction exception"));
 			try {
 				X509Certificate2 cert = SignatureProcessor.CertificateProcessing.ReadCertificateFromXml(args.InputFile);
