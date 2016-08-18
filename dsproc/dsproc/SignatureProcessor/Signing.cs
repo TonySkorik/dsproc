@@ -15,8 +15,11 @@ namespace dsproc.SignatureProcessor {
 	public enum SigningMode {Simple = 1, Smev2 = 2, Smev3 = 3, Detached = 4, SimpleEnveloped = 5};
 	public enum SignatureType {Enveloped = 1, SideBySide = 2, Detached = 3, Unknown = 4};
 	
-
 	public static class Signing {
+		private static void printError(Exception e) {
+			Console.WriteLine($"SIGNING ERROR! Signing failed.\nMessage: {e.Message}");
+		}
+
 		public static string Sign(SigningMode mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign, string nodeNamespace) {
 
 			XmlDocument signedXmlDoc = new XmlDocument();
@@ -24,44 +27,62 @@ namespace dsproc.SignatureProcessor {
 
 			try {
 				privateKey = cert.PrivateKey;
-			} catch {
-				throw new KeyNotFoundException($"Certificate for {cert.FriendlyName} not found");
+			} catch(Exception e) {
+				//printError(e);
+				throw;
+				return string.Empty;
+				//throw new KeyNotFoundException($"Certificate for {cert.FriendlyName} not found");
 			}
 
 			switch(mode) {
 				case SigningMode.Simple:
 					try {
 						signedXmlDoc = SignXmlNode(signThis, privateKey, cert, nodeToSign);
-					} catch {
-						Console.WriteLine("SIGNING ERROR! Signing failed.");
+					} catch(Exception e) {
+						//printError(e);
+						throw;
+						return string.Empty;
+						//Console.WriteLine($"SIGNING ERROR! Signing failed.\nMessage: {e.Message}");
 					}
 					break;
 				case SigningMode.SimpleEnveloped:
 					try {
 						signedXmlDoc = SignXmlFileEnveloped(signThis, privateKey, cert, nodeToSign);
-					} catch {
-						Console.WriteLine("SIGNING ERROR! Signing failed.");
+					} catch(Exception e) {
+						//Console.WriteLine("SIGNING ERROR! Signing failed.");
+						//printError(e);
+						throw;
+						return string.Empty;
 					}
 					break;
 				case SigningMode.Smev2:
 					try {
 						signedXmlDoc = SignXmlFileSmev2(signThis, privateKey, cert);
-					} catch {
-						Console.WriteLine("SIGNING ERROR! Signing failed.");
+					} catch(Exception e) {
+						//Console.WriteLine("SIGNING ERROR! Signing failed.");
+						//printError(e);
+						throw;
+						return string.Empty;
 					}
 					break;
 				case SigningMode.Smev3:
 					try {
 						signedXmlDoc = SignXmlFileSmev3(signThis, privateKey, cert, nodeToSign, assignDs);
-					} catch {
-						Console.WriteLine("SIGNING ERROR! Signing failed.");
+					} catch(Exception e) {
+						//Console.WriteLine("SIGNING ERROR! Signing failed.");
+						//printError(e);
+						throw;
+						return string.Empty;
 					}
 					break;
 				case SigningMode.Detached:
 					try {
 						return Convert.ToBase64String(SignXmlFileDetached(signThis, privateKey, cert, nodeToSign, assignDs));
-					} catch {
-						Console.WriteLine("SIGNING ERROR! Signing failed.");
+					} catch(Exception e) {
+						//Console.WriteLine("SIGNING ERROR! Signing failed.");
+						//printError(e);
+						throw;
+						return string.Empty;
 					}
 					break;
 			}

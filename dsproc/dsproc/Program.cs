@@ -37,15 +37,13 @@ namespace dsproc {
 
 		#region [FUNCTIONS]
 		private static StatusInfo sign(ArgsInfo args) {
-			string signedData = SignatureProcessor.Signing.Sign(args.SigMode, args.CertThumbprint, args.InputFile,
-																args.AssignDsInSignature, args.NodeId);
-			if (!string.IsNullOrEmpty(signedData)) {
-				//all OK
+			try {
+				string signedData = SignatureProcessor.Signing.Sign(args.SigMode, args.CertThumbprint, args.InputFile,
+																	args.AssignDsInSignature, args.NodeId);
 				File.WriteAllText(args.OutputFile, signedData);
 				return new StatusInfo($"OK. Signed file path: {args.OutputFile}");
-			} else {
-				//report error
-				return new StatusInfo(new ErrorInfo(ErrorCodes.SigningFailed,ErrorType.Signing,"File signing failed!"));
+			} catch (Exception e) {
+				return new StatusInfo(new ErrorInfo(ErrorCodes.SigningFailed,ErrorType.Signing,$"Signing failed! Message: <{e.Message}>"));
 			}
 		}
 
