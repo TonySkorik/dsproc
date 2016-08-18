@@ -9,7 +9,6 @@ using dsproc.DataModel;
 
 namespace dsproc {
 	class Program {
-
 		private static void Main(string[] args) {
 			ArgsInfo a = new ArgsInfo(args);
 			if (a.Ok) {
@@ -47,19 +46,24 @@ namespace dsproc {
 			}
 		}
 
-		private static bool verify(ArgsInfo args) {
-			bool ret = false;
+		private static StatusInfo verify(ArgsInfo args) {
+			StatusInfo si = new StatusInfo("OK");
 
-			return ret;
+			return si;
 		}
 
-		private static void extract(ArgsInfo args) {
+		private static StatusInfo extract(ArgsInfo args) {
+			StatusInfo si = new StatusInfo("OK");
 
+			return si;
 		}
 
-		private static void verifyAndExtract(ArgsInfo args) {
-			if (verify(args)) {
-				extract(args);
+		private static StatusInfo verifyAndExtract(ArgsInfo args) {
+			StatusInfo si = new StatusInfo("OK");
+			if (!verify(args).IsError) {
+				return extract(args);
+			} else {
+				return si;
 			}
 		}
 		#endregion

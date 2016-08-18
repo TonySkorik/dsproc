@@ -90,13 +90,33 @@ namespace dsproc.SignatureProcessor {
 		}
 
 		#region [SIMPLE NODE SIGN]
+
+		private static XmlNode getNodeWithAttributeValue(XmlNodeList nodelist, string attributeValue) {
+			XmlNode ret = null;
+			foreach(XmlNode xn in nodelist) {
+				if (xn.HasChildNodes) {
+					ret = getNodeWithAttributeValue(xn.ChildNodes, attributeValue);
+					if ( ret!= null) break;
+				}
+				if (xn.Attributes!=null && xn.Attributes.Count != 0) {
+					foreach (XmlAttribute xa in xn.Attributes) {
+						if (xa.Value == attributeValue) {
+							ret = xn;
+							break;
+						}
+					}
+				}
+			}
+			return ret;
+		}
+
 		public static XmlDocument SignXmlNode(XmlDocument doc, AsymmetricAlgorithm key, X509Certificate2 certificate, string nodeId) {
 
 			//----------------------------------------------------------------------------------------------CREATE SIGNED XML
 			SignedXml signedXml = new SignedXml(doc) { SigningKey = key };
 			//----------------------------------------------------------------------------------------------REFERNCE
 			Reference reference = new Reference {
-				Uri = nodeId,
+				Uri = "#"+nodeId,
 				#pragma warning disable 612
 				DigestMethod = CryptoPro.Sharpei.Xml.CPSignedXml.XmlDsigGost3411UrlObsolete
 				#pragma warning disable 612
@@ -120,13 +140,8 @@ namespace dsproc.SignatureProcessor {
 			//----------------------------------------------------------------------------------------------GET XML
 			XmlElement xmlDigitalSignature = signedXml.GetXml();
 			//=============================================================================APPEND SIGNATURE TO DOCUMENT
-			doc.GetElementsByTagName("Signature")[0].InnerXml = "";
-			doc.GetElementsByTagName("Signature")[0].AppendChild(xmlDigitalSignature);
-			/*
-			XmlNode root = doc.SelectSingleNode("/*");
-			root?.AppendChild(doc.ImportNode(xmlDigitalSignature, true));
-			*/
-
+			
+			getNodeWithAttributeValue(doc.ChildNodes, nodeId)?.ParentNode?.AppendChild(xmlDigitalSignature);
 
 			return doc;
 		}
