@@ -18,6 +18,17 @@ namespace UniDsproc.DataModel {
 		public static string SigningFailed = "SigningFailed";
 		#endregion
 
+		#region [SIGNATURE VERIFICATION]
+
+		#endregion
+
+		#region [CERT EXTRACTION]
+		public static string CertificateExtractionException = "CertificateEatractionException";
+		
+		#endregion
+
+
+
 		#region [UNKNOWN EXCEPTIONS]
 		public static string UnknownException = "UnknownException";
 		#endregion

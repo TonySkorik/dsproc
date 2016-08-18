@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using UniDsproc.DataModel;
@@ -115,13 +116,19 @@ namespace UniDsproc {
 
 		private static StatusInfo verify(ArgsInfo args) {
 			StatusInfo si = new StatusInfo("OK");
-
+			
 			return si;
 		}
 
 		private static StatusInfo extract(ArgsInfo args) {
-			StatusInfo si = new StatusInfo("OK");
-
+			StatusInfo si = new StatusInfo(new ErrorInfo(ErrorCodes.UnknownException,ErrorType.CertificateExtraction, "Unknown certificate extraction exception"));
+			try {
+				X509Certificate2 cert = SignatureProcessor.CertificateProcessing.ReadCertificateFromXml(args.InputFile);
+				si = new StatusInfo(new ResultInfo(cert));
+			} catch (Exception e) {
+				si = new StatusInfo(new ErrorInfo(ErrorCodes.CertificateExtractionException, ErrorType.CertificateExtraction, e.Message));
+			}
+			
 			return si;
 		}
 

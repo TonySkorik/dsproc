@@ -104,6 +104,10 @@ namespace UniDsproc.SignatureProcessor {
 
 		#region [READ]
 
+		public static X509Certificate2 ReadCertificateFromXml(string signedXmlPath) {
+			return ReadCertificateFromXml(XDocument.Load(signedXmlPath));
+		}
+
 		public static X509Certificate2 ReadCertificateFromXml(XDocument signedXml) {
 			X509Certificate2 cert = null;
 
@@ -129,11 +133,13 @@ namespace UniDsproc.SignatureProcessor {
 					).First();
 
 				if(certificateNodeContent == "") {
+					throw new Exception("CERTIFICATE_NOT_FOUND] Certificate not found in passed document");
 					// means signatureInfo appears to be empty
 				} else {
 					cert = new X509Certificate2(Encoding.UTF8.GetBytes(certificateNodeContent));
 				}
 			} else {
+				throw new Exception("NO_SIGNATURE_FOUND] Signature not found in passed document");
 				//means tere is no SenderInformationSystemSignature node
 				// cert = null
 			}

@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace UniDsproc.DataModel {
-	public enum ErrorType { ArgumentParsing, Signing };
+	public enum ErrorType { ArgumentParsing, Signing, SignatureVerification, CertificateExtraction };
 
 	[DataContract(Name = "error")]
 	public class ErrorInfo:PrintableInfo {
