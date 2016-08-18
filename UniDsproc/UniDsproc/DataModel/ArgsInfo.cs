@@ -91,7 +91,7 @@ namespace UniDsproc.DataModel {
 						if(_knownArgs.ContainsKey(keyName)) {
 							return argvs[0].Substring(1);
 						}
-						throw new ArgumentOutOfRangeException($"Unknown argument <{keyName}>");
+						throw new ArgumentOutOfRangeException(keyName,$"Unknown argument <{keyName}>");
 					}, (argvs) => {
 						string keyName = argvs[0].Substring(1);
 						if(!string.IsNullOrEmpty(argvs[1])) {
@@ -151,6 +151,7 @@ namespace UniDsproc.DataModel {
 
 			switch(Function) {
 				case ProgramFunction.Sign:
+					#region [SIGN]
 					//check args
 					if (string.IsNullOrEmpty(CertThumbprint)) {
 						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_certificateThumbprintKey}> value is empty! This value is required!");
@@ -198,7 +199,9 @@ namespace UniDsproc.DataModel {
 					}
 
 					break;
+					#endregion
 				case ProgramFunction.Extract:
+					#region [EXTRACT]
 					//check args
 					string extractFile = args[args.Length - 1];
 					if (File.Exists(extractFile)) {
@@ -208,12 +211,20 @@ namespace UniDsproc.DataModel {
 						InitError = new ErrorInfo(ErrorCodes.FileNotExist, ErrorType.ArgumentParsing, $"Input file <{extractFile}> not found");
 					}
 					break;
+					#endregion
 				case ProgramFunction.Verify:
 					throw new NotImplementedException();
+					#region [VERIFY]
+
+					#endregion
 				case ProgramFunction.VerifyAndExtract:
 					throw new NotImplementedException();
+					#region [VERIFY AND EXTRACT]
+
+					#endregion
 			}
 			#endregion
+
 		}
 	}
 }

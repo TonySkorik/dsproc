@@ -16,16 +16,16 @@ namespace UniDsproc.DataModel {
 		[DataMember(Name = "error_code")]
 		public string ErrorCode { get; }
 
-		[DataMember(Name = "type")]
+		[JsonProperty("error_type",DefaultValueHandling = DefaultValueHandling.Include)]
 		[JsonConverter(typeof(ErrorTypeEnumConverter))]
-		public ErrorType Type { get; }
+		public ErrorType ErrorType { get; }
 
 		[DataMember(Name = "message")]
 		public string Message { get; }
 
 		public ErrorInfo(string errorCode, ErrorType errorType, string msg) {
 			ErrorCode = errorCode;
-			Type = errorType;
+			ErrorType = errorType;
 			string[] msgParts = (msg.Split('\r')[0]).Split(']'); // because error message from exception contains unwanted string seperated by \r\n
 			if (msgParts.Length == 2) {
 				ErrorCode = msgParts[0].Trim();

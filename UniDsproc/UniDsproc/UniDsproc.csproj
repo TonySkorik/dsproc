@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="DataModel\ArgsInfo.cs" />
     <Compile Include="DataModel\ErrorCodes.cs" />
+    <Compile Include="DataModel\ResultInfo.cs" />
     <Compile Include="DataModel\ErrorInfo.cs" />
     <Compile Include="DataModel\PrintableInfo.cs" />
     <Compile Include="SmartBind.cs" />
