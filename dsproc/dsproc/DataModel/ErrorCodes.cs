@@ -18,8 +18,9 @@ namespace dsproc.DataModel {
 		public static string SigningFailed = "SigningFailed";
 		#endregion
 
+		#region [UNKNOWN EXCEPTIONS]
 		public static string UnknownException = "UnknownException";
-
+		#endregion
 
 	}
 }
