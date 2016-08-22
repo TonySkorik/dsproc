@@ -12,6 +12,41 @@ using Newtonsoft.Json;
 using Formatting = System.Xml.Formatting;
 
 namespace UniDsproc.SignatureProcessor {
+	[JsonObject("Certificate")]
+	public sealed class X509CertificateSerializabale {
+		[JsonProperty("Subject")]
+		public string SerializedSubject;
+
+		[JsonProperty("Issuer")]
+		public string SerializedIssuer;
+
+		[JsonProperty("NotBefore")]
+		public string SerializedNotBefore;
+
+		[JsonProperty("NotAfter")]
+		public string SerializedNotAfter;
+
+		[JsonProperty("SerialNumber")]
+		public string SerializedSerial;
+
+		[JsonProperty("Thumbprint")]
+		public string SerializedThumbprint;
+
+		[JsonProperty("FriendlyName")]
+		public string SerializedFriendlyName;
+
+		public X509CertificateSerializabale(X509Certificate2 cer) {
+			SerializedSubject = cer.Subject;
+			SerializedIssuer = cer.Issuer;
+			SerializedNotBefore = cer.NotBefore.ToString("s").Replace("T", " ");
+			SerializedNotAfter = cer.NotAfter.ToString("s").Replace("T", " ");
+			SerializedSerial = cer.SerialNumber;
+			SerializedThumbprint = cer.Thumbprint;
+			SerializedFriendlyName = !string.IsNullOrEmpty(cer.FriendlyName)? cer.FriendlyName : null;
+		}
+	}
+
+
 	public enum StoreType {LocalMachine = 1, CurrentUser = 2}
 	public static class CertificateProcessing {
 
@@ -102,7 +137,7 @@ namespace UniDsproc.SignatureProcessor {
 
 		#endregion
 
-		#region [READ]
+		#region [READ FROM XML]
 
 		public static X509Certificate2 ReadCertificateFromXml(string signedXmlPath) {
 			return ReadCertificateFromXml(XDocument.Load(signedXmlPath));
@@ -158,20 +193,36 @@ namespace UniDsproc.SignatureProcessor {
 
 		#endregion
 
+
+		#region [TO SERIALIZABEL CERTIFICATE]
+		public static X509CertificateSerializabale CertificateToSerializableCertificate(XDocument signedXml) {
+			return new X509CertificateSerializabale(ReadCertificateFromXml(signedXml));
+		}
+
+		public static X509CertificateSerializabale CertificateToSerializableCertificate(string signedXmlPath) {
+			return new X509CertificateSerializabale(ReadCertificateFromXml(XDocument.Load(signedXmlPath)));
+		}
+		#endregion
+
 		#region [TO JSON]
 		public static string CertificateToJson(XDocument signedXml) {
-			X509Certificate2 ci = ReadCertificateFromXml(signedXml);
+			X509CertificateSerializabale ci = new X509CertificateSerializabale(ReadCertificateFromXml(signedXml));
+
 			string jsonCert = null;
 			if(ci != null) {
 				//means cerificate present
 				JsonSerializerSettings js = new JsonSerializerSettings() {
-					StringEscapeHandling = StringEscapeHandling.Default
+					StringEscapeHandling = StringEscapeHandling.Default,
+					DefaultValueHandling = DefaultValueHandling.Ignore
 				};
+
 				jsonCert = JsonConvert.SerializeObject(ci, Newtonsoft.Json.Formatting.Indented, js);
 			}
 			return jsonCert;
 		}
+		#endregion
 
+		#region [CERTIFICATE SELECT UI]
 		public static X509Certificate2 SelectCertificateUI(StoreLocation storeLocation) {
 			X509Store store = new X509Store("MY", storeLocation);
 			store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);

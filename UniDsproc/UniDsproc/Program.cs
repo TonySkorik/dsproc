@@ -125,8 +125,7 @@ namespace UniDsproc {
 			
 			StatusInfo si = new StatusInfo(new ErrorInfo(ErrorCodes.UnknownException,ErrorType.CertificateExtraction, "Unknown certificate extraction exception"));
 			try {
-				X509Certificate2 cert = SignatureProcessor.CertificateProcessing.ReadCertificateFromXml(args.InputFile);
-				si = new StatusInfo(new ResultInfo(cert));
+				si = new StatusInfo(new ResultInfo(SignatureProcessor.CertificateProcessing.CertificateToSerializableCertificate(args.InputFile)));
 			} catch (Exception e) {
 				si = new StatusInfo(new ErrorInfo(ErrorCodes.CertificateExtractionException, ErrorType.CertificateExtraction, e.Message));
 			}
