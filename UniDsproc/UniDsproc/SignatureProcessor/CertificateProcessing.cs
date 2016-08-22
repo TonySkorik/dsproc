@@ -12,6 +12,8 @@ using Newtonsoft.Json;
 using Formatting = System.Xml.Formatting;
 
 namespace UniDsproc.SignatureProcessor {
+
+	#region [X509Certificate SERIALIZABLE CLASS]
 	[JsonObject("Certificate")]
 	public sealed class X509CertificateSerializabale {
 		[JsonProperty("Subject")]
@@ -45,7 +47,7 @@ namespace UniDsproc.SignatureProcessor {
 			SerializedFriendlyName = !string.IsNullOrEmpty(cer.FriendlyName)? cer.FriendlyName : null;
 		}
 	}
-
+	#endregion
 
 	public enum StoreType {LocalMachine = 1, CurrentUser = 2}
 	public static class CertificateProcessing {

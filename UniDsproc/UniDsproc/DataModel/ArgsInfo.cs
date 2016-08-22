@@ -12,7 +12,7 @@ using UniDsproc.SignatureProcessor;
 
 namespace UniDsproc.DataModel {
 	public enum ProgramFunction {Sign = 1, Verify = 2, Extract = 3, VerifyAndExtract = 4}
-
+	
 	public class ArgsInfo {
 
 		#region [AVAILABLE KEYS]
@@ -52,9 +52,13 @@ namespace UniDsproc.DataModel {
 		[ArgBinding("ignore_expired")]
 		public bool IgnoreExpiredCert { set; get; } //means there will be no expiration check before signing
 		//================================
+		public SignatureProcessor.Verification.CertificateLocation CertLocation;
+		public SignatureProcessor.Verification.SignatureNodeAddressesBy SignatureAddresedBy;
+
 		public SigningMode SigMode { set; get; }
 		public string InputFile { get; }
 		public string OutputFile { get; }
+
 		public bool Ok { get; }
 		
 		public ErrorInfo InitError { get; }
@@ -75,8 +79,8 @@ namespace UniDsproc.DataModel {
 
 			string function = args[0];
 			if(!ProgramFunction.TryParse(function, true, out Function)) {
-				Ok = false;
 				InitError = new ErrorInfo(ErrorCodes.UnknownFunction, ErrorType.ArgumentParsing, $"Unknown program command - <{function}>");
+				return;
 			}
 
 			#region [SWITCHES PARSING]
@@ -148,7 +152,6 @@ namespace UniDsproc.DataModel {
 			args = args.Where(arg => !arg.StartsWith("-")).ToArray();
 
 			#region [FUNCTION BASED ARGS CHECK]
-
 			switch(Function) {
 				case ProgramFunction.Sign:
 					#region [SIGN]
@@ -196,6 +199,7 @@ namespace UniDsproc.DataModel {
 						Ok = true;
 					} else {
 						InitError = new ErrorInfo(ErrorCodes.FileNotExist,ErrorType.ArgumentParsing,$"Input file <{infile}> not found");
+						return;
 					}
 
 					break;
@@ -211,20 +215,61 @@ namespace UniDsproc.DataModel {
 						InitError = new ErrorInfo(ErrorCodes.FileNotExist, ErrorType.ArgumentParsing, $"Input file <{extractFile}> not found");
 					}
 					break;
-					#endregion
+				#endregion
 				case ProgramFunction.Verify:
-					throw new NotImplementedException();
-					#region [VERIFY]
-
-					#endregion
 				case ProgramFunction.VerifyAndExtract:
-					throw new NotImplementedException();
-					#region [VERIFY AND EXTRACT]
+					#region [VERIFY]
+					string verfile = string.Empty;
+					if(args.Length == 2) {
+						verfile = args[args.Length - 1];
+						if (File.Exists(verfile)) {
+							InputFile = verfile;
+						} else {
+							InitError = new ErrorInfo(ErrorCodes.FileNotExist, ErrorType.ArgumentParsing, $"Input file <{verfile}> not found");
+							return;
+						}
+					} else if(args.Length < 2) {
+						//means there is only one file passed - let it be input
+						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, "Input file not specified!");
+						return;
+					}
 
+					if (!string.IsNullOrEmpty(CertThumbprint)) {
+						//means there is a thumbprint
+						CertLocation = Verification.CertificateLocation.Thumbprint;
+					}else {
+						//no thumbprint passed
+						if (!string.IsNullOrEmpty(CertFilePath)) {
+							if (File.Exists(CertFilePath)) {
+								//means cer file exists
+								CertLocation = Verification.CertificateLocation.CerFile;
+							} else {
+								//passed file doesn't exist
+								InitError = new ErrorInfo(ErrorCodes.ArgumentInvalidValue,ErrorType.ArgumentParsing, $"Certificate file <{CertFilePath}> not found");
+								return;
+							}
+						} else {
+							//no thumbprint && cer file passed - check on X509Certificate node
+							CertLocation = Verification.CertificateLocation.Xml;
+						}
+					}
+
+					SignatureAddresedBy = Verification.SignatureNodeAddressesBy.Default;
+
+					if (!string.IsNullOrEmpty(NodeId)) {
+						SignatureAddresedBy = Verification.SignatureNodeAddressesBy.NodeId;
+					} else {
+						if (!string.IsNullOrEmpty(NodeName)) {
+							SignatureAddresedBy = !string.IsNullOrEmpty(NodeNamespace) ? Verification.SignatureNodeAddressesBy.NodeNameNamespace : Verification.SignatureNodeAddressesBy.NodeName;
+						}else {
+							SignatureAddresedBy = Verification.SignatureNodeAddressesBy.Default;
+						}
+					}
+					Ok = true;
+					break;
 					#endregion
 			}
 			#endregion
-
 		}
 	}
 }

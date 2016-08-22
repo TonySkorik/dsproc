@@ -19,14 +19,25 @@ namespace UniDsproc.DataModel {
 		[JsonProperty("certificate",DefaultValueHandling = DefaultValueHandling.Ignore)]
 		public X509CertificateSerializabale Certificate { get; }
 
+		[JsonProperty("signature_is_ok",DefaultValueHandling = DefaultValueHandling.Ignore)]
+		public bool SignatureIsCorrect { get; }
+
 		public ResultInfo(string msg) {
 			Message = msg;
 			Certificate = null;
+			SignatureIsCorrect = false;
 		}
 
 		public ResultInfo(X509CertificateSerializabale cert) {
 			Message = "Certificate data extracted";
 			Certificate = cert;
+			SignatureIsCorrect = false;
+		}
+
+		public ResultInfo(string msg, bool signatureIsCorrect) {
+			Message = msg;
+			Certificate = null;
+			SignatureIsCorrect = signatureIsCorrect;
 		}
 	}
 }

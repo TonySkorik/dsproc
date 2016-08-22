@@ -11,19 +11,131 @@ using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
+using Newtonsoft.Json.Serialization;
 using UniDsproc.DataModel;
 
 namespace UniDsproc.SignatureProcessor {
 	public static class Verification {
+		public enum CertificateLocation {Thumbprint = 1, CerFile = 2, Xml = 3}
+		public enum SignatureNodeAddressesBy {NodeId = 1, NodeName = 2, NodeNameNamespace = 3, Default = 4}
+
 
 		#region [STANDARD]
 		public static bool VerifySignature(string message, bool verifySignatureOnly = false) {
 			XmlDocument xd = new XmlDocument();
 			xd.Load(new StringReader(message));
-			return VerifySignature(xd, verifySignatureOnly);
+			return _verifySignature(xd, verifySignatureOnly);
+		}
+		
+		public static bool VerifySignature(string documentPath, string certificateFilePath=null, string certificateThumb = null, string nodeId = null, string nodeName = null, string nodeNamespace = null) {
+			XmlDocument xd = new XmlDocument();
+			try {
+				xd.Load(documentPath);
+			} catch (Exception e) {
+				throw new ArgumentNullException($"INPUT_FILE_MISSING] Input file <{documentPath}> is invalid");
+			}
+
+			return VerifySignature(xd, certificateFilePath, certificateThumb, nodeId, nodeName, nodeNamespace);
 		}
 
-		public static bool VerifySignature(XmlDocument message, bool verifySignatureOnly = false, X509Certificate2 verifyOnThisCert = null) {
+		public static bool VerifySignature(XmlDocument message, string certificateFilePath=null, string certificateThumb = null, string nodeId = null, string nodeName = null, string nodeNamespace = null) {
+			SignedXml signedXml = new SignedXml(message);
+
+			X509Certificate2 cert = null;
+			bool isCerFile;
+			
+			if ((isCerFile = !string.IsNullOrEmpty(certificateFilePath)) || !string.IsNullOrEmpty(certificateThumb)) {
+				//means we are testing signature on external certificate
+				if (isCerFile) {
+					//cert = (X509Certificate2) X509Certificate.CreateFromCertFile(certificateFilePath);
+					cert = new X509Certificate2();
+					try {
+						cert.Import(certificateFilePath);
+					} catch (Exception e) {
+						throw new ArgumentException($"CERTIFICATE_IMPOIRT_EXCEPTION] Certificate <{certificateFilePath}> can not be loaded. Message: {e.Message}");
+					}
+				}else {
+					//throws if not found
+					cert = SignatureProcessor.CertificateProcessing.SearchCertificateByThumbprint(certificateThumb);
+				}
+			}
+
+			Dictionary<XElement,XmlElement> signatures = new Dictionary<XElement, XmlElement>();
+			
+			XmlNodeList signaturesInDoc =
+					message.GetElementsByTagName(
+						"Signature", SignedXml.XmlDsigNamespaceUrl
+						);
+			signatures = signaturesInDoc
+				.Cast<XmlElement>()
+				.ToDictionary((elt) => {
+					XNamespace ns = elt.GetXElement().Name.Namespace;
+								XElement sigRef = elt.GetXElement().Descendants(ns + "Reference").First();
+					
+					string refValue = elt.GetXElement().Descendants(ns+"Reference").First().Attributes("URI").First().Value;
+					XDocument xd = message.GetXDocument();
+					return xd.Root.Descendants().FirstOrDefault(d => d.Attribute("Id").Value == refValue);
+				}, 
+					(elt => elt)
+				);
+			//select first signature who's reference URI == #nodeId
+			XmlElement signatureToVerify = null;
+
+			/*if (string.IsNullOrEmpty(nodeId) && string.IsNullOrEmpty(nodeName)) {
+				signatureToVerify = 
+					signaturesInDoc
+					.Cast<XmlElement>()
+					.First();
+				/*return signaturesInDoc
+						.Cast<XmlElement>()
+						.Aggregate(true,
+							(current, signature) => {
+								signedXml.LoadXml(signature);
+								return current || cert == null ? signedXml.CheckSignature() : signedXml.CheckSignature(cert, true);
+							}
+						);#1#
+			} else {
+				if (!string.IsNullOrEmpty(nodeId)) {
+					//means search signatures by nodeId
+					signatureToVerify = 
+						signaturesInDoc
+							.Cast<XmlElement>()
+							.Where((elt) => 
+								elt
+								.GetXElement()
+								.Descendants()
+								.Elements("Reference")
+								.Attributes("URI")
+								.First()
+								.Value == "#" + nodeId)
+							.Select(elt => elt)
+							.First();
+				} else {
+					//search signatures by node name && namespace
+					signatureToVerify =
+						signaturesInDoc
+							.Cast<XmlElement>()
+							.Where((elt) => {
+										string refValue = elt
+											.GetXElement()
+											.Descendants()
+											.Elements("Reference")
+											.Attributes("URI")
+											.First()
+											.Value;
+										
+							})
+							.First();
+				}
+			}*/
+
+			signedXml.LoadXml(signatureToVerify);
+			return cert == null ? signedXml.CheckSignature() : signedXml.CheckSignature(cert, true);
+			
+		}
+
+		private static bool _verifySignature(XmlDocument message, bool verifySignatureOnly = false, X509Certificate2 verifyOnThisCert = null, string nodeId=null, string nodeName=null, string nodeNamespace = null) {
 			bool ret = false;
 			X509Certificate2 cert = new X509Certificate2();
 			if(verifySignatureOnly) {

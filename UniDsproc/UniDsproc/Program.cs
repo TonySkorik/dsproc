@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using UniDsproc.DataModel;
+using UniDsproc.SignatureProcessor;
 
 namespace UniDsproc {
 	class Program {
@@ -21,13 +22,13 @@ namespace UniDsproc {
 				if (a.Ok) {
 					//args successfully loaded - continue
 					switch (a.Function) {
-						case ProgramFunction.Sign:
+						case ProgramFunction.Sign: //check!
 							Console.WriteLine(sign(a).ToJsonString());
 							break;
 						case ProgramFunction.Verify:
 							Console.WriteLine(verify(a).ToJsonString());
 							break;
-						case ProgramFunction.Extract:
+						case ProgramFunction.Extract: //check!
 							Console.WriteLine(extract(a).ToJsonString());
 							break;
 						case ProgramFunction.VerifyAndExtract:
@@ -116,9 +117,23 @@ namespace UniDsproc {
 		}
 
 		private static StatusInfo verify(ArgsInfo args) {
-			StatusInfo si = new StatusInfo("OK");
-			
-			return si;
+			try {
+				bool isValid = SignatureProcessor.Verification.VerifySignature(
+					args.InputFile,
+					args.CertLocation == Verification.CertificateLocation.CerFile ? args.CertFilePath : null,
+					args.CertLocation == Verification.CertificateLocation.Thumbprint ? args.CertThumbprint : null,
+					args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeId? args.NodeId : null,
+					(args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeName || args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeNameNamespace) ? args.NodeName : null,
+					args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeNameNamespace ? args.NodeNamespace : null
+				);
+				if (isValid) {
+					return new StatusInfo(new ResultInfo("Signature is correct", true));
+				} else {
+					return new StatusInfo(new ResultInfo("Signature is invalid", false));
+				}
+			} catch (Exception e) {
+				return new StatusInfo(new ErrorInfo(ErrorCodes.VerificationFailed, ErrorType.SignatureVerification, e.Message));
+			}
 		}
 
 		private static StatusInfo extract(ArgsInfo args) {
