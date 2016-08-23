@@ -5,12 +5,9 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using Newtonsoft.Json;
-using Formatting = System.Xml.Formatting;
 
 namespace UniDsproc.SignatureProcessor {
 

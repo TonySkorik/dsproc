@@ -48,14 +48,10 @@ namespace UniDsproc.DataModel {
 		public CertificateSource CertSource { set; get; }
 		//================================
 		public SignatureProcessor.Verification.CertificateLocation CertLocation;
-		
 		public string InputFile { get; }
 		public string OutputFile { get; }
-
 		public bool Ok { get; }
-		
 		public ErrorInfo InitError { get; }
-
 		#endregion
 
 		public ArgsInfo(string[] args) {
@@ -156,7 +152,6 @@ namespace UniDsproc.DataModel {
 			switch(Function) {
 				case ProgramFunction.Sign:
 					#region [SIGN]
-					//check args
 					if (string.IsNullOrEmpty(CertThumbprint)) {
 						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_certificateThumbprintKey}> value is empty! This value is required!");
 						return;
@@ -195,7 +190,6 @@ namespace UniDsproc.DataModel {
 					#endregion
 				case ProgramFunction.Extract:
 					#region [EXTRACT]
-					//check args
 					if(CertSource == CertificateSource.Unknown) {
 						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_certificateSourceKey}> value is empty! This value is required!");
 						return;

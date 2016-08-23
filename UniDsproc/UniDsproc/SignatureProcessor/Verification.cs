@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using exp = System.Linq.Expressions;
 using System.Reflection;
@@ -8,11 +7,8 @@ using System.Resources;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using Newtonsoft.Json.Serialization;
 using UniDsproc.DataModel;
 
 namespace UniDsproc.SignatureProcessor {
@@ -41,7 +37,6 @@ namespace UniDsproc.SignatureProcessor {
 			if ((isCerFile = !string.IsNullOrEmpty(certificateFilePath)) || !string.IsNullOrEmpty(certificateThumb)) {
 				//means we are testing signature on external certificate
 				if (isCerFile) {
-					//cert = (X509Certificate2) X509Certificate.CreateFromCertFile(certificateFilePath);
 					cert = new X509Certificate2();
 					try {
 						cert.Import(certificateFilePath);
@@ -117,29 +112,6 @@ namespace UniDsproc.SignatureProcessor {
 			} 
 			return false;
 		}
-		/*
-		private static bool _verifySignature(XmlDocument message, bool verifySignatureOnly = false, X509Certificate2 verifyOnThisCert = null, string nodeId=null, string nodeName=null, string nodeNamespace = null) {
-			bool ret = false;
-			X509Certificate2 cert = new X509Certificate2();
-			if(verifySignatureOnly) {
-				cert = verifyOnThisCert ?? CertificateProcessing.ReadCertificateFromXml(message.GetXDocument());
-			}
-			XmlDocument xmlDocument = message;
-			
-			XmlNodeList nodeList =
-				xmlDocument.GetElementsByTagName(
-					"Signature", SignedXml.XmlDsigNamespaceUrl
-				);
-
-			foreach(XmlElement sig in nodeList) {
-				SignedXml signedXml = new SignedXml(xmlDocument);
-				signedXml.LoadXml(sig);
-				ret = verifySignatureOnly ? signedXml.CheckSignature(cert, true) : signedXml.CheckSignature();
-			}
-
-			return ret;
-		}
-		*/
 		#endregion
 
 		#region [DS: PREFIXED] Some heavy wizardry here

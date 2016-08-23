@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace UniDsproc.DataModel {
 	public static class ErrorCodes {
 		#region [CONFIG PARSING]
@@ -31,6 +26,5 @@ namespace UniDsproc.DataModel {
 		#region [UNKNOWN EXCEPTIONS]
 		public static string UnknownException = "UNKNOWN_EXCEPTION";
 		#endregion
-
 	}
 }

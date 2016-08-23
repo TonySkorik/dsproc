@@ -15,7 +15,6 @@ namespace SmartBind {
 		}
 	}
 
-
 	static class CommandLineBind {
 		public static Dictionary<string, PropertyInfo> BuildBindings(Type classToBind) {
 			return
