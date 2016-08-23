@@ -135,7 +135,7 @@ namespace UniDsproc.SignatureProcessor {
 		#region [SIMPLE ENVELOPED SIGN]
 
 		public static XmlDocument SignXmlFileEnveloped(XmlDocument doc, AsymmetricAlgorithm key, X509Certificate2 certificate, string nodeId=null) {
-
+			nodeId = string.Empty;
 			//----------------------------------------------------------------------------------------------CREATE SIGNED XML
 			SignedXml signedXml = new SignedXml(doc) { SigningKey = key };
 			//----------------------------------------------------------------------------------------------REFERNCE
@@ -208,12 +208,12 @@ namespace UniDsproc.SignatureProcessor {
 
 		#region [TEMPLATE GENERATION]
 
-		static XmlDocument AddRemplate(XmlDocument base_document, X509Certificate2 certificate) {
+		static XmlDocument AddTemplate(XmlDocument base_document, X509Certificate2 certificate) {
 
 			base_document.PreserveWhitespace = true;
 
 			XmlNode root = base_document.SelectSingleNode("/*");
-			string rootPrefix = root?.Prefix;
+			string rootPrefix = root.Prefix;
 
 			XmlElement security = base_document.CreateElement("wsse", "Security", wsse_);
 			security.SetAttribute("actor", soapenv_, "http://smev.gosuslugi.ru/actors/smev");
@@ -255,25 +255,28 @@ namespace UniDsproc.SignatureProcessor {
 		public static XmlDocument SignXmlFileSmev2(XmlDocument doc, AsymmetricAlgorithm key, X509Certificate2 certificate) {
 
 			XmlNode root = doc.SelectSingleNode("/*");
-			string rootPrefix = root?.Prefix;
+			string rootPrefix = root.Prefix;
 			//----------------------------------------------------------------------------------------------CREATE STRUCTURE
-			XmlDocument tDoc = AddRemplate(doc, certificate);
+			XmlDocument tDoc = AddTemplate(doc, certificate);
 			//----------------------------------------------------------------------------------------------ROOT PREFIX 
 			XmlElement bodyElement = tDoc.GetElementsByTagName(rootPrefix + ":Body")[0] as XmlElement;
-			string referenceUri = bodyElement?.GetAttribute("wsu:Id");
+			string referenceUri = bodyElement.GetAttribute("wsu:Id");
 			//----------------------------------------------------------------------------------------------SignedXML CREATE
 			//нужен для корректной отработки wsu:reference 
 			Smev2SignedXml signedXml = new Smev2SignedXml(tDoc) {
 				SigningKey = certificate.PrivateKey
 			};
 			//----------------------------------------------------------------------------------------------REFERNCE
-			Reference reference = new Reference("#" + referenceUri);
+			Reference reference = new Reference {
+				DigestMethod = CryptoPro.Sharpei.Xml.CPSignedXml.XmlDsigGost3411UrlObsolete,
+				Uri = "#"+referenceUri
+			};
 
 			XmlDsigExcC14NTransform c14 = new XmlDsigExcC14NTransform();
 			reference.AddTransform(c14);
 
 #pragma warning disable 612
-			reference.DigestMethod = CryptoPro.Sharpei.Xml.CPSignedXml.XmlDsigGost3411UrlObsolete;
+			//reference.DigestMethod = CryptoPro.Sharpei.Xml.CPSignedXml.XmlDsigGost3411UrlObsolete;
 #pragma warning disable 612
 
 			signedXml.AddReference(reference);
@@ -341,11 +344,6 @@ namespace UniDsproc.SignatureProcessor {
 			XmlDsigSmevTransform smevTransform = new XmlDsigSmevTransform();
 			reference.AddTransform(smevTransform);
 			
-			/*
-			if (isAck) {
-				
-			} 
-			*/
 			sxml.AddReference(reference);
 
 			//=========================================================================================CREATE SIGNATURE

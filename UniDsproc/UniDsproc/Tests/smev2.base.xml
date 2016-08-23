@@ -6,15 +6,15 @@
 			<smev:Message>
 				<smev:Sender>
 					<smev:Code>CUST01001</smev:Code>
-					<smev:Name>ФТС России</smev:Name>
+					<smev:Name>Русские буквы</smev:Name>
 				</smev:Sender>
 				<smev:Recipient>
 					<smev:Code>RPTR01001</smev:Code>
-					<smev:Name>Роспотребнадзор</smev:Name>
+					<smev:Name>Русские буквы2</smev:Name>
 				</smev:Recipient>
 				<smev:Originator>
 					<smev:Code>CUST01001</smev:Code>
-					<smev:Name>ФТС России</smev:Name>
+					<smev:Name>Русские буквы4</smev:Name>
 				</smev:Originator>
 				<smev:TypeCode>GSRV</smev:TypeCode>
 				<smev:Status>REQUEST</smev:Status>
@@ -25,7 +25,7 @@
 			<smev:MessageData>
 				<smev:AppData>
 					<rpn:getDoc xmlns:rpn="http://rospotrebnadzor.ru/soap/rpnES2">
-						<rpn:numb>RU.67.СО.01.008.Е.002920.08.11</rpn:numb>
+						<rpn:numb>RU.67.АБ.01.008.ВГ.002920.08.11</rpn:numb>
 						<rpn:mode>serial</rpn:mode>
 					</rpn:getDoc>
 				</smev:AppData>
