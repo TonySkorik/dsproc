@@ -158,23 +158,45 @@ namespace UniDsproc.SignatureProcessor {
 
 		#region [READ FROM XML]
 
-		public static X509Certificate2 ReadCertificateFromXml(string signedXmlPath) {
-			return ReadCertificateFromXml(XDocument.Load(signedXmlPath));
+		public static X509Certificate2 ReadCertificateFromXml(string signedXmlPath, string nodeId) {
+			return ReadCertificateFromXml(XDocument.Load(signedXmlPath), nodeId);
 		}
 
-		public static X509Certificate2 ReadCertificateFromXml(XDocument signedXml) {
+		public static X509Certificate2 ReadCertificateFromXml(XDocument signedXml, string nodeId) {
 			X509Certificate2 cert = null;
-
-			XElement signatureElement = (
-				from elt in signedXml.Root.Descendants()
-				where elt.Name == (XNamespace)SignedXml.XmlDsigNamespaceUrl + "Signature"
-				select elt
-			).DefaultIfEmpty(null).First();
+			XElement signatureElement = null;
+			XNamespace ds = SignedXml.XmlDsigNamespaceUrl;
+			
+			if (string.IsNullOrEmpty(nodeId)) {
+				signatureElement = (
+					from elt in signedXml.Root.Descendants()
+					where elt.Name == ds + "Signature"
+					select elt
+					).DefaultIfEmpty(null).First();
+			} else {
+				try {
+					signatureElement = (
+						from elt in signedXml.Root.Descendants()
+						where elt.Name == ds + "Signature"
+						where elt
+							.Descendants(ds+"SignedInfo").First()
+							.Descendants(ds+"Reference").First()
+							.Attributes("URI").First()
+							.Value.Replace("#", "") == nodeId
+						select elt
+					).DefaultIfEmpty(null).First();
+				} catch (Exception e) {
+					throw new Exception($"CERTIFICATE_NOT_FOUND_BY_NODE_ID] Certificate with node_id=<{nodeId}> not found in passed document");
+				}
+				if (signatureElement == null) {
+					throw new Exception($"CERTIFICATE_NOT_FOUND_BY_NODE_ID] Certificate with node_id=<{nodeId}> not found in passed document");
+				}
+			}
 
 			if(signatureElement != null) {
 				string certificateNodeContent = (
 					from node in signatureElement.Descendants()
-					where node.Name == (XNamespace)SignedXml.XmlDsigNamespaceUrl + "X509Certificate"
+					where node.Name == ds + "X509Certificate"
 					select node.Value.ToString()
 					).DefaultIfEmpty(
 						//means Signature may be not named with an xmlns:ds
@@ -210,10 +232,10 @@ namespace UniDsproc.SignatureProcessor {
 		#endregion
 
 		#region [TO SERIALIZABLE CERTIFICATE]
-		public static X509CertificateSerializable CertificateToSerializableCertificate(CertificateSource source, string filePath) {
+		public static X509CertificateSerializable CertificateToSerializableCertificate(CertificateSource source, string filePath, string nodeId) {
 			switch (source) {
 				case CertificateSource.Xml:
-					return new X509CertificateSerializable(ReadCertificateFromXml(XDocument.Load(filePath)));
+					return new X509CertificateSerializable(ReadCertificateFromXml(XDocument.Load(filePath),nodeId));
 				case CertificateSource.Base64:
 					try {
 						return new X509CertificateSerializable(new X509Certificate2(File.ReadAllBytes(filePath)));

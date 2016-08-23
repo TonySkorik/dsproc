@@ -7,7 +7,7 @@ Signing:
 
 Certificate extraction:
 
-	extract -certificate_source=xml smev2.detached.signed.xml
+	extract -certificate_source=xml -node_id=SIGNED_BY_SERVER smev2.detached.signed.xml
 	
 	extract -certificate_source=base64 base64.txt
 

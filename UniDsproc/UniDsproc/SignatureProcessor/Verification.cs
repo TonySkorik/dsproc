@@ -117,7 +117,7 @@ namespace UniDsproc.SignatureProcessor {
 			} 
 			return false;
 		}
-
+		/*
 		private static bool _verifySignature(XmlDocument message, bool verifySignatureOnly = false, X509Certificate2 verifyOnThisCert = null, string nodeId=null, string nodeName=null, string nodeNamespace = null) {
 			bool ret = false;
 			X509Certificate2 cert = new X509Certificate2();
@@ -139,6 +139,7 @@ namespace UniDsproc.SignatureProcessor {
 
 			return ret;
 		}
+		*/
 		#endregion
 
 		#region [DS: PREFIXED] Some heavy wizardry here
