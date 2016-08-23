@@ -34,8 +34,8 @@ namespace UniDsproc.DataModel {
 		//=============================== via reflection set
 		[ArgBinding("signature_type")]
 		public SignatureType SigType { set; get; }
-		[ArgBinding("smev_mode")]
-		public byte SmevMode { set; get; }
+		//[ArgBinding("smev_mode")]
+		//public byte SmevMode { set; get; }
 		[ArgBinding("node_id")]
 		public string NodeId { set; get; }
 		[ArgBinding("node_name")]
@@ -46,7 +46,6 @@ namespace UniDsproc.DataModel {
 		public string CertThumbprint { set; get; }
 		[ArgBinding("cer_file")]
 		public string CertFilePath { set; get; }
-		//public bool IsDebugModeOn { set; get; }
 		[ArgBinding("ds")]
 		public bool AssignDsInSignature { set; get; } // digital signature nodes will be put in XML namespace ds:
 		[ArgBinding("ignore_expired")]
@@ -55,7 +54,7 @@ namespace UniDsproc.DataModel {
 		public SignatureProcessor.Verification.CertificateLocation CertLocation;
 		public SignatureProcessor.Verification.SignatureNodeAddressesBy SignatureAddresedBy;
 
-		public SigningMode SigMode { set; get; }
+		//public SigningMode SigMode { set; get; }
 		public string InputFile { get; }
 		public string OutputFile { get; }
 
@@ -68,8 +67,8 @@ namespace UniDsproc.DataModel {
 		public ArgsInfo(string[] args) {
 			Ok = false;
 
-			SigType = SignatureType.Unknown;
-			SmevMode = 0;
+			SigType = SignatureType.Smev2SidebysideDetached;
+			//SmevMode = 0;
 			IgnoreExpiredCert = false;
 			
 			if (args.Length == 0) {
@@ -119,10 +118,10 @@ namespace UniDsproc.DataModel {
 								} else if(_knownArgs[keyName].PropertyType.Name == typeof(SignatureType).Name) {
 									//SignatureType
 									SignatureType stype;
-									if (SignatureType.TryParse(argvs[1], true, out stype)) {
+									if (SignatureType.TryParse(argvs[1].Replace(".","").Replace("_",""), true, out stype)) {
 										_knownArgs[keyName].SetValue(this, stype);
 									} else {
-										throw new ArgumentNullException(keyName,$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <enveloped>, <sidebyside>, <detached>");
+										throw new ArgumentNullException(keyName,$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <smev2_base.detached>, <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>, <sig.detached>");
 									}
 								} else {
 									//string
@@ -160,7 +159,7 @@ namespace UniDsproc.DataModel {
 						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_certificateThumbprintKey}> value is empty! This value is required!");
 						return;
 					}
-
+					/*
 					if (SigType == SignatureType.Unknown) {
 						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_signatureTypeKey}> value is empty! This value is required!");
 						return;
@@ -177,7 +176,7 @@ namespace UniDsproc.DataModel {
 							SigMode = SmevMode != 3 ? SigningMode.Simple : SigningMode.Smev3; 
 							break;
 					}
-
+					*/
 					string infile = string.Empty;
 					string outfile = string.Empty;
 					if (args.Length == 3) {

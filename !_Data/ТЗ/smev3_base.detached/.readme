@@ -1,0 +1,10 @@
+СМЭВ3 по трансформациям
+<Transform Algorithm="urn://smev-gov-ru/xmldsig/transform" /> 
+
+
+ЭП-ОВ
+
+detached (аналог wsu smev2)
+
+<ds:Reference URI="#id">
+

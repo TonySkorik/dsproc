@@ -14,10 +14,12 @@ using CryptoPro.Sharpei.Xml;
 namespace UniDsproc.SignatureProcessor {
 
 	public enum SigningMode {Simple = 1, Smev2 = 2, Smev3 = 3, Detached = 4, SimpleEnveloped = 5};
-	public enum SignatureType {Enveloped = 1, SideBySide = 2, Detached = 3, Unknown = 4};
-	
+	//public enum SignatureType {Enveloped = 1, SideBySide = 2, Detached = 3, Unknown = 4};
+	public enum SignatureType {Smev2BaseDetached, Smev2ChargeEnveloped, Smev2SidebysideDetached, Smev3BaseDetached, SigDetached };
+
 	public static class Signing {
-		public static string Sign(SigningMode mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign, string nodeNamespace) {
+		//public static string Sign(SigningMode mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign, string nodeNamespace) {
+		public static string Sign(SignatureType mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign, string nodeNamespace) {
 
 			XmlDocument signedXmlDoc = new XmlDocument();
 
@@ -34,19 +36,24 @@ namespace UniDsproc.SignatureProcessor {
 			}
 			try {
 				switch (mode) {
-					case SigningMode.Simple:
+					//case SigningMode.Simple:
+					case SignatureType.Smev2SidebysideDetached:
 						signedXmlDoc = SignXmlNode(signThis, privateKey, cert, nodeToSign);
 						break;
-					case SigningMode.SimpleEnveloped:
+					//case SigningMode.SimpleEnveloped:
+					case SignatureType.Smev2ChargeEnveloped:
 						signedXmlDoc = SignXmlFileEnveloped(signThis, privateKey, cert, nodeToSign);
 						break;
-					case SigningMode.Smev2:
+					//case SigningMode.Smev2:
+					case SignatureType.Smev2BaseDetached:
 						signedXmlDoc = SignXmlFileSmev2(signThis, privateKey, cert);
 						break;
-					case SigningMode.Smev3:
+					//case SigningMode.Smev3:
+					case SignatureType.Smev3BaseDetached:
 						signedXmlDoc = SignXmlFileSmev3(signThis, privateKey, cert, nodeToSign, assignDs);
 						break;
-					case SigningMode.Detached:
+					//case SigningMode.Detached:
+					case SignatureType.SigDetached:
 						return Convert.ToBase64String(SignXmlFileDetached(signThis, privateKey, cert, nodeToSign, assignDs));
 						break;
 				}
@@ -56,13 +63,13 @@ namespace UniDsproc.SignatureProcessor {
 
 			return signedXmlDoc.InnerXml;
 		}
-		public static string Sign(SigningMode mode, string certificateThumbprint, string signThisPath, bool assignDs, bool ignoreExpiredCert=false, string nodeToSign = "ID_SIGN", string nodeNamespace = null) {
+		public static string Sign(SignatureType mode, string certificateThumbprint, string signThisPath, bool assignDs, bool ignoreExpiredCert=false, string nodeToSign = "ID_SIGN", string nodeNamespace = null) {
 			XmlDocument signThis = new XmlDocument();
 			signThis.Load(signThisPath);
 			return Sign(mode, certificateThumbprint, signThis, assignDs, ignoreExpiredCert, nodeToSign, nodeNamespace);
 		}
 
-		public static string Sign(SigningMode mode, string certificateThumbprint, XmlDocument signThis, bool assignDs, bool ignoreExpiredCert=false, string nodeToSign = "ID_SIGN", string nodeNamespace=null) {
+		public static string Sign(SignatureType mode, string certificateThumbprint, XmlDocument signThis, bool assignDs, bool ignoreExpiredCert=false, string nodeToSign = "ID_SIGN", string nodeNamespace=null) {
 			if(nodeToSign == null) {
 				nodeToSign = "ID_SIGN";
 			}
