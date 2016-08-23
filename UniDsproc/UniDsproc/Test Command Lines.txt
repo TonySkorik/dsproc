@@ -14,6 +14,7 @@ Certificate extraction:
 	extract -certificate_source=cer base_64_cert.cer
 	extract -certificate_source=cer der_cert.cer
 	extract -certificate_source=cer pkcs_cert.p7b
+	extract -certificate_source=cer rptr_pkcs.p7b
 
 Signature verification:
 	

@@ -16,7 +16,7 @@ namespace UniDsproc.SignatureProcessor {
 
 	#region [X509Certificate SERIALIZABLE CLASS]
 	[JsonObject("Certificate")]
-	public sealed class X509CertificateSerializabale {
+	public sealed class X509CertificateSerializable {
 		[JsonProperty("Subject")]
 		public string SerializedSubject;
 
@@ -38,7 +38,13 @@ namespace UniDsproc.SignatureProcessor {
 		[JsonProperty("FriendlyName")]
 		public string SerializedFriendlyName;
 
-		public X509CertificateSerializabale(X509Certificate2 cer) {
+		[JsonProperty("Version")]
+		public int Version;
+
+		[JsonProperty("Certificates")]
+		public List<X509CertificateSerializable> Certificates;
+
+		public X509CertificateSerializable(X509Certificate2 cer) {
 			SerializedSubject = cer.Subject;
 			SerializedIssuer = cer.Issuer;
 			SerializedNotBefore = cer.NotBefore.ToString("s").Replace("T", " ");
@@ -46,6 +52,15 @@ namespace UniDsproc.SignatureProcessor {
 			SerializedSerial = cer.SerialNumber;
 			SerializedThumbprint = cer.Thumbprint;
 			SerializedFriendlyName = !string.IsNullOrEmpty(cer.FriendlyName)? cer.FriendlyName : null;
+			Version = cer.Version;
+			Certificates = null;
+		}
+
+		public X509CertificateSerializable(X509Certificate2Collection collection) {
+			Certificates = new List<X509CertificateSerializable>();
+			foreach (X509Certificate2 cert in collection) {
+				Certificates.Add(new X509CertificateSerializable(cert));
+			}
 		}
 	}
 	#endregion
@@ -195,23 +210,38 @@ namespace UniDsproc.SignatureProcessor {
 		#endregion
 
 		#region [TO SERIALIZABLE CERTIFICATE]
-		public static X509CertificateSerializabale CertificateToSerializableCertificate(CertificateSource source, string filePath) {
+		public static X509CertificateSerializable CertificateToSerializableCertificate(CertificateSource source, string filePath) {
 			switch (source) {
 				case CertificateSource.Xml:
-					return new X509CertificateSerializabale(ReadCertificateFromXml(XDocument.Load(filePath)));
+					return new X509CertificateSerializable(ReadCertificateFromXml(XDocument.Load(filePath)));
 				case CertificateSource.Base64:
 					try {
-						return new X509CertificateSerializabale(new X509Certificate2(File.ReadAllBytes(filePath)));
+						return new X509CertificateSerializable(new X509Certificate2(File.ReadAllBytes(filePath)));
 					} catch (Exception e) {
-						throw new ArgumentException($"CERT_FILE_CORRUPTED] Certificate file appears to be corrupted or in wrong format. Message: {e.Message}");
+						throw new ArgumentException($"CERT_FILE_CORRUPTED] Input file appears to be corrupted or in wrong format. Message: {e.Message}");
 					}
 				case CertificateSource.Cer:
 					try {
 						X509Certificate2 cer = new X509Certificate2();
-						cer.Import(filePath);
-						return new X509CertificateSerializabale(cer);
+						if (Path.GetExtension(filePath) == ".p7b") {
+							X509Certificate2Collection collection = new X509Certificate2Collection();
+							collection.Import(filePath);
+							if (collection.Count < 1) {
+								throw new ArgumentException($"NO_CERTS_FOUND] Input certificate collection <{filePath}> appears to be empty");
+							}
+							if (collection.Count == 1) {
+								cer = collection[0];
+							}
+							if (collection.Count > 1) {
+								return new X509CertificateSerializable(collection);
+							}
+						} else {
+							cer.Import(filePath);
+						}
+						
+						return new X509CertificateSerializable(cer);
 					} catch(Exception e) {
-						throw new ArgumentException($"CERT_FILE_CORRUPTED] Certificate file appears to be corrupted or in wrong format. Message: {e.Message}");
+						throw new ArgumentException($"CERT_FILE_CORRUPTED] Input file appears to be corrupted or in wrong format. Message: {e.Message}");
 					}
 				default:
 					throw new ArgumentException("UNKNOWN_CERT_SOURCE] Unknown certificate source passed");

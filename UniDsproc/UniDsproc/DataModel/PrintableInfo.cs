@@ -43,6 +43,23 @@ namespace UniDsproc.DataModel {
 		}
 	}
 
+	public class BoolToIntConverterNullable : JsonConverter {
+		public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
+			if (((bool?) value).HasValue) {
+				writer.WriteValue(((bool?) value).Value ? "1" : "0");
+			}
+		}
+
+
+		public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
+			return (string)reader.Value == "1";
+		}
+
+		public override bool CanConvert(Type objectType) {
+			return objectType == typeof(bool?);
+		}
+	}
+
 	public class CertToJsonConverter : JsonConverter {
 		private bool _canRead;
 
