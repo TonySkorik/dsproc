@@ -22,13 +22,15 @@ namespace UniDsproc.SignatureProcessor {
 
 
 		#region [STANDARD]
-		public static bool VerifySignature(string message, bool verifySignatureOnly = false) {
-			XmlDocument xd = new XmlDocument();
-			xd.Load(new StringReader(message));
-			return _verifySignature(xd, verifySignatureOnly);
-		}
 		
-		public static bool VerifySignature(string documentPath, string certificateFilePath=null, string certificateThumb = null, string nodeId = null) {
+		public static bool VerifySignature(SignatureType mode, string documentPath, string certificateFilePath=null, string certificateThumb = null, string nodeId = null) {
+			
+			/*
+			if (mode == SignatureType.Smev2BaseDetached) {
+				throw new ArgumentNullException($"UNSUPPORTED_SIGNATURE_TYPE] Signature type <{mode}> is unsupported. Possible values are : <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>, <sig.detached>");
+			}
+			*/
+
 			XmlDocument xd = new XmlDocument();
 			try {
 				xd.Load(documentPath);
@@ -36,10 +38,10 @@ namespace UniDsproc.SignatureProcessor {
 				throw new ArgumentNullException($"INPUT_FILE_MISSING] Input file <{documentPath}> is invalid");
 			}
 
-			return VerifySignature(xd, certificateFilePath, certificateThumb, nodeId);
+			return VerifySignature(mode, xd, certificateFilePath, certificateThumb, nodeId);
 		}
 
-		public static bool VerifySignature(XmlDocument message, string certificateFilePath=null, string certificateThumb = null, string nodeId = null) {
+		public static bool VerifySignature(SignatureType mode, XmlDocument message, string certificateFilePath=null, string certificateThumb = null, string nodeId = null) {
 			SignedXml signedXml = new SignedXml(message);
 
 			X509Certificate2 cert = null;
@@ -61,78 +63,68 @@ namespace UniDsproc.SignatureProcessor {
 				}
 			}
 
-			Dictionary<XElement,XmlElement> signatures = new Dictionary<XElement, XmlElement>();
+			Dictionary<string,XmlElement> signatures = new Dictionary<string, XmlElement>();
 			
 			XmlNodeList signaturesInDoc =
 					message.GetElementsByTagName(
 						"Signature", SignedXml.XmlDsigNamespaceUrl
 						);
-			signatures = signaturesInDoc
+			signatures = 
+				signaturesInDoc
 				.Cast<XmlElement>()
 				.ToDictionary((elt) => {
 					XNamespace ns = elt.GetXElement().Name.Namespace;
-								XElement sigRef = elt.GetXElement().Descendants(ns + "Reference").First();
-					
-					string refValue = elt.GetXElement().Descendants(ns+"Reference").First().Attributes("URI").First().Value;
-					XDocument xd = message.GetXDocument();
-					return xd.Root.Descendants().FirstOrDefault(d => d.Attribute("Id").Value == refValue);
+					string sigRef = elt.GetXElement().Descendants(ns + "Reference").First().Attributes("URI").First().Value;
+					return elt.GetXElement().Descendants(ns+"Reference").First().Attributes("URI").First().Value.Replace("#","");
 				}, 
 					(elt => elt)
 				);
-			//select first signature who's reference URI == #nodeId
-			XmlElement signatureToVerify = null;
 
-			/*if (string.IsNullOrEmpty(nodeId) && string.IsNullOrEmpty(nodeName)) {
-				signatureToVerify = 
-					signaturesInDoc
-					.Cast<XmlElement>()
-					.First();
-				/*return signaturesInDoc
-						.Cast<XmlElement>()
-						.Aggregate(true,
-							(current, signature) => {
-								signedXml.LoadXml(signature);
-								return current || cert == null ? signedXml.CheckSignature() : signedXml.CheckSignature(cert, true);
-							}
-						);#1#
-			} else {
-				if (!string.IsNullOrEmpty(nodeId)) {
-					//means search signatures by nodeId
-					signatureToVerify = 
-						signaturesInDoc
-							.Cast<XmlElement>()
-							.Where((elt) => 
-								elt
-								.GetXElement()
-								.Descendants()
-								.Elements("Reference")
-								.Attributes("URI")
-								.First()
-								.Value == "#" + nodeId)
-							.Select(elt => elt)
-							.First();
-				} else {
-					//search signatures by node name && namespace
-					signatureToVerify =
-						signaturesInDoc
-							.Cast<XmlElement>()
-							.Where((elt) => {
-										string refValue = elt
-											.GetXElement()
-											.Descendants()
-											.Elements("Reference")
-											.Attributes("URI")
-											.First()
-											.Value;
-										
-							})
-							.First();
-				}
-			}*/
+			if (signaturesInDoc.Count < 1) {
+				throw new ArgumentOutOfRangeException("Signature_cnt", $"NO_SIGNATURES_FOUND] No signatures found in xml.");
+			}
 
-			signedXml.LoadXml(signatureToVerify);
-			return cert == null ? signedXml.CheckSignature() : signedXml.CheckSignature(cert, true);
-			
+			switch (mode) {
+				case SignatureType.Smev2BaseDetached:
+					throw new ArgumentNullException($"UNSUPPORTED_SIGNATURE_TYPE] Signature type <{mode}> is unsupported. Possible values are : <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>");
+				case SignatureType.Smev2ChargeEnveloped:
+					if (signaturesInDoc.Count > 1) {
+						throw new ArgumentOutOfRangeException("Signature", $"CHARGE_TOO_MANY_SIGNATURES] More than one signature found. Found: {signaturesInDoc.Count} sigantures.");
+					}
+					if (!_chargeStructureOk(message)) {
+						throw new ArgumentNullException($"MALFORMED_CHARGE_NODE] Signature type <{mode}> is unsupported. Possible values are : <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>");
+					}
+
+					try {
+						signedXml.LoadXml(signatures.First().Value);
+					} catch (Exception e) {
+						throw new ArgumentException("CERTIFICATE_DAMAGED] <X509Certificate> node appears to be corrupted");
+					}
+
+					break;
+				case SignatureType.Smev2SidebysideDetached:
+				case SignatureType.Smev3BaseDetached:
+					try {
+						signedXml.LoadXml(!string.IsNullOrEmpty(nodeId)? signatures[nodeId]: signatures.First().Value);
+					} catch(Exception e) {
+						throw new ArgumentException("CERTIFICATE_DAMAGED] <X509Certificate> node appears to be corrupted");
+					}
+					break;
+				case SignatureType.SigDetached:
+					throw new ArgumentNullException($"UNSUPPORTED_SIGNATURE_TYPE] Signature type <{mode}> is unsupported. Possible values are : <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>");
+			}
+			bool result = cert == null ? signedXml.CheckSignature() : signedXml.CheckSignature(cert, true);
+			return result;
+		}
+
+		private static bool _chargeStructureOk(XmlDocument charge) {
+			XDocument x = charge.GetXDocument();
+			XNamespace ds = SignedXml.XmlDsigNamespaceUrl;
+			if (x.Root.Descendants(ds + "Signature").Ancestors().First().Equals(x.Root) ||
+				x.Root.Descendants(ds + "Signature").Ancestors().First().Ancestors().First().Equals(x.Root)) {
+				return true;
+			} 
+			return false;
 		}
 
 		private static bool _verifySignature(XmlDocument message, bool verifySignatureOnly = false, X509Certificate2 verifyOnThisCert = null, string nodeId=null, string nodeName=null, string nodeNamespace = null) {

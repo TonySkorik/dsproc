@@ -67,7 +67,7 @@ namespace UniDsproc.DataModel {
 		public ArgsInfo(string[] args) {
 			Ok = false;
 
-			SigType = SignatureType.Smev2SidebysideDetached;
+			SigType = SignatureType.Unknown;
 			//SmevMode = 0;
 			IgnoreExpiredCert = false;
 			
@@ -159,12 +159,12 @@ namespace UniDsproc.DataModel {
 						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_certificateThumbprintKey}> value is empty! This value is required!");
 						return;
 					}
-					/*
+					
 					if (SigType == SignatureType.Unknown) {
 						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_signatureTypeKey}> value is empty! This value is required!");
 						return;
 					}
-
+					/*
 					switch (SigType) {
 						case SignatureType.Detached:
 							SigMode = SigningMode.Detached;
@@ -218,6 +218,10 @@ namespace UniDsproc.DataModel {
 				case ProgramFunction.Verify:
 				case ProgramFunction.VerifyAndExtract:
 					#region [VERIFY]
+					if(SigType == SignatureType.Unknown) {
+						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_signatureTypeKey}> value is empty! This value is required!");
+						return;
+					}
 					string verfile = string.Empty;
 					if(args.Length == 2) {
 						verfile = args[args.Length - 1];

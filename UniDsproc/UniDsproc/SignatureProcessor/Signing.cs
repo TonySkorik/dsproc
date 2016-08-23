@@ -15,7 +15,7 @@ namespace UniDsproc.SignatureProcessor {
 
 	public enum SigningMode {Simple = 1, Smev2 = 2, Smev3 = 3, Detached = 4, SimpleEnveloped = 5};
 	//public enum SignatureType {Enveloped = 1, SideBySide = 2, Detached = 3, Unknown = 4};
-	public enum SignatureType {Smev2BaseDetached, Smev2ChargeEnveloped, Smev2SidebysideDetached, Smev3BaseDetached, SigDetached };
+	public enum SignatureType {Smev2BaseDetached, Smev2ChargeEnveloped, Smev2SidebysideDetached, Smev3BaseDetached, SigDetached , Unknown};
 
 	public static class Signing {
 		//public static string Sign(SigningMode mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign, string nodeNamespace) {

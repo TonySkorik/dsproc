@@ -119,6 +119,7 @@ namespace UniDsproc {
 		private static StatusInfo verify(ArgsInfo args) {
 			try {
 				bool isValid = SignatureProcessor.Verification.VerifySignature(
+					args.SigType,
 					args.InputFile,
 					args.CertLocation == Verification.CertificateLocation.CerFile ? args.CertFilePath : null,
 					args.CertLocation == Verification.CertificateLocation.Thumbprint ? args.CertThumbprint : null,
