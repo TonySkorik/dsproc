@@ -26,7 +26,7 @@ namespace UniDsproc.SignatureProcessor {
 			try {
 				xd.Load(documentPath);
 			} catch (Exception e) {
-				throw new ArgumentNullException($"INPUT_FILE_MISSING] Input file <{documentPath}> is invalid");
+				throw new ArgumentNullException($"INPUT_FILE_MISSING_OR_CORRUPTER] Input file <{documentPath}> is invalid. Message: {e.Message}");
 			}
 
 			return VerifySignature(mode, xd, certificateFilePath, certificateThumb, nodeId);
@@ -89,7 +89,7 @@ namespace UniDsproc.SignatureProcessor {
 					try {
 						signedXml.LoadXml(signatures.First().Value);
 					} catch (Exception e) {
-						throw new ArgumentException("CERTIFICATE_DAMAGED] <X509Certificate> node appears to be corrupted");
+						throw new ArgumentException($"CERTIFICATE_DAMAGED] <X509Certificate> node appears to be corrupted. Message: {e.Message}");
 					}
 
 					break;
@@ -98,7 +98,7 @@ namespace UniDsproc.SignatureProcessor {
 					try {
 						signedXml.LoadXml(!string.IsNullOrEmpty(nodeId)? signatures[nodeId]: signatures.First().Value);
 					} catch(Exception e) {
-						throw new ArgumentException("CERTIFICATE_DAMAGED] <X509Certificate> node appears to be corrupted");
+						throw new ArgumentException($"CERTIFICATE_DAMAGED] <X509Certificate> node appears to be corrupted. Message: {e.Message}");
 					}
 					break;
 				case SignatureType.SigDetached:

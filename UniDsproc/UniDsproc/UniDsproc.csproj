@@ -42,7 +42,7 @@
   <ItemGroup>
     <Reference Include="CryptoPro.Sharpei.Base, Version=1.4.0.10, Culture=neutral, PublicKeyToken=473b8c5086e795f5, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>CryptoPRO\CryptoPro.Sharpei.Base.dll</HintPath>
+      <HintPath>..\..\..\!_UNISIGN\UniSign\CryptoPRO\CryptoPro.Sharpei.Base.dll</HintPath>
     </Reference>
     <Reference Include="CryptoPro.Sharpei.Xml, Version=1.4.0.10, Culture=neutral, PublicKeyToken=473b8c5086e795f5, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

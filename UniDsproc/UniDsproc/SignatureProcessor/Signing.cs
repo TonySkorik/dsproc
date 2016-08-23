@@ -55,7 +55,6 @@ namespace UniDsproc.SignatureProcessor {
 					//case SigningMode.Detached:
 					case SignatureType.SigDetached:
 						return Convert.ToBase64String(SignXmlFileDetached(signThis, privateKey, cert, nodeToSign, assignDs));
-						break;
 				}
 			} catch (Exception e) {
 				throw new Exception($"UNKNOWN_CRYPTO_EX] Original message: {e.Message}");

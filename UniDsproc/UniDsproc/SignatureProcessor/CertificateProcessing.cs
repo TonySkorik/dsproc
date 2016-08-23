@@ -185,7 +185,7 @@ namespace UniDsproc.SignatureProcessor {
 							.Value.Replace("#", "") == nodeId
 						select elt
 					).DefaultIfEmpty(null).First();
-				} catch (Exception e) {
+				} catch {
 					throw new Exception($"CERTIFICATE_NOT_FOUND_BY_NODE_ID] Certificate with node_id=<{nodeId}> not found in passed document");
 				}
 				if (signatureElement == null) {
