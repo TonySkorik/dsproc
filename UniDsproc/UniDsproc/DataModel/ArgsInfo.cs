@@ -38,10 +38,10 @@ namespace UniDsproc.DataModel {
 		//public byte SmevMode { set; get; }
 		[ArgBinding("node_id")]
 		public string NodeId { set; get; }
-		[ArgBinding("node_name")]
+		/*[ArgBinding("node_name")]
 		public string NodeName { set; get; }
 		[ArgBinding("node_namespace")]
-		public string NodeNamespace { set; get; }
+		public string NodeNamespace { set; get; }*/
 		[ArgBinding("thumbprint")]
 		public string CertThumbprint { set; get; }
 		[ArgBinding("cer_file")]
@@ -52,7 +52,7 @@ namespace UniDsproc.DataModel {
 		public bool IgnoreExpiredCert { set; get; } //means there will be no expiration check before signing
 		//================================
 		public SignatureProcessor.Verification.CertificateLocation CertLocation;
-		public SignatureProcessor.Verification.SignatureNodeAddressesBy SignatureAddresedBy;
+		//public SignatureProcessor.Verification.SignatureNodeAddressesBy SignatureAddresedBy;
 
 		//public SigningMode SigMode { set; get; }
 		public string InputFile { get; }
@@ -253,8 +253,9 @@ namespace UniDsproc.DataModel {
 						}
 					}
 
-					SignatureAddresedBy = Verification.SignatureNodeAddressesBy.Default;
-
+					
+					//SignatureAddresedBy = Verification.SignatureNodeAddressesBy.NodeId;
+					/*
 					if (!string.IsNullOrEmpty(NodeId)) {
 						SignatureAddresedBy = Verification.SignatureNodeAddressesBy.NodeId;
 					} else {
@@ -264,6 +265,7 @@ namespace UniDsproc.DataModel {
 							SignatureAddresedBy = Verification.SignatureNodeAddressesBy.Default;
 						}
 					}
+					*/
 					Ok = true;
 					break;
 					#endregion

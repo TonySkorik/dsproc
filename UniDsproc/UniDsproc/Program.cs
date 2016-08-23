@@ -122,9 +122,9 @@ namespace UniDsproc {
 					args.InputFile,
 					args.CertLocation == Verification.CertificateLocation.CerFile ? args.CertFilePath : null,
 					args.CertLocation == Verification.CertificateLocation.Thumbprint ? args.CertThumbprint : null,
-					args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeId? args.NodeId : null,
-					(args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeName || args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeNameNamespace) ? args.NodeName : null,
-					args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeNameNamespace ? args.NodeNamespace : null
+					args.NodeId
+					/*(args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeName || args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeNameNamespace) ? args.NodeName : null,
+					args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeNameNamespace ? args.NodeNamespace : null*/
 				);
 				if (isValid) {
 					return new StatusInfo(new ResultInfo("Signature is correct", true));

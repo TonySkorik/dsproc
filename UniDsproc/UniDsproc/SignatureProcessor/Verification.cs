@@ -28,7 +28,7 @@ namespace UniDsproc.SignatureProcessor {
 			return _verifySignature(xd, verifySignatureOnly);
 		}
 		
-		public static bool VerifySignature(string documentPath, string certificateFilePath=null, string certificateThumb = null, string nodeId = null, string nodeName = null, string nodeNamespace = null) {
+		public static bool VerifySignature(string documentPath, string certificateFilePath=null, string certificateThumb = null, string nodeId = null) {
 			XmlDocument xd = new XmlDocument();
 			try {
 				xd.Load(documentPath);
@@ -36,10 +36,10 @@ namespace UniDsproc.SignatureProcessor {
 				throw new ArgumentNullException($"INPUT_FILE_MISSING] Input file <{documentPath}> is invalid");
 			}
 
-			return VerifySignature(xd, certificateFilePath, certificateThumb, nodeId, nodeName, nodeNamespace);
+			return VerifySignature(xd, certificateFilePath, certificateThumb, nodeId);
 		}
 
-		public static bool VerifySignature(XmlDocument message, string certificateFilePath=null, string certificateThumb = null, string nodeId = null, string nodeName = null, string nodeNamespace = null) {
+		public static bool VerifySignature(XmlDocument message, string certificateFilePath=null, string certificateThumb = null, string nodeId = null) {
 			SignedXml signedXml = new SignedXml(message);
 
 			X509Certificate2 cert = null;
