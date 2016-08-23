@@ -1,8 +1,8 @@
 ﻿
 Signing:
 
-	sign -ignore_expired=true -signature_type=sidebyside -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" -node_id="SIGNED_BY_SERVER" private_config.xml signed_side_by_side.xml
-	sign -ignore_expired=true -signature_type=enveloped -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" -node_id="SIGNED_BY_SERVER" private_config.xml signed_enveloped.xml
+	sign -ignore_expired=true -signature_type=smev2_sidebyside.detached -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" -node_id="SIGNED_BY_SERVER" private_config.xml signed_smev2_side_by_side.xml
+	sign -ignore_expired=true -signature_type=smev2_base.detached -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" -node_id="SIGNED_BY_SERVER" private_config.xml signed_smev2_enveloped.xml
 
 Certificate extraction:
 

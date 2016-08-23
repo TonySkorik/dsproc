@@ -18,7 +18,7 @@ using UniDsproc.DataModel;
 namespace UniDsproc.SignatureProcessor {
 	public static class Verification {
 		public enum CertificateLocation {Thumbprint = 1, CerFile = 2, Xml = 3}
-		public enum SignatureNodeAddressesBy {NodeId = 1, NodeName = 2, NodeNameNamespace = 3, Default = 4}
+		//public enum SignatureNodeAddressesBy {NodeId = 1, NodeName = 2, NodeNameNamespace = 3, Default = 4}
 
 
 		#region [STANDARD]
