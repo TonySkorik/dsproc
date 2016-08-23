@@ -38,11 +38,14 @@ namespace UniDsproc.SignatureProcessor {
 				switch (mode) {
 					//case SigningMode.Simple:
 					case SignatureType.Smev2SidebysideDetached:
+						if(string.IsNullOrEmpty(nodeToSign)) {
+							throw new Exception($"NODE_ID_REQUIRED] <node_id> value is empty. It is required to have a value");
+						}
 						signedXmlDoc = SignXmlNode(signThis, privateKey, cert, nodeToSign);
 						break;
 					//case SigningMode.SimpleEnveloped:
 					case SignatureType.Smev2ChargeEnveloped:
-						signedXmlDoc = SignXmlFileEnveloped(signThis, privateKey, cert, nodeToSign);
+						signedXmlDoc = SignXmlFileEnveloped(signThis, privateKey, cert);
 						break;
 					//case SigningMode.Smev2:
 					case SignatureType.Smev2BaseDetached:
@@ -50,6 +53,9 @@ namespace UniDsproc.SignatureProcessor {
 						break;
 					//case SigningMode.Smev3:
 					case SignatureType.Smev3BaseDetached:
+						if (string.IsNullOrEmpty(nodeToSign)) {
+							throw new Exception($"NODE_ID_REQUIRED] <node_id> value is empty. It is required to have a value");
+						}
 						signedXmlDoc = SignXmlFileSmev3(signThis, privateKey, cert, nodeToSign, assignDs);
 						break;
 					//case SigningMode.Detached:
@@ -143,7 +149,7 @@ namespace UniDsproc.SignatureProcessor {
 
 		#region [SIMPLE ENVELOPED SIGN]
 
-		public static XmlDocument SignXmlFileEnveloped(XmlDocument doc, AsymmetricAlgorithm key, X509Certificate2 certificate, string nodeId) {
+		public static XmlDocument SignXmlFileEnveloped(XmlDocument doc, AsymmetricAlgorithm key, X509Certificate2 certificate, string nodeId=null) {
 
 			//----------------------------------------------------------------------------------------------CREATE SIGNED XML
 			SignedXml signedXml = new SignedXml(doc) { SigningKey = key };
@@ -327,7 +333,6 @@ namespace UniDsproc.SignatureProcessor {
 		#endregion
 
 		public static XmlDocument SignXmlFileSmev3(XmlDocument doc, AsymmetricAlgorithm key, X509Certificate2 certificate, string signingNodeId, bool assignDs) {
-
 			XmlNamespaceManager nsm = new XmlNamespaceManager(doc.NameTable);
 			nsm.AddNamespace("ns", "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1");
 			nsm.AddNamespace("ns1", "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/basic/1.1");

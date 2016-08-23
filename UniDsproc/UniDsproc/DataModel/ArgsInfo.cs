@@ -164,19 +164,7 @@ namespace UniDsproc.DataModel {
 						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_signatureTypeKey}> value is empty! This value is required!");
 						return;
 					}
-					/*
-					switch (SigType) {
-						case SignatureType.Detached:
-							SigMode = SigningMode.Detached;
-							break;
-						case SignatureType.Enveloped:
-							SigMode = SmevMode == 2 ? SigningMode.Smev2 : SigningMode.SimpleEnveloped;
-							break;
-						case SignatureType.SideBySide:
-							SigMode = SmevMode != 3 ? SigningMode.Simple : SigningMode.Smev3; 
-							break;
-					}
-					*/
+					
 					string infile = string.Empty;
 					string outfile = string.Empty;
 					if (args.Length == 3) {
