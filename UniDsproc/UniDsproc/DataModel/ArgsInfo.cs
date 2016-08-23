@@ -23,7 +23,7 @@ namespace UniDsproc.DataModel {
 		//private const string _nodeNamespaceKey = "node_namespace";
 		private const string _certificateThumbprintKey = "thumbprint";
 		private const string _cerFilePathKey = "cer_file";
-		//private const string _setDsKey = "ds";
+		private const string _certificateSourceKey = "certificate_source";
 		
 		private readonly Dictionary<string, PropertyInfo> _knownArgs = SmartBind.CommandLineBind.BuildBindings(typeof(ArgsInfo));
 
@@ -34,14 +34,8 @@ namespace UniDsproc.DataModel {
 		//=============================== via reflection set
 		[ArgBinding("signature_type")]
 		public SignatureType SigType { set; get; }
-		//[ArgBinding("smev_mode")]
-		//public byte SmevMode { set; get; }
 		[ArgBinding("node_id")]
 		public string NodeId { set; get; }
-		/*[ArgBinding("node_name")]
-		public string NodeName { set; get; }
-		[ArgBinding("node_namespace")]
-		public string NodeNamespace { set; get; }*/
 		[ArgBinding("thumbprint")]
 		public string CertThumbprint { set; get; }
 		[ArgBinding("cer_file")]
@@ -50,11 +44,11 @@ namespace UniDsproc.DataModel {
 		public bool AssignDsInSignature { set; get; } // digital signature nodes will be put in XML namespace ds:
 		[ArgBinding("ignore_expired")]
 		public bool IgnoreExpiredCert { set; get; } //means there will be no expiration check before signing
+		[ArgBinding(_certificateSourceKey)]
+		public CertificateSource CertSource { set; get; }
 		//================================
 		public SignatureProcessor.Verification.CertificateLocation CertLocation;
-		//public SignatureProcessor.Verification.SignatureNodeAddressesBy SignatureAddresedBy;
-
-		//public SigningMode SigMode { set; get; }
+		
 		public string InputFile { get; }
 		public string OutputFile { get; }
 
@@ -68,8 +62,8 @@ namespace UniDsproc.DataModel {
 			Ok = false;
 
 			SigType = SignatureType.Unknown;
-			//SmevMode = 0;
 			IgnoreExpiredCert = false;
+			CertSource = CertificateSource.Unknown;
 			
 			if (args.Length == 0) {
 				InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, "Command line is empty!");
@@ -122,6 +116,14 @@ namespace UniDsproc.DataModel {
 										_knownArgs[keyName].SetValue(this, stype);
 									} else {
 										throw new ArgumentNullException(keyName,$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <smev2_base.detached>, <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>, <sig.detached>");
+									}
+								} else if(_knownArgs[keyName].PropertyType.Name == typeof(CertificateSource).Name) {
+									//CertificateSource
+									CertificateSource csource;
+									if(CertificateSource.TryParse(argvs[1].Replace(".", "").Replace("_", ""), true, out csource)) {
+										_knownArgs[keyName].SetValue(this, csource);
+									} else {
+										throw new ArgumentNullException(keyName, $"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <xml> <base64> <cer>");
 									}
 								} else {
 									//string
@@ -194,6 +196,10 @@ namespace UniDsproc.DataModel {
 				case ProgramFunction.Extract:
 					#region [EXTRACT]
 					//check args
+					if(CertSource == CertificateSource.Unknown) {
+						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_certificateSourceKey}> value is empty! This value is required!");
+						return;
+					}
 					string extractFile = args[args.Length - 1];
 					if (File.Exists(extractFile)) {
 						InputFile = extractFile;
@@ -244,20 +250,6 @@ namespace UniDsproc.DataModel {
 							CertLocation = Verification.CertificateLocation.Xml;
 						}
 					}
-
-					
-					//SignatureAddresedBy = Verification.SignatureNodeAddressesBy.NodeId;
-					/*
-					if (!string.IsNullOrEmpty(NodeId)) {
-						SignatureAddresedBy = Verification.SignatureNodeAddressesBy.NodeId;
-					} else {
-						if (!string.IsNullOrEmpty(NodeName)) {
-							SignatureAddresedBy = !string.IsNullOrEmpty(NodeNamespace) ? Verification.SignatureNodeAddressesBy.NodeNameNamespace : Verification.SignatureNodeAddressesBy.NodeName;
-						}else {
-							SignatureAddresedBy = Verification.SignatureNodeAddressesBy.Default;
-						}
-					}
-					*/
 					Ok = true;
 					break;
 					#endregion

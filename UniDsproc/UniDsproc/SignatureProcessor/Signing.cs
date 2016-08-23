@@ -13,22 +13,16 @@ using CryptoPro.Sharpei.Xml;
 
 namespace UniDsproc.SignatureProcessor {
 
-	public enum SigningMode {Simple = 1, Smev2 = 2, Smev3 = 3, Detached = 4, SimpleEnveloped = 5};
-	//public enum SignatureType {Enveloped = 1, SideBySide = 2, Detached = 3, Unknown = 4};
 	public enum SignatureType {Smev2BaseDetached, Smev2ChargeEnveloped, Smev2SidebysideDetached, Smev3BaseDetached, SigDetached , Unknown};
 
 	public static class Signing {
 		//public static string Sign(SigningMode mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign, string nodeNamespace) {
-		public static string Sign(SignatureType mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign, string nodeNamespace) {
+		public static string Sign(SignatureType mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign) {
 
 			XmlDocument signedXmlDoc = new XmlDocument();
 
 			AsymmetricAlgorithm privateKey;
-			if (nodeNamespace != null) {
-				//means signed node is being searched by name, not ID
-				//TODO: sign node, referenced by name
-			}
-
+			
 			try {
 				privateKey = cert.PrivateKey;
 			} catch(Exception e) {
@@ -69,24 +63,20 @@ namespace UniDsproc.SignatureProcessor {
 
 			return signedXmlDoc.InnerXml;
 		}
-		public static string Sign(SignatureType mode, string certificateThumbprint, string signThisPath, bool assignDs, bool ignoreExpiredCert=false, string nodeToSign = "ID_SIGN", string nodeNamespace = null) {
+		public static string Sign(SignatureType mode, string certificateThumbprint, string signThisPath, bool assignDs, string nodeToSign, bool ignoreExpiredCert=false) {
 			XmlDocument signThis = new XmlDocument();
 			signThis.Load(signThisPath);
-			return Sign(mode, certificateThumbprint, signThis, assignDs, ignoreExpiredCert, nodeToSign, nodeNamespace);
+			return Sign(mode, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert);
 		}
 
-		public static string Sign(SignatureType mode, string certificateThumbprint, XmlDocument signThis, bool assignDs, bool ignoreExpiredCert=false, string nodeToSign = "ID_SIGN", string nodeNamespace=null) {
-			if(nodeToSign == null) {
-				nodeToSign = "ID_SIGN";
-			}
-			
+		public static string Sign(SignatureType mode, string certificateThumbprint, XmlDocument signThis, bool assignDs, string nodeToSign, bool ignoreExpiredCert=false) {
 			X509Certificate2 certificate = CertificateProcessing.SearchCertificateByThumbprint(certificateThumbprint);
 
 			if (!ignoreExpiredCert && CertificateProcessing.IsCertificateExpired(certificate)) {
 				throw new Exception($"CERT_EXPIRED] Certificate with thumbprint <{certificate.Thumbprint}> expired!");
 			}
 
-			return Sign(mode, certificate, signThis, assignDs, nodeToSign, nodeNamespace);
+			return Sign(mode, certificate, signThis, assignDs, nodeToSign);
 		}
 
 		#region [SIMPLE NODE SIGN]

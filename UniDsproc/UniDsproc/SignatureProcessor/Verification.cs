@@ -18,19 +18,10 @@ using UniDsproc.DataModel;
 namespace UniDsproc.SignatureProcessor {
 	public static class Verification {
 		public enum CertificateLocation {Thumbprint = 1, CerFile = 2, Xml = 3}
-		//public enum SignatureNodeAddressesBy {NodeId = 1, NodeName = 2, NodeNameNamespace = 3, Default = 4}
-
-
+		
 		#region [STANDARD]
 		
 		public static bool VerifySignature(SignatureType mode, string documentPath, string certificateFilePath=null, string certificateThumb = null, string nodeId = null) {
-			
-			/*
-			if (mode == SignatureType.Smev2BaseDetached) {
-				throw new ArgumentNullException($"UNSUPPORTED_SIGNATURE_TYPE] Signature type <{mode}> is unsupported. Possible values are : <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>, <sig.detached>");
-			}
-			*/
-
 			XmlDocument xd = new XmlDocument();
 			try {
 				xd.Load(documentPath);
@@ -134,8 +125,7 @@ namespace UniDsproc.SignatureProcessor {
 				cert = verifyOnThisCert ?? CertificateProcessing.ReadCertificateFromXml(message.GetXDocument());
 			}
 			XmlDocument xmlDocument = message;
-			//xmlDocument.PreserveWhitespace = true;
-
+			
 			XmlNodeList nodeList =
 				xmlDocument.GetElementsByTagName(
 					"Signature", SignedXml.XmlDsigNamespaceUrl

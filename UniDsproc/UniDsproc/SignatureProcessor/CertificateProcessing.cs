@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -50,6 +51,7 @@ namespace UniDsproc.SignatureProcessor {
 	#endregion
 
 	public enum StoreType {LocalMachine = 1, CurrentUser = 2}
+	public enum CertificateSource {Xml, Base64, Cer, Unknown}
 	public static class CertificateProcessing {
 
 		#region [SEARCH]
@@ -151,7 +153,6 @@ namespace UniDsproc.SignatureProcessor {
 			XElement signatureElement = (
 				from elt in signedXml.Root.Descendants()
 				where elt.Name == (XNamespace)SignedXml.XmlDsigNamespaceUrl + "Signature"
-				//where elt.Name == UnismevData.NamespaceStorage.Ns2 + "SenderInformationSystemSignature"
 				select elt
 			).DefaultIfEmpty(null).First();
 
@@ -170,16 +171,14 @@ namespace UniDsproc.SignatureProcessor {
 					).First();
 
 				if(certificateNodeContent == "") {
-					throw new Exception("CERTIFICATE_NOT_FOUND] Certificate not found in passed document");
 					// means signatureInfo appears to be empty
+					throw new Exception("CERTIFICATE_NOT_FOUND] Certificate not found in passed document");
 				} else {
-					//cert = new X509Certificate2(Encoding.UTF8.GetBytes(certificateNodeContent));
 					cert = new X509Certificate2(Convert.FromBase64String(certificateNodeContent));
 				}
 			} else {
+				//no Signature block
 				throw new Exception("NO_SIGNATURE_FOUND] Signature not found in passed document");
-				//means tere is no SenderInformationSystemSignature node
-				// cert = null
 			}
 			return cert;
 		}
@@ -195,35 +194,31 @@ namespace UniDsproc.SignatureProcessor {
 
 		#endregion
 
-
-		#region [TO SERIALIZABEL CERTIFICATE]
-		public static X509CertificateSerializabale CertificateToSerializableCertificate(XDocument signedXml) {
-			return new X509CertificateSerializabale(ReadCertificateFromXml(signedXml));
-		}
-
-		public static X509CertificateSerializabale CertificateToSerializableCertificate(string signedXmlPath) {
-			return new X509CertificateSerializabale(ReadCertificateFromXml(XDocument.Load(signedXmlPath)));
-		}
-		#endregion
-
-		#region [TO JSON]
-		public static string CertificateToJson(XDocument signedXml) {
-			X509CertificateSerializabale ci = new X509CertificateSerializabale(ReadCertificateFromXml(signedXml));
-
-			string jsonCert = null;
-			if(ci != null) {
-				//means cerificate present
-				JsonSerializerSettings js = new JsonSerializerSettings() {
-					StringEscapeHandling = StringEscapeHandling.Default,
-					DefaultValueHandling = DefaultValueHandling.Ignore
-				};
-
-				jsonCert = JsonConvert.SerializeObject(ci, Newtonsoft.Json.Formatting.Indented, js);
-			}
-			return jsonCert;
+		#region [TO SERIALIZABLE CERTIFICATE]
+		public static X509CertificateSerializabale CertificateToSerializableCertificate(CertificateSource source, string filePath) {
+			switch (source) {
+				case CertificateSource.Xml:
+					return new X509CertificateSerializabale(ReadCertificateFromXml(XDocument.Load(filePath)));
+				case CertificateSource.Base64:
+					try {
+						return new X509CertificateSerializabale(new X509Certificate2(File.ReadAllBytes(filePath)));
+					} catch (Exception e) {
+						throw new ArgumentException($"CERT_FILE_CORRUPTED] Certificate file appears to be corrupted or in wrong format. Message: {e.Message}");
+					}
+				case CertificateSource.Cer:
+					try {
+						X509Certificate2 cer = new X509Certificate2();
+						cer.Import(filePath);
+						return new X509CertificateSerializabale(cer);
+					} catch(Exception e) {
+						throw new ArgumentException($"CERT_FILE_CORRUPTED] Certificate file appears to be corrupted or in wrong format. Message: {e.Message}");
+					}
+				default:
+					throw new ArgumentException("UNKNOWN_CERT_SOURCE] Unknown certificate source passed");
+			}	
 		}
 		#endregion
-
+		
 		#region [CERTIFICATE SELECT UI]
 		public static X509Certificate2 SelectCertificateUI(StoreLocation storeLocation) {
 			X509Store store = new X509Store("MY", storeLocation);
@@ -240,6 +235,5 @@ namespace UniDsproc.SignatureProcessor {
 			return scollection.Count > 0 ? scollection[0] : null;
 		}
 		#endregion
-
 	}
 }

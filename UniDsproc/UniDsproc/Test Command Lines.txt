@@ -2,11 +2,18 @@
 Signing:
 
 	sign -ignore_expired=true -signature_type=smev2_sidebyside.detached -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" -node_id="SIGNED_BY_SERVER" private_config.xml signed_smev2_side_by_side.xml
-	sign -ignore_expired=true -signature_type=smev2_base.detached -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" -node_id="SIGNED_BY_SERVER" private_config.xml signed_smev2_enveloped.xml
+	sign -ignore_expired=true -signature_type=smev2_base.detached -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" private_config.xml signed_smev2_base.xml
+	sign -ignore_expired=true -signature_type=smev3_base.detached -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" -node_id="SIGNED_BY_SERVER" private_config.xml signed_smev3_base.xml
 
 Certificate extraction:
 
-	extract signed.xml
+	extract -certificate_source=xml smev2.detached.signed.xml
+	
+	extract -certificate_source=base64 base64.txt
+
+	extract -certificate_source=cer base_64_cert.cer
+	extract -certificate_source=cer der_cert.cer
+	extract -certificate_source=cer pkcs_cert.p7b
 
 Signature verification:
 	

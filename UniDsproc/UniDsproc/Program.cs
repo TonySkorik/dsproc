@@ -108,7 +108,7 @@ namespace UniDsproc {
 		private static StatusInfo sign(ArgsInfo args) {
 			try {
 				string signedData = SignatureProcessor.Signing.Sign(args.SigType, args.CertThumbprint, args.InputFile,
-																	args.AssignDsInSignature,args.IgnoreExpiredCert, args.NodeId);
+																	args.AssignDsInSignature, args.NodeId, args.IgnoreExpiredCert);
 				File.WriteAllText(args.OutputFile, signedData);
 				return new StatusInfo($"OK. Signed file path: {args.OutputFile}");
 			} catch (Exception e) {
@@ -124,8 +124,6 @@ namespace UniDsproc {
 					args.CertLocation == Verification.CertificateLocation.CerFile ? args.CertFilePath : null,
 					args.CertLocation == Verification.CertificateLocation.Thumbprint ? args.CertThumbprint : null,
 					args.NodeId
-					/*(args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeName || args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeNameNamespace) ? args.NodeName : null,
-					args.SignatureAddresedBy == Verification.SignatureNodeAddressesBy.NodeNameNamespace ? args.NodeNamespace : null*/
 				);
 				if (isValid) {
 					return new StatusInfo(new ResultInfo("Signature is correct", true));
@@ -141,7 +139,7 @@ namespace UniDsproc {
 			
 			StatusInfo si = new StatusInfo(new ErrorInfo(ErrorCodes.UnknownException,ErrorType.CertificateExtraction, "Unknown certificate extraction exception"));
 			try {
-				si = new StatusInfo(new ResultInfo(SignatureProcessor.CertificateProcessing.CertificateToSerializableCertificate(args.InputFile)));
+				si = new StatusInfo(new ResultInfo(SignatureProcessor.CertificateProcessing.CertificateToSerializableCertificate(args.CertSource, args.InputFile)));
 			} catch (Exception e) {
 				si = new StatusInfo(new ErrorInfo(ErrorCodes.CertificateExtractionException, ErrorType.CertificateExtraction, e.Message));
 			}
