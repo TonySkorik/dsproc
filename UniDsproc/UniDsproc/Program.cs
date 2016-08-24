@@ -62,30 +62,18 @@ namespace UniDsproc {
 						$"  signature_type [*:sign]\n" +
 						$"		Determines what signature should be created\n" +
 						$"		Possible values : 'detached', 'enveloped', 'sidebyside'\n\n" +
-						$"  smev_mode\n" +
-						$"		Determines which SMEV-specific transformations\n" +
-						$"		should be applied\n" +
-						$"		Possible values : '2', '3'\n" +
-						$"		Default value : 2 \n" +
-						$"		If <signature_type> is 'detached' this key is ignored\n\n" +
 						$"  node_id\n" +
 						$"		String value of <Id> attribute of the node to be signed\n" +
 						$"		Default value : 'ID_SIGN'\n\n" +
-						$"  node_name\n" +
-						$"		String value of the node to be signed tag name\n" +
-						$"		Default value : null\n" +
-						$"		If <node_id> key used - this key is ignored\n\n" +
-						$"  node_namespace\n" +
-						$"		String value of the node to be signed tag name\n" +
-						$"		If <node_id> key used - this key is ignored\n\n" +
-						$"  thumbprint [*:sign,verify]\n" +
+						$"  thumbprint [*:sign]\n" +
 						$"		Signature certificate thumbprint\n\n" +
 						$"  cer_file\n" +
 						$"		Certificate file path for signature verification\n" +
 						$"		If <thumbprint> key used - this key is ignored while\n" +
 						$"		'verify' option selected\n\n" +
 						$"  ds\n" +
-						$"		Certificate file path for signature verification\n" +
+						$"		Add ds: namespace prefix to <Signature> and descendants\n" +
+						$"		Can not be verified by this program\n" +
 						$"		Possible values : 'true', 'false', '1', '0', 'on', 'off'\n" +
 						$"		Default value : 'false' \n\n" +
 						$"  ignore_expired\n" +
@@ -93,8 +81,12 @@ namespace UniDsproc {
 						$"		If 'false' and certificate is expired - error returned\n" +
 						$"		Possible values : 'true', 'false', '1', '0', 'on', 'off'\n" +
 						$"		Default value : 'false' \n\n" +
+						$"  certificate_source [*:verify, verifyAndExtract]\n" +
+						$"		Sets the source from which to extract the certificate\n" +
+						$"		Possible values : 'xml', 'base64', 'cer'" +
 						$"";
 			Console.WriteLine(help);
+			
 		}
 		#endregion
 
