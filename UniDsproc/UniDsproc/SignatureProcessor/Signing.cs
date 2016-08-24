@@ -406,6 +406,14 @@ namespace UniDsproc.SignatureProcessor {
 			ContentInfo contentInfo = new ContentInfo(Encoding.UTF8.GetBytes(doc.OuterXml));
 			SignedCms signedCms = new SignedCms(contentInfo, true);
 			CmsSigner cmsSigner = new CmsSigner(certificate) { IncludeOption = X509IncludeOption.EndCertOnly };
+			cmsSigner.SignedAttributes.Add(
+				new CryptographicAttributeObject(
+					new Oid("1.2.840.113549.1.9.3"),
+					new AsnEncodedDataCollection(
+						new AsnEncodedData(Encoding.UTF8.GetBytes("1.2.840.113549.1.7.1"))
+					)
+				)
+			);
 			signedCms.ComputeSignature(cmsSigner);
 			//  Кодируем CMS/PKCS #7 подпись сообщения.
 			return signedCms.Encode();
