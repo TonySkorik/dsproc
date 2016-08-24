@@ -180,7 +180,7 @@ namespace UniDsproc.SignatureProcessor {
 		#endregion
 
 		#region [SMEV 2 (side by side)]
-
+		
 		#region [UTILITY]
 
 		public const string WSSecurityWSSENamespaceUrl =
@@ -274,17 +274,13 @@ namespace UniDsproc.SignatureProcessor {
 
 			XmlDsigExcC14NTransform c14 = new XmlDsigExcC14NTransform();
 			reference.AddTransform(c14);
-
-#pragma warning disable 612
-			//reference.DigestMethod = CryptoPro.Sharpei.Xml.CPSignedXml.XmlDsigGost3411UrlObsolete;
-#pragma warning disable 612
-
+			
 			signedXml.AddReference(reference);
 			//----------------------------------------------------------------------------------------------SIGNATURE SETUP
 			signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
-#pragma warning disable 612
+			#pragma warning disable 612
 			signedXml.SignedInfo.SignatureMethod = CryptoPro.Sharpei.Xml.CPSignedXml.XmlDsigGost3410UrlObsolete;
-#pragma warning disable 612
+			#pragma warning disable 612
 			//----------------------------------------------------------------------------------------------KEYINFO
 			KeyInfo keyInfo = new KeyInfo();
 			KeyInfoX509Data X509KeyInfo = new KeyInfoX509Data(certificate);
@@ -299,12 +295,13 @@ namespace UniDsproc.SignatureProcessor {
 				tDoc.ImportNode(xmlDigitalSignature.GetElementsByTagName("SignatureValue")[0], true));
 			tDoc.GetElementsByTagName("Signature")[0].PrependChild(
 				tDoc.ImportNode(xmlDigitalSignature.GetElementsByTagName("SignedInfo")[0], true));
+			((XmlElement)tDoc.GetElementsByTagName("Signature")[0]).SetAttribute("xmlns", ds_);
 
 			return tDoc;
 		}
 
 		#endregion
-
+		
 		#endregion
 
 		#region [SMEV 3]
@@ -404,9 +401,7 @@ namespace UniDsproc.SignatureProcessor {
 
 			return doc;
 		}
-
-
-
+		
 		public static XmlDocument SignXmlFileSmev3Enveloped(XmlDocument doc, AsymmetricAlgorithm key, X509Certificate2 certificate, string signingNodeId, bool assignDs) {
 
 			XmlNamespaceManager nsm = new XmlNamespaceManager(doc.NameTable);
