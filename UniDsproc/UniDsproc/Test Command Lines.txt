@@ -8,6 +8,7 @@ Signing:
 Certificate extraction:
 
 	extract -certificate_source=xml -node_id=SIGNED_BY_SERVER smev2.detached.signed.xml
+	extract -certificate_source=xml -node_id=body smev2.base.signed.xml
 	
 	extract -certificate_source=base64 base64.txt
 
@@ -20,5 +21,10 @@ Signature verification:
 	
 	verify -signature_type=smev2_sidebyside.detached -node_id=SIGNED_BY_SERVER smev2.detached.signed.xml
 	verify -signature_type=smev2_charge.enveloped smev2.charge.signed.xml
+	verify -signature_type=smev2_base.detached -node_id=body smev2.base.signed.xml
 	verify -signature_type=smev3_base.detached -node_id=ID_SIGN smev3.base.signed.xml
 	verify -signature_type=sig.detached <----- unsupported yet
+
+Verify and Extract
+
+	verifyAndExtract -signature_type=smev2_base.detached -node_id=body smev2.base.signed.xml

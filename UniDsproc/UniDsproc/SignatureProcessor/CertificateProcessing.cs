@@ -163,8 +163,17 @@ namespace UniDsproc.SignatureProcessor {
 			X509Certificate2 cert = null;
 			XElement signatureElement = null;
 			XNamespace ds = SignedXml.XmlDsigNamespaceUrl;
-			
-			if (string.IsNullOrEmpty(nodeId)) {
+
+			bool isSmev2 = MessageIsSmev2Base(signedXml);
+			string smev2CertRef = string.Empty;
+			XNamespace wsu = Signing.WSSecurityWSUNamespaceUrl;
+			XNamespace wsse = Signing.WSSecurityWSSENamespaceUrl;
+			XNamespace soapenv = "http://schemas.xmlsoap.org/soap/envelope/";
+			if (isSmev2 && string.IsNullOrEmpty(nodeId)) {
+				nodeId = "body";
+			}
+
+			if (string.IsNullOrEmpty(nodeId) && !isSmev2) {
 				signatureElement = (
 					from elt in signedXml.Root.Descendants()
 					where elt.Name == ds + "Signature"
@@ -176,35 +185,53 @@ namespace UniDsproc.SignatureProcessor {
 						from elt in signedXml.Root.Descendants()
 						where elt.Name == ds + "Signature"
 						where elt
-							.Descendants(ds+"SignedInfo").First()
-							.Descendants(ds+"Reference").First()
+							.Descendants(ds + "SignedInfo").First()
+							.Descendants(ds + "Reference").First()
 							.Attributes("URI").First()
 							.Value.Replace("#", "") == nodeId
 						select elt
-					).DefaultIfEmpty(null).First();
+						).DefaultIfEmpty(null).First();
 				} catch {
 					throw new Exception($"CERTIFICATE_NOT_FOUND_BY_NODE_ID] Certificate with node_id=<{nodeId}> not found in passed document");
 				}
 				if (signatureElement == null) {
 					throw new Exception($"CERTIFICATE_NOT_FOUND_BY_NODE_ID] Certificate with node_id=<{nodeId}> not found in passed document");
 				}
+				if(isSmev2) {
+					smev2CertRef = signatureElement.Descendants(ds + "KeyInfo").First()
+						.Descendants(wsse+"SecurityTokenReference").First()
+						.Descendants(wsse+ "Reference").First()
+						.Attribute("URI").Value.Replace("#","");
+					if (string.IsNullOrEmpty(smev2CertRef)) {
+						throw new Exception("SMEV2_CERTIFICATE_REFERENCE_NOT_FOUND] No certificate reference found in input file");
+					}
+				}
 			}
 
 			if(signatureElement != null) {
-				string certificateNodeContent = (
-					from node in signatureElement.Descendants()
-					where node.Name == ds + "X509Certificate"
-					select node.Value.ToString()
-					).DefaultIfEmpty(
-						//means Signature may be not named with an xmlns:ds
-						(
-							from node in signatureElement.Descendants()
-							where node.Name == "X509Certificate"
-							select node.Value.ToString()
-							).DefaultIfEmpty("").First()
-					).First();
-
-				if(certificateNodeContent == "") {
+				string certificateNodeContent = string.Empty;
+				if (!isSmev2) {
+					certificateNodeContent = (
+						from node in signatureElement.Descendants()
+						where node.Name == ds + "X509Certificate"
+						select node.Value.ToString()
+						).DefaultIfEmpty(
+							//means Signature may be not named with an xmlns:ds
+							(
+								from node in signatureElement.Descendants()
+								where node.Name == "X509Certificate"
+								select node.Value.ToString()
+								).DefaultIfEmpty("").First()
+						).First();
+				} else {
+					//form smev 2
+					certificateNodeContent = signedXml.Root
+						.Descendants(soapenv + "Header").First()
+						.Descendants(wsse + "Security")
+						.Where((elt) => elt.Descendants(wsse + "BinarySecurityToken").Attributes(wsu + "Id").First().Value == smev2CertRef)
+						.Select((elt) => elt.Descendants(wsse + "BinarySecurityToken").First().Value).FirstOrDefault();
+				}
+				if(string.IsNullOrEmpty(certificateNodeContent)) {
 					// means signatureInfo appears to be empty
 					throw new Exception("CERTIFICATE_NOT_FOUND] Certificate not found in passed document");
 				} else {
@@ -224,6 +251,13 @@ namespace UniDsproc.SignatureProcessor {
 			if (cert == null) return true;
 			DateTime dtNow = DateTime.Now.ToUniversalTime();
 			return !(dtNow > cert.NotBefore.ToUniversalTime() && dtNow < cert.NotAfter.ToUniversalTime());
+		}
+
+		public static bool MessageIsSmev2Base(XDocument message) {
+			XNamespace wsse = Signing.WSSecurityWSSENamespaceUrl;
+			XNamespace env = "http://schemas.xmlsoap.org/soap/envelope/";
+
+			return message.Root.Descendants(env + "Header").First().Descendants(wsse + "Security").Any();
 		}
 
 		#endregion

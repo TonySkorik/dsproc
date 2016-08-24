@@ -143,8 +143,10 @@ namespace UniDsproc {
 		private static StatusInfo verifyAndExtract(ArgsInfo args) {
 			StatusInfo si = verify(args);
 			if (!si.IsError) {
-				args.CertSource = CertificateSource.Xml;
-				si = extract(args);
+				if (si.Result.SignatureIsCorrect.HasValue && si.Result.SignatureIsCorrect.Value) {
+					args.CertSource = CertificateSource.Xml;
+					si = extract(args);
+				}
 			}
 			return si;
 		}

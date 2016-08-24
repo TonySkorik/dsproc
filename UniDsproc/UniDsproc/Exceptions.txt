@@ -21,6 +21,7 @@ error_code:
 		UNKNOWN_CERTIFICATE_EXCEPTION		- неизвестная ошибка при обработке сертификата (см. Orignal message для определения)
 		CERTIFICATE_NOT_FOUND_BY_NODE_ID	- сертификат не найден в документе по указанному nodeId
 		CERTIFICATE_NOT_FOUND			- в переданном документе не найден сертификат
+		SMEV2_CERTIFICATE_REFERENCE_NOT_FOUND	- в сообщении не найдена ссылка на сертифкат (только для СМЭВ2)
 		SIGNATURE_NOT_FOUND			- в переданном файле не найдена подпись
 		NO_CERTIFICATES_FOUND			- в переданном файле p7b отсутствуют сертификаты
 		CERTIFICATE_FILE_CORRUPTED		- переданный файл сертификата поврежден
