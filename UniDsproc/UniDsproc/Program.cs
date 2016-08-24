@@ -130,7 +130,6 @@ namespace UniDsproc {
 		}
 
 		private static StatusInfo extract(ArgsInfo args) {
-			
 			StatusInfo si = new StatusInfo(new ErrorInfo(ErrorCodes.UnknownException,ErrorType.CertificateExtraction, "Unknown certificate extraction exception"));
 			try {
 				si = new StatusInfo(new ResultInfo(SignatureProcessor.CertificateProcessing.CertificateToSerializableCertificate(args.CertSource, args.InputFile, args.NodeId)));
@@ -142,9 +141,9 @@ namespace UniDsproc {
 		}
 
 		private static StatusInfo verifyAndExtract(ArgsInfo args) {
-			StatusInfo si = new StatusInfo("OK");
-			si = verify(args);
+			StatusInfo si = verify(args);
 			if (!si.IsError) {
+				args.CertSource = CertificateSource.Xml;
 				si = extract(args);
 			}
 			return si;

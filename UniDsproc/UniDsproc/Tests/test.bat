@@ -73,5 +73,25 @@ echo smev3_base.detached
 	%dsproc% verify -signature_type=smev3_base.detached -node_id=SIGNED_BY_SERVER smev3.base.signed.xml
 pause
 echo ------------------------
+::==================================================================VERIFICATION
+echo Testing signature verification AND extraction
+pause
+echo ------------------------
+echo smev2_sidebyside.detached
+	%dsproc% verifyAndExtract -signature_type=smev2_sidebyside.detached -node_id=SIGNED_BY_SERVER smev2.sidebyside.signed.xml
+pause
+echo ------------------------
+echo smev2_charge.enveloped
+	%dsproc% verifyAndExtract -signature_type=smev2_charge.enveloped smev2.charge.signed.xml
+pause
+echo ------------------------
+echo smev2_base.datached
+	%dsproc% verifyAndExtract -signature_type=smev2_base.datached smev2.base.signed.xml
+pause
+echo ------------------------
+echo smev3_base.detached
+	%dsproc% verifyAndExtract -signature_type=smev3_base.detached -node_id=SIGNED_BY_SERVER smev3.base.signed.xml
+pause
+echo ------------------------
 echo DONE.
 pause
