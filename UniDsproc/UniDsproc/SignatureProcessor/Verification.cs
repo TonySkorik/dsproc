@@ -22,7 +22,7 @@ namespace UniDsproc.SignatureProcessor {
 			try {
 				xd.Load(documentPath);
 			} catch (Exception e) {
-				throw new ArgumentNullException($"INPUT_FILE_MISSING_OR_CORRUPTER] Input file <{documentPath}> is invalid. Message: {e.Message}");
+				throw new ArgumentNullException($"INPUT_XML_MISSING_OR_CORRUPTED] Input file <{documentPath}> is invalid. Message: {e.Message}");
 			}
 
 			return VerifySignature(mode, xd, certificateFilePath, certificateThumb, nodeId);
@@ -30,6 +30,7 @@ namespace UniDsproc.SignatureProcessor {
 
 		public static bool VerifySignature(SignatureType mode, XmlDocument message, string certificateFilePath=null, string certificateThumb = null, string nodeId = null) {
 			SignedXml signedXml = new SignedXml(message);
+			Signing.Smev2SignedXml smev2SignedXml = null;
 
 			X509Certificate2 cert = null;
 			bool isCerFile;
@@ -41,7 +42,7 @@ namespace UniDsproc.SignatureProcessor {
 					try {
 						cert.Import(certificateFilePath);
 					} catch (Exception e) {
-						throw new ArgumentException($"CERTIFICATE_IMPOIRT_EXCEPTION] Certificate <{certificateFilePath}> can not be loaded. Message: {e.Message}");
+						throw new ArgumentException($"CERTIFICATE_IMPORT_EXCEPTION] Certificate <{certificateFilePath}> can not be loaded. Message: {e.Message}");
 					}
 				}else {
 					//throws if not found
@@ -55,6 +56,7 @@ namespace UniDsproc.SignatureProcessor {
 					message.GetElementsByTagName(
 						"Signature", SignedXml.XmlDsigNamespaceUrl
 						);
+
 			signatures = 
 				signaturesInDoc
 				.Cast<XmlElement>()
@@ -66,25 +68,56 @@ namespace UniDsproc.SignatureProcessor {
 					(elt => elt)
 				);
 
-			if (signaturesInDoc.Count < 1) {
-				throw new ArgumentOutOfRangeException("Signature_cnt", $"NO_SIGNATURES_FOUND] No signatures found in xml.");
+			if (!string.IsNullOrEmpty(nodeId) && !signatures.ContainsKey(nodeId)) {
+				throw new ArgumentException($"REFERENCED_SIGNATURE_NOT_FOUND] Referenced signature (-node_id=<{nodeId}>) not found in the input file.");
 			}
 
+			if (signaturesInDoc.Count < 1) {
+				throw new ArgumentOutOfRangeException("Signature_cnt", $"NO_SIGNATURES_FOUND] No signatures found in the input file.");
+			}
+			
 			switch (mode) {
 				case SignatureType.Smev2BaseDetached:
-					throw new ArgumentNullException($"UNSUPPORTED_SIGNATURE_TYPE] Signature type <{mode}> is unsupported. Possible values are : <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>");
+					smev2SignedXml = new Signing.Smev2SignedXml(message);
+					try {
+						smev2SignedXml.LoadXml(!string.IsNullOrEmpty(nodeId) ? signatures[nodeId] : signatures["body"]);
+					} catch(Exception e) {
+						throw new ArgumentException($"CERTIFICATE_CONTENT_CORRUPTED] <X509Certificate> node content appears to be corrupted. Message: {e.Message}");
+					}
+					XmlNodeList referenceList = smev2SignedXml.KeyInfo
+						.GetXml()
+						.GetElementsByTagName("Reference", Signing.WSSecurityWSSENamespaceUrl);
+					if(referenceList.Count == 0) {
+						throw new XmlException("SMEV2_CERTIFICATE_REFERENCE_NOT_FOUND] No certificate reference found in input file");
+					}
+					string binaryTokenReference = ((XmlElement)referenceList[0]).GetAttribute("URI");
+					if(string.IsNullOrEmpty(binaryTokenReference) || binaryTokenReference[0] != '#') {
+						throw new XmlException("SMEV2_MALFORMED_CERTIFICATE_REFERENCE] Certificate reference appears to be malformed");
+					}
+					
+					XmlElement binaryTokenElement = smev2SignedXml.GetIdElement(message, binaryTokenReference.Substring(1));
+					if(binaryTokenElement == null) {
+						throw new XmlException($"SMEV2_CERTIFICATE_NOT_FOUND] Referenced certificate not found. Reference: <{binaryTokenReference.Substring(1)}>");
+					}
+
+					try {
+						cert = new X509Certificate2(Convert.FromBase64String(binaryTokenElement.InnerText));
+					} catch (Exception e) {
+						throw new ArgumentException($"SMEV2_CERTIFICATE_CORRUPTED] Smev2 certificate node content appears to be corrupted. Message: {e.Message}");
+					}
+					break;
 				case SignatureType.Smev2ChargeEnveloped:
 					if (signaturesInDoc.Count > 1) {
-						throw new ArgumentOutOfRangeException("Signature", $"CHARGE_TOO_MANY_SIGNATURES] More than one signature found. Found: {signaturesInDoc.Count} sigantures.");
+						throw new ArgumentOutOfRangeException("Signature", $"CHARGE_TOO_MANY_SIGNATURES_FOUND] More than one signature found. Found: {signaturesInDoc.Count} sigantures.");
 					}
 					if (!_chargeStructureOk(message)) {
-						throw new ArgumentNullException($"MALFORMED_CHARGE_NODE] Signature type <{mode}> is unsupported. Possible values are : <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>");
+						throw new ArgumentNullException($"CHARGE_MALFORMED_DOCUMENT] Document structure is malformed. <Signature> node must be either root node descendant or root node descentant descendant.");
 					}
 
 					try {
 						signedXml.LoadXml(signatures.First().Value);
 					} catch (Exception e) {
-						throw new ArgumentException($"CERTIFICATE_DAMAGED] <X509Certificate> node appears to be corrupted. Message: {e.Message}");
+						throw new ArgumentException($"CERTIFICATE_CONTENT_CORRUPTED] <X509Certificate> node content appears to be corrupted. Message: {e.Message}");
 					}
 
 					break;
@@ -93,13 +126,17 @@ namespace UniDsproc.SignatureProcessor {
 					try {
 						signedXml.LoadXml(!string.IsNullOrEmpty(nodeId)? signatures[nodeId]: signatures.First().Value);
 					} catch(Exception e) {
-						throw new ArgumentException($"CERTIFICATE_DAMAGED] <X509Certificate> node appears to be corrupted. Message: {e.Message}");
+						throw new ArgumentException($"CERTIFICATE_CONTENT_CORRUPTED] <X509Certificate> node content appears to be corrupted. Message: {e.Message}");
 					}
 					break;
 				case SignatureType.SigDetached:
-					throw new ArgumentNullException($"UNSUPPORTED_SIGNATURE_TYPE] Signature type <{mode}> is unsupported. Possible values are : <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>");
+					throw new ArgumentNullException($"UNSUPPORTED_SIGNATURE_TYPE] Signature type <{mode}> is unsupported. Possible values are : <smev2_base.enveloped>, <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>");
 			}
-			bool result = cert == null ? signedXml.CheckSignature() : signedXml.CheckSignature(cert, true);
+			
+			bool result = smev2SignedXml == null?
+				cert == null ? signedXml.CheckSignature() : signedXml.CheckSignature(cert, true) :
+				smev2SignedXml.CheckSignature(cert.PublicKey.Key);
+			
 			return result;
 		}
 
@@ -112,6 +149,7 @@ namespace UniDsproc.SignatureProcessor {
 			} 
 			return false;
 		}
+
 		#endregion
 
 		#region [DS: PREFIXED] Some heavy wizardry here

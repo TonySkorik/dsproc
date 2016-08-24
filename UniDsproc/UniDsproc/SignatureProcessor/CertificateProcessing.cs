@@ -98,7 +98,7 @@ namespace UniDsproc.SignatureProcessor {
 					if(found.Count != 0) {
 						// means found in Current User store
 					} else {
-						throw new Exception($"CERT_SEARCH_EX] Certificate with thumbprint {certificateThumbprint} not found");
+						throw new Exception($"CERTIFICATE_NOT_FOUND_BY_THUMBPRINT] Certificate with thumbprint {certificateThumbprint} not found");
 					}
 				} else {
 					// means found in LocalMachine store
@@ -107,10 +107,10 @@ namespace UniDsproc.SignatureProcessor {
 				if(found.Count == 1) {
 					return found[0];
 				} else {
-					throw new Exception($"CERT_SEARC_EX] More than one certificate with thumbprint {certificateThumbprint} found!");
+					throw new Exception($"MORE_THAN_ONE_CERTIFICATE] More than one certificate with thumbprint {certificateThumbprint} found!");
 				}
 			} catch(CryptographicException e) {
-				throw new Exception($"UNKNOWN_CRYPTO_EX] Original message : {e.Message}");
+				throw new Exception($"UNKNOWN_CERTIFICATE_EXCEPTION] Unknown certificate exception. Original message : {e.Message}");
 			}
 		}
 
@@ -212,7 +212,7 @@ namespace UniDsproc.SignatureProcessor {
 				}
 			} else {
 				//no Signature block
-				throw new Exception("NO_SIGNATURE_FOUND] Signature not found in passed document");
+				throw new Exception("SIGNATURE_NOT_FOUND] Signature not found in passed document");
 			}
 			return cert;
 		}
@@ -237,7 +237,7 @@ namespace UniDsproc.SignatureProcessor {
 					try {
 						return new X509CertificateSerializable(new X509Certificate2(File.ReadAllBytes(filePath)));
 					} catch (Exception e) {
-						throw new ArgumentException($"CERT_FILE_CORRUPTED] Input file appears to be corrupted or in wrong format. Message: {e.Message}");
+						throw new ArgumentException($"CERTIFICATE_FILE_CORRUPTED] Input file appears to be corrupted or in wrong format. Message: {e.Message}");
 					}
 				case CertificateSource.Cer:
 					try {
@@ -246,7 +246,7 @@ namespace UniDsproc.SignatureProcessor {
 							X509Certificate2Collection collection = new X509Certificate2Collection();
 							collection.Import(filePath);
 							if (collection.Count < 1) {
-								throw new ArgumentException($"NO_CERTS_FOUND] Input certificate collection <{filePath}> appears to be empty");
+								throw new ArgumentException($"NO_CERTIFICATES_FOUND] Input certificate collection <{filePath}> appears to be empty");
 							}
 							if (collection.Count == 1) {
 								cer = collection[0];
@@ -260,10 +260,10 @@ namespace UniDsproc.SignatureProcessor {
 						
 						return new X509CertificateSerializable(cer);
 					} catch(Exception e) {
-						throw new ArgumentException($"CERT_FILE_CORRUPTED] Input file appears to be corrupted or in wrong format. Message: {e.Message}");
+						throw new ArgumentException($"CERTIFICATE_FILE_CORRUPTED] Input file appears to be corrupted or in wrong format. Message: {e.Message}");
 					}
 				default:
-					throw new ArgumentException("UNKNOWN_CERT_SOURCE] Unknown certificate source passed");
+					throw new ArgumentException("UNKNOWN_CERTIFICATE_SOURCE] Unknown certificate source passed. Possible values : <xml>, <base64>, <cer>");
 			}	
 		}
 		#endregion

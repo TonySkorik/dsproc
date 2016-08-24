@@ -1,0 +1,49 @@
+﻿error_type:
+	ArgumentParsing - ошибка разбора аргументов
+	Signing - ошибка при подписании
+	SignatureVerification - - ошибка верификации подписи
+	CertificateExtraction - ошибка извлечения сертификата
+
+error_code:
+	
+	ArgsumentParsing:
+
+		UNKNOWN_ARGUMENT		- неизвестный ключ
+		ARGUMENT_INVALID_VALUE		- неверное значение ключа
+		ARGUMENT_NULL_VALUE		- пустое значение ключа
+		UNKNOWN_ARGUMENTS_EXCEPTION	- незвестная ошибка при разборе аргументов (см. Orignal message для определения)
+		FILE_NOT_FOUND			- входной или выходной файл не найден
+
+	CertificateExtraction:
+
+		CERTIFICATE_NOT_FOUND_BY_THUMBPRINT	- не надено ни одного сертификата по указанному thumbprint
+		MORE_THAN_ONE_CERTIFICATE		- найдено больше одного сертификата по указанному thumbprint
+		UNKNOWN_CERTIFICATE_EXCEPTION		- неизвестная ошибка при обработке сертификата (см. Orignal message для определения)
+		CERTIFICATE_NOT_FOUND_BY_NODE_ID	- сертификат не найден в документе по указанному nodeId
+		CERTIFICATE_NOT_FOUND			- в переданном документе не найден сертификат
+		SIGNATURE_NOT_FOUND			- в переданном файле не найдена подпись
+		NO_CERTIFICATES_FOUND			- в переданном файле p7b отсутствуют сертификаты
+		CERTIFICATE_FILE_CORRUPTED		- переданный файл сертификата поврежден
+		UNKNOWN_CERTIFICATE_SOURCE		- ключ -certificate_source не опознан
+
+	Signing:
+
+		PRIVATE_KEY_MISSING		- в переданном сертификате отсутствует закрытый ключ
+		NODE_ID_REQUIRED		- не указано обяхательное значение -node_id
+		UNKNOWN_SIGNING_EXCEPTION	- неизвестная ошибка подписания (см. Orignal message для определения)
+		CERT_EXPIRED			- сертификат для подписи истек. Для отключения воспользоваться ключом -ignore_expired=1
+
+	SignatureVerification:
+
+		INPUT_XML_MISSING_OR_CORRUPTED		- входной XML поврежден
+		CERTIFICATE_IMPORT_EXCEPTION		- переданный сертификат для проверки подписи не может быть загружен (поврежден)
+		REFERENCED_SIGNATURE_NOT_FOUND		- подпись по node_id не найдена
+		NO_SIGNATURES_FOUND			- в переданном файле отсутствуют подписи
+		CERTIFICATE_CONTENT_CORRUPTED		- в подписанной XML уел X509Certificate содержит невалидные данные
+		SMEV2_CERTIFICATE_REFERENCE_NOT_FOUND	- в сообщении не найдена ссылка на сертифкат (только для СМЭВ2)
+		SMEV2_MALFORMED_CERTIFICATE_REFERENCE	- повреждена ссылка на сертификат (только для СМЭВ2)
+		SMEV2_CERTIFICATE_NOT_FOUND		- сертификат по ссылке не найден (только для СМЭВ2)
+		SMEV2_CERTIFICATE_CORRUPTED		- сертификат поврежден (только для СМЭВ2)
+		CHARGE_TOO_MANY_SIGNATURES_FOUND	- найдено больше одной подписи (только для СМЭВ2-charge)
+		CHARGE_MALFORMED_DOCUMENT		- стуктура сообщения невалидна (узел подписи не является либо потомком рута, либо потомком потомка рута) (только для СМЭВ2-charge)
+		UNSUPPORTED_SIGNATURE_TYPE		- выбранный в -signature_type тип подписи не поддерживается

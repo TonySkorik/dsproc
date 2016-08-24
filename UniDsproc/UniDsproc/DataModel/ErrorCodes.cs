@@ -24,7 +24,7 @@ namespace UniDsproc.DataModel {
 		#endregion
 
 		#region [UNKNOWN EXCEPTIONS]
-		public static string UnknownException = "UNKNOWN_EXCEPTION";
+		public static string UnknownException = "UNKNOWN_ARGUMENTS_EXCEPTION";
 		#endregion
 	}
 }

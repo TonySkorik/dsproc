@@ -81,6 +81,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <Content Include="Exceptions.txt" />
     <Content Include="Tests\base64.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
