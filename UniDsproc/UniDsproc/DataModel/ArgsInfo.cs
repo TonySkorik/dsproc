@@ -111,7 +111,7 @@ namespace UniDsproc.DataModel {
 									if (SignatureType.TryParse(argvs[1].Replace(".","").Replace("_",""), true, out stype)) {
 										_knownArgs[keyName].SetValue(this, stype);
 									} else {
-										throw new ArgumentNullException(keyName,$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <smev2_base.detached>, <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>, <sig.detached>");
+										throw new ArgumentNullException(keyName,$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <smev2_base.detached>, <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>, <smev3_sidebyside.detached>, <smev3_ack>, <sig.detached>");
 									}
 								} else if(_knownArgs[keyName].PropertyType.Name == typeof(CertificateSource).Name) {
 									//CertificateSource

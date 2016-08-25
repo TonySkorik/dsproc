@@ -9,21 +9,25 @@ using CryptoPro.Sharpei.Xml;
 
 namespace UniDsproc.SignatureProcessor {
 
-	public enum SignatureType {Smev2BaseDetached, Smev2ChargeEnveloped, Smev2SidebysideDetached, Smev3BaseDetached, SigDetached , Unknown};
+	public enum SignatureType {Smev2BaseDetached, Smev2ChargeEnveloped, Smev2SidebysideDetached, Smev3BaseDetached, Smev3SidebysideDetached, Smev3Ack, SigDetached , Unknown};
 
 	public static class Signing {
-		//public static string Sign(SigningMode mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign, string nodeNamespace) {
 		public static string Sign(SignatureType mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign) {
 
 			XmlDocument signedXmlDoc = new XmlDocument();
 
-			AsymmetricAlgorithm privateKey;
-			
+			if (!cert.HasPrivateKey) {
+				throw new Exception($"PRIVATE_KEY_MISSING] Certificate (subject: <{cert.Subject}>) private key not found.");
+			}
+
+			/*
 			try {
-				privateKey = cert.PrivateKey;
+				AsymmetricAlgorithm  privateKey = cert.PrivateKey;
 			} catch(Exception e) {
 				throw new Exception($"PRIVATE_KEY_MISSING] Certificate (subject: <{cert.Subject}>) private key not found. Original message: <{e.Message}>");
 			}
+			*/
+
 			try {
 				switch (mode) {
 					//case SigningMode.Simple:
@@ -31,26 +35,38 @@ namespace UniDsproc.SignatureProcessor {
 						if(string.IsNullOrEmpty(nodeToSign)) {
 							throw new Exception($"NODE_ID_REQUIRED] <node_id> value is empty. This value is required");
 						}
-						signedXmlDoc = SignXmlNode(signThis, privateKey, cert, nodeToSign);
+						signedXmlDoc = SignXmlNode(signThis, cert, nodeToSign);
 						break;
 					//case SigningMode.SimpleEnveloped:
 					case SignatureType.Smev2ChargeEnveloped:
-						signedXmlDoc = SignXmlFileEnveloped(signThis, privateKey, cert);
+						signedXmlDoc = SignXmlFileEnveloped(signThis, cert);
 						break;
 					//case SigningMode.Smev2:
 					case SignatureType.Smev2BaseDetached:
-						signedXmlDoc = SignXmlFileSmev2(signThis, privateKey, cert);
+						signedXmlDoc = SignXmlFileSmev2(signThis, cert);
 						break;
 					//case SigningMode.Smev3:
 					case SignatureType.Smev3BaseDetached:
 						if (string.IsNullOrEmpty(nodeToSign)) {
 							throw new Exception($"NODE_ID_REQUIRED] <node_id> value is empty. This value is required");
 						}
-						signedXmlDoc = SignXmlFileSmev3(signThis, privateKey, cert, nodeToSign, assignDs);
+						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs);
+						break;
+					case SignatureType.Smev3SidebysideDetached:
+						if(string.IsNullOrEmpty(nodeToSign)) {
+							throw new Exception($"NODE_ID_REQUIRED] <node_id> value is empty. This value is required");
+						}
+						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: false, isSidebyside: true);
+						break;
+					case SignatureType.Smev3Ack:
+						if(string.IsNullOrEmpty(nodeToSign)) {
+							throw new Exception($"NODE_ID_REQUIRED] <node_id> value is empty. This value is required");
+						}
+						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: true);
 						break;
 					//case SigningMode.Detached:
 					case SignatureType.SigDetached:
-						return Convert.ToBase64String(SignXmlFileDetached(signThis, privateKey, cert, nodeToSign, assignDs));
+						return Convert.ToBase64String(SignXmlFileDetached(signThis, cert, nodeToSign, assignDs));
 				}
 			} catch (Exception e) {
 				throw new Exception($"UNKNOWN_SIGNING_EXCEPTION] Unknown signing exception. Original message: {e.Message}");
@@ -95,10 +111,10 @@ namespace UniDsproc.SignatureProcessor {
 			return ret;
 		}
 
-		public static XmlDocument SignXmlNode(XmlDocument doc, AsymmetricAlgorithm key, X509Certificate2 certificate, string nodeId) {
+		public static XmlDocument SignXmlNode(XmlDocument doc, X509Certificate2 certificate, string nodeId) {
 
 			//----------------------------------------------------------------------------------------------CREATE SIGNED XML
-			SignedXml signedXml = new SignedXml(doc) { SigningKey = key };
+			SignedXml signedXml = new SignedXml(doc) { SigningKey = certificate.PrivateKey };
 			//----------------------------------------------------------------------------------------------REFERNCE
 			Reference reference = new Reference {
 				Uri = "#"+nodeId,
@@ -134,10 +150,10 @@ namespace UniDsproc.SignatureProcessor {
 
 		#region [SIMPLE ENVELOPED SIGN]
 
-		public static XmlDocument SignXmlFileEnveloped(XmlDocument doc, AsymmetricAlgorithm key, X509Certificate2 certificate, string nodeId=null) {
+		public static XmlDocument SignXmlFileEnveloped(XmlDocument doc, X509Certificate2 certificate, string nodeId=null) {
 			nodeId = string.Empty;
 			//----------------------------------------------------------------------------------------------CREATE SIGNED XML
-			SignedXml signedXml = new SignedXml(doc) { SigningKey = key };
+			SignedXml signedXml = new SignedXml(doc) { SigningKey = certificate.PrivateKey };
 			//----------------------------------------------------------------------------------------------REFERNCE
 			Reference reference = new Reference {
 				Uri = nodeId,
@@ -247,7 +263,7 @@ namespace UniDsproc.SignatureProcessor {
 		#endregion
 
 		#region [SIGN SMEV 2]
-		public static XmlDocument SignXmlFileSmev2(XmlDocument doc, AsymmetricAlgorithm key, X509Certificate2 certificate) {
+		public static XmlDocument SignXmlFileSmev2(XmlDocument doc, X509Certificate2 certificate) {
 
 			XmlNode root = doc.SelectSingleNode("/*");
 			string rootPrefix = root.Prefix;
@@ -313,14 +329,14 @@ namespace UniDsproc.SignatureProcessor {
 		#endregion
 
 		#region [SIGN SMEV 3]
-		public static XmlDocument SignXmlFileSmev3(XmlDocument doc, AsymmetricAlgorithm key, X509Certificate2 certificate, string signingNodeId, bool assignDs) {
+		public static XmlDocument SignXmlFileSmev3(XmlDocument doc, X509Certificate2 certificate, string signingNodeId, bool assignDs, bool isAck=false, bool isSidebyside = false) {
 			XmlNamespaceManager nsm = new XmlNamespaceManager(doc.NameTable);
 			nsm.AddNamespace("ns", "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1");
 			nsm.AddNamespace("ns1", "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/basic/1.1");
 			nsm.AddNamespace("ds", "http://www.w3.org/2000/09/xmldsig#");
 
 
-			SignedXml sxml = new SignedXml(doc) { SigningKey = key };
+			SignedXml sxml = new SignedXml(doc) { SigningKey = certificate.PrivateKey };
 
 			//=====================================================================================REFERENCE TRASFORMS
 			Reference reference = new Reference {
@@ -336,7 +352,12 @@ namespace UniDsproc.SignatureProcessor {
 
 			XmlDsigSmevTransform smevTransform = new XmlDsigSmevTransform();
 			reference.AddTransform(smevTransform);
-			
+
+			if (isAck) {
+				XmlDsigEnvelopedSignatureTransform enveloped = new XmlDsigEnvelopedSignatureTransform();
+				reference.AddTransform(enveloped);
+			}
+
 			sxml.AddReference(reference);
 
 			//=========================================================================================CREATE SIGNATURE
@@ -387,21 +408,27 @@ namespace UniDsproc.SignatureProcessor {
 					Convert.ToBase64String(description.CreateFormatter(sxml.SigningKey).CreateSignature(hashVal));
 			}
 			//=============================================================================APPEND SIGNATURE TO DOCUMENT
-			doc.GetElementsByTagName("CallerInformationSystemSignature",
-						"urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1")[0].InnerXml = "";
-			doc.GetElementsByTagName("CallerInformationSystemSignature",
-						"urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1")[0].AppendChild(signature);
-
+			if (!isSidebyside) {
+				doc.GetElementsByTagName("CallerInformationSystemSignature",
+										"urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1")[0].InnerXml = "";
+				doc.GetElementsByTagName("CallerInformationSystemSignature",
+										"urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1")[0].AppendChild(signature);
+			} else {
+				getNodeWithAttributeValue(doc.ChildNodes, signingNodeId)?.ParentNode?.AppendChild(signature);
+			}
 			return doc;
 		}
+		#endregion
+
+		#region [SMEV3 SIDEBYSIDE DETACHED]
+
 		#endregion
 
 		#endregion
 
 		#region [DETACHED]
 
-		public static byte[] SignXmlFileDetached(XmlDocument doc, AsymmetricAlgorithm key, X509Certificate2 certificate,
-													string signingNodeId, bool assignDs) {
+		public static byte[] SignXmlFileDetached(XmlDocument doc, X509Certificate2 certificate, string signingNodeId, bool assignDs) {
 
 			ContentInfo contentInfo = new ContentInfo(Encoding.UTF8.GetBytes(doc.OuterXml));
 			SignedCms signedCms = new SignedCms(contentInfo, true);

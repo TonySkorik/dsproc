@@ -60,8 +60,11 @@ namespace UniDsproc {
 						$"  [*:<function>] - required when <function> is selected\n" +
 						$"\n" +
 						$"  signature_type [*:sign]\n" +
-						$"		Determines what signature should be created\n" +
-						$"		Possible values : 'detached', 'enveloped', 'sidebyside'\n\n" +
+						$"		Determines what signature should be processed\n" +
+						$"		Possible values : " +
+						$"		  <smev2_base.detached>, <smev2_charge.enveloped>, " +
+						$"		  <smev2_sidebyside.detached>, <smev3_base.detached>, " +
+						$"		  <smev3_sidebyside.detached>, <smev3_ack>, <sig.detached>\n\n" +
 						$"  node_id\n" +
 						$"		String value of <Id> attribute of the node to be signed\n" +
 						$"		Default value : 'ID_SIGN'\n\n" +

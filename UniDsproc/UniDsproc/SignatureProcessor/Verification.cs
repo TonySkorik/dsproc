@@ -123,6 +123,7 @@ namespace UniDsproc.SignatureProcessor {
 					break;
 				case SignatureType.Smev2SidebysideDetached:
 				case SignatureType.Smev3BaseDetached:
+				case SignatureType.Smev3SidebysideDetached:
 					try {
 						signedXml.LoadXml(!string.IsNullOrEmpty(nodeId)? signatures[nodeId]: signatures.First().Value);
 					} catch(Exception e) {
@@ -130,6 +131,7 @@ namespace UniDsproc.SignatureProcessor {
 					}
 					break;
 				case SignatureType.SigDetached:
+				case SignatureType.Smev3Ack:
 					throw new ArgumentNullException($"UNSUPPORTED_SIGNATURE_TYPE] Signature type <{mode}> is unsupported. Possible values are : <smev2_base.enveloped>, <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>");
 			}
 			
