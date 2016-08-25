@@ -165,6 +165,7 @@ namespace UniDsproc.SignatureProcessor {
 			XNamespace ds = SignedXml.XmlDsigNamespaceUrl;
 
 			bool isSmev2 = MessageIsSmev2Base(signedXml);
+
 			string smev2CertRef = string.Empty;
 			XNamespace wsu = Signing.WSSecurityWSUNamespaceUrl;
 			XNamespace wsse = Signing.WSSecurityWSSENamespaceUrl;
@@ -256,8 +257,11 @@ namespace UniDsproc.SignatureProcessor {
 		public static bool MessageIsSmev2Base(XDocument message) {
 			XNamespace wsse = Signing.WSSecurityWSSENamespaceUrl;
 			XNamespace env = "http://schemas.xmlsoap.org/soap/envelope/";
-
-			return message.Root.Descendants(env + "Header").First().Descendants(wsse + "Security").Any();
+			try {
+				return message.Root.Descendants(env + "Header").First().Descendants(wsse + "Security").Any();
+			} catch (Exception e) {
+				return false;
+			}
 		}
 
 		#endregion

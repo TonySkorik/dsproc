@@ -77,8 +77,8 @@ echo smev2_charge.enveloped
 	%dsproc% verify -signature_type=smev2_charge.enveloped smev2.charge.signed.xml
 pause
 echo ------------------------
-echo smev2_base.datached
-	%dsproc% verify -signature_type=smev2_base.datached smev2.base.signed.xml
+echo smev2_base.detached
+	%dsproc% verify -signature_type=smev2_base.detached smev2.base.signed.xml
 pause
 echo ------------------------
 echo smev3_base.detached
@@ -105,8 +105,8 @@ echo smev2_charge.enveloped
 	%dsproc% verifyAndExtract -signature_type=smev2_charge.enveloped smev2.charge.signed.xml
 pause
 echo ------------------------
-echo smev2_base.datached
-	%dsproc% verifyAndExtract -signature_type=smev2_base.datached smev2.base.signed.xml
+echo smev2_base.detached
+	%dsproc% verifyAndExtract -signature_type=smev2_base.detached smev2.base.signed.xml
 pause
 echo ------------------------
 echo smev3_base.detached
