@@ -46,7 +46,7 @@ echo extract from XML
 pause
 echo ------------------------
 echo extract from SMEV2 XML
-	%dsproc% extract -certificate_source=xml -node_id="SIGNED_BY_SERVER" smev2.base.signed.xml
+	%dsproc% extract -certificate_source=xml -node_id="body" smev2.base.signed.xml
 pause
 echo ------------------------
 echo extract from base64
