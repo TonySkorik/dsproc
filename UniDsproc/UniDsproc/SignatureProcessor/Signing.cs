@@ -20,14 +20,6 @@ namespace UniDsproc.SignatureProcessor {
 				throw new Exception($"PRIVATE_KEY_MISSING] Certificate (subject: <{cert.Subject}>) private key not found.");
 			}
 
-			/*
-			try {
-				AsymmetricAlgorithm  privateKey = cert.PrivateKey;
-			} catch(Exception e) {
-				throw new Exception($"PRIVATE_KEY_MISSING] Certificate (subject: <{cert.Subject}>) private key not found. Original message: <{e.Message}>");
-			}
-			*/
-
 			try {
 				switch (mode) {
 					//case SigningMode.Simple:
@@ -419,11 +411,7 @@ namespace UniDsproc.SignatureProcessor {
 			return doc;
 		}
 		#endregion
-
-		#region [SMEV3 SIDEBYSIDE DETACHED]
-
-		#endregion
-
+		
 		#endregion
 
 		#region [DETACHED]

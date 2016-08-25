@@ -259,7 +259,7 @@ namespace UniDsproc.SignatureProcessor {
 			XNamespace env = "http://schemas.xmlsoap.org/soap/envelope/";
 			try {
 				return message.Root.Descendants(env + "Header").First().Descendants(wsse + "Security").Any();
-			} catch (Exception e) {
+			} catch {
 				return false;
 			}
 		}
@@ -275,7 +275,7 @@ namespace UniDsproc.SignatureProcessor {
 					try {
 						return new X509CertificateSerializable(new X509Certificate2(File.ReadAllBytes(filePath)));
 					} catch (Exception e) {
-						throw new ArgumentException($"CERTIFICATE_FILE_CORRUPTED] Input file appears to be corrupted or in wrong format. Message: {e.Message}");
+						throw new Exception($"CERTIFICATE_FILE_CORRUPTED] Input file appears to be corrupted or in wrong format. Message: {e.Message}");
 					}
 				case CertificateSource.Cer:
 					try {
@@ -284,7 +284,7 @@ namespace UniDsproc.SignatureProcessor {
 							X509Certificate2Collection collection = new X509Certificate2Collection();
 							collection.Import(filePath);
 							if (collection.Count < 1) {
-								throw new ArgumentException($"NO_CERTIFICATES_FOUND] Input certificate collection <{filePath}> appears to be empty");
+								throw new Exception($"NO_CERTIFICATES_FOUND] Input certificate collection <{filePath}> appears to be empty");
 							}
 							if (collection.Count == 1) {
 								cer = collection[0];
@@ -298,10 +298,10 @@ namespace UniDsproc.SignatureProcessor {
 						
 						return new X509CertificateSerializable(cer);
 					} catch(Exception e) {
-						throw new ArgumentException($"CERTIFICATE_FILE_CORRUPTED] Input file appears to be corrupted or in wrong format. Message: {e.Message}");
+						throw new Exception($"CERTIFICATE_FILE_CORRUPTED] Input file appears to be corrupted or in wrong format. Message: {e.Message}");
 					}
 				default:
-					throw new ArgumentException("UNKNOWN_CERTIFICATE_SOURCE] Unknown certificate source passed. Possible values : <xml>, <base64>, <cer>");
+					throw new Exception("UNKNOWN_CERTIFICATE_SOURCE] Unknown certificate source passed. Possible values : <xml>, <base64>, <cer>");
 			}	
 		}
 		#endregion
