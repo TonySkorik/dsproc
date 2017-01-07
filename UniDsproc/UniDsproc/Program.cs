@@ -54,7 +54,7 @@ namespace UniDsproc {
 						$"  extract\n" +
 						$"\tExtract certificate from file signature and return as JSON\n\n" +
 						$"  verifyAndExtract\n" +
-						$"\tVerify file's signature and, if it's valid - extact\n\n" +
+						$"\tVerify file's signature and, if it's valid - extract\n\n" +
 						$"{new String('-', l)}\n" +
 						$" KEYS: \n" +
 						$"  [*:<function>] - required when <function> is selected\n" +
@@ -64,7 +64,8 @@ namespace UniDsproc {
 						$"		Possible values : " +
 						$"		  <smev2_base.detached>, <smev2_charge.enveloped>, " +
 						$"		  <smev2_sidebyside.detached>, <smev3_base.detached>, " +
-						$"		  <smev3_sidebyside.detached>, <smev3_ack>, <sig.detached>\n\n" +
+						$"		  <smev3_sidebyside.detached>, <smev3_ack>, <sig.detached> - experimental" +
+						$"		  <pkcs7> - not implemented, <pkcs7.string>\n\n" +
 						$"  node_id\n" +
 						$"		String value of <Id> attribute of the node to be signed\n" +
 						$"		Default value : 'ID_SIGN'\n\n" +
