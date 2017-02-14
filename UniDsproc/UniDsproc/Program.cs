@@ -79,6 +79,8 @@ namespace UniDsproc {
 						$"		Add ds: namespace prefix to <Signature> and descendants\n" +
 						$"		Can not be verified by this program\n" +
 						$"		Possible values : 'true', 'false', '1', '0', 'on', 'off'\n" +
+						$"		Works only with following signature types : \n" +
+						$"		'smev3_sidebyside.detached', 'smev3_base.detached', 'smev3_ack' \n" +
 						$"		Default value : 'false' \n\n" +
 						$"  ignore_expired\n" +
 						$"		Do not check certificate for expiration before signing\n" +
