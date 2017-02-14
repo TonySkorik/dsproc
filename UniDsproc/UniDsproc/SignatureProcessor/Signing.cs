@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
@@ -9,10 +10,10 @@ using CryptoPro.Sharpei.Xml;
 
 namespace UniDsproc.SignatureProcessor {
 
-	public enum SignatureType {Smev2BaseDetached, Smev2ChargeEnveloped, Smev2SidebysideDetached, Smev3BaseDetached, Smev3SidebysideDetached, Smev3Ack, SigDetached , Unknown};
+	public enum SignatureType {Smev2BaseDetached, Smev2ChargeEnveloped, Smev2SidebysideDetached, Smev3BaseDetached, Smev3SidebysideDetached, Smev3Ack, SigDetached , Unknown, Pkcs7, Pkcs7String};
 
 	public static class Signing {
-		public static string Sign(SignatureType mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign) {
+		public static string Sign(SignatureType mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign, string stringToSignPkcs7 = null) {
 
 			XmlDocument signedXmlDoc = new XmlDocument();
 
@@ -59,6 +60,10 @@ namespace UniDsproc.SignatureProcessor {
 					//case SigningMode.Detached:
 					case SignatureType.SigDetached:
 						return Convert.ToBase64String(SignXmlFileDetached(signThis, cert, nodeToSign, assignDs));
+					case SignatureType.Pkcs7:
+						throw new NotImplementedException();
+					case SignatureType.Pkcs7String:
+						return Convert.ToBase64String(SignStringPkcs7(stringToSignPkcs7,cert));
 				}
 			} catch (Exception e) {
 				throw new Exception($"UNKNOWN_SIGNING_EXCEPTION] Unknown signing exception. Original message: {e.Message}");
@@ -67,19 +72,25 @@ namespace UniDsproc.SignatureProcessor {
 			return signedXmlDoc.InnerXml;
 		}
 		public static string Sign(SignatureType mode, string certificateThumbprint, string signThisPath, bool assignDs, string nodeToSign, bool ignoreExpiredCert=false) {
-			XmlDocument signThis = new XmlDocument();
-			signThis.Load(signThisPath);
-			return Sign(mode, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert);
+			XmlDocument signThis = null;
+			string stringToSignPkcs7 = null;
+			if (mode == SignatureType.Pkcs7String) {
+				stringToSignPkcs7 = File.ReadAllText(signThisPath, Encoding.UTF8);
+			} else {
+				signThis = new XmlDocument();
+				signThis.Load(signThisPath);
+			}
+			return Sign(mode, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert, stringToSignPkcs7);
 		}
 
-		public static string Sign(SignatureType mode, string certificateThumbprint, XmlDocument signThis, bool assignDs, string nodeToSign, bool ignoreExpiredCert=false) {
+		public static string Sign(SignatureType mode, string certificateThumbprint, XmlDocument signThis, bool assignDs, string nodeToSign, bool ignoreExpiredCert=false, string stringToSignPkcs7=null) {
 			X509Certificate2 certificate = CertificateProcessing.SearchCertificateByThumbprint(certificateThumbprint);
 
 			if (!ignoreExpiredCert && CertificateProcessing.IsCertificateExpired(certificate)) {
 				throw new Exception($"CERT_EXPIRED] Certificate with thumbprint <{certificate.Thumbprint}> expired!");
 			}
 
-			return Sign(mode, certificate, signThis, assignDs, nodeToSign);
+			return Sign(mode, certificate, signThis, assignDs, nodeToSign, stringToSignPkcs7);
 		}
 
 		#region [SIMPLE NODE SIGN]
@@ -434,6 +445,31 @@ namespace UniDsproc.SignatureProcessor {
 			return signedCms.Encode();
 		}
 
+		#endregion
+
+		#region [PKCS#7]
+		public static byte[] SignStringPkcs7(string stringToSign, X509Certificate2 certificate) {
+			byte[] msg = Encoding.UTF8.GetBytes(stringToSign);
+			// Создаем объект ContentInfo по сообщению.
+			// Это необходимо для создания объекта SignedCms.
+			ContentInfo contentInfo = new ContentInfo(msg);
+
+			// Создаем объект SignedCms по только что созданному
+			// объекту ContentInfo.
+			// SubjectIdentifierType установлен по умолчанию в 
+			// IssuerAndSerialNumber.
+			// Свойство Detached устанавливаем явно в true, таким 
+			// образом сообщение будет отделено от подписи.
+			SignedCms signedCms = new SignedCms(contentInfo, detached:true);
+
+			// Определяем подписывающего, объектом CmsSigner.
+			CmsSigner cmsSigner = new CmsSigner(certificate);
+			// Подписываем CMS/PKCS #7 сообение.
+			signedCms.ComputeSignature(cmsSigner);
+			// Кодируем CMS/PKCS #7 подпись сообщения.
+			return signedCms.Encode();
+
+		}
 		#endregion
 	}
 }
