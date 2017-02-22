@@ -10,6 +10,7 @@ using System.Security.Cryptography.Xml;
 using System.Xml;
 using System.Xml.Linq;
 using UniDsproc.DataModel;
+using UniDsproc.Exceptions;
 
 namespace UniDsproc.SignatureProcessor {
 	public static class Verification {
@@ -30,15 +31,16 @@ namespace UniDsproc.SignatureProcessor {
 				}.Contains(mode)
 			)
 			{
-				throw new Exception(
-					$"UNSUPPORTED_SIGNATURE_TYPE] Signature type <{mode}> is unsupported. Possible values are : <smev2_base.enveloped>, <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>");
+				//throw new Exception($"UNSUPPORTED_SIGNATURE_TYPE] Signature type <{mode}> is unsupported. Possible values are : <smev2_base.enveloped>, <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>");
+				throw ExceptionFactory.GetException(ExceptionType.UNSUPPORTED_SIGNATURE_TYPE, mode);
 			}
 
 			XmlDocument xd = new XmlDocument();
 			try {
 				xd.Load(documentPath);
 			} catch (Exception e) {
-				throw new Exception($"INPUT_XML_MISSING_OR_CORRUPTED] Input file <{documentPath}> is invalid. Message: {e.Message}");
+				//throw new Exception($"INPUT_XML_MISSING_OR_CORRUPTED] Input file <{documentPath}> is invalid. Message: {e.Message}");
+				throw ExceptionFactory.GetException(ExceptionType.INPUT_XML_MISSING_OR_CORRUPTED, documentPath, e.Message);
 			}
 
 			return VerifySignature(mode, xd, certificateFilePath, certificateThumb, nodeId);
@@ -58,7 +60,8 @@ namespace UniDsproc.SignatureProcessor {
 					try {
 						cert.Import(certificateFilePath);
 					} catch (Exception e) {
-						throw new Exception($"CERTIFICATE_IMPORT_EXCEPTION] Certificate <{certificateFilePath}> can not be loaded. Message: {e.Message}");
+						//throw new Exception($"CERTIFICATE_IMPORT_EXCEPTION] Certificate <{certificateFilePath}> can not be loaded. Message: {e.Message}");
+						throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_IMPORT_EXCEPTION, certificateFilePath, e.Message);
 					}
 				}else {
 					//throws if not found
@@ -85,11 +88,13 @@ namespace UniDsproc.SignatureProcessor {
 				);
 
 			if (!string.IsNullOrEmpty(nodeId) && !signatures.ContainsKey(nodeId)) {
-				throw new Exception($"REFERENCED_SIGNATURE_NOT_FOUND] Referenced signature (-node_id=<{nodeId}>) not found in the input file.");
+				//throw new Exception($"REFERENCED_SIGNATURE_NOT_FOUND] Referenced signature (-node_id=<{nodeId}>) not found in the input file.");
+				throw ExceptionFactory.GetException(ExceptionType.REFERENCED_SIGNATURE_NOT_FOUND, nodeId);
 			}
 
 			if (signaturesInDoc.Count < 1) {
-				throw new Exception($"NO_SIGNATURES_FOUND] No signatures found in the input file.");
+				//throw new Exception($"NO_SIGNATURES_FOUND] No signatures found in the input file.");
+				throw ExceptionFactory.GetException(ExceptionType.NO_SIGNATURES_FOUND);
 			}
 			
 			switch (mode) {
@@ -98,13 +103,15 @@ namespace UniDsproc.SignatureProcessor {
 					try {
 						smev2SignedXml.LoadXml(!string.IsNullOrEmpty(nodeId) ? signatures[nodeId] : signatures["body"]);
 					} catch(Exception e) {
-						throw new Exception($"CERTIFICATE_CONTENT_CORRUPTED] <X509Certificate> node content appears to be corrupted. Message: {e.Message}");
+						//throw new Exception($"CERTIFICATE_CONTENT_CORRUPTED] <X509Certificate> node content appears to be corrupted. Message: {e.Message}");
+						throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_CONTENT_CORRUPTED, e.Message);
 					}
 					XmlNodeList referenceList = smev2SignedXml.KeyInfo
 						.GetXml()
 						.GetElementsByTagName("Reference", Signing.WSSecurityWSSENamespaceUrl);
 					if(referenceList.Count == 0) {
-						throw new Exception("SMEV2_CERTIFICATE_REFERENCE_NOT_FOUND] No certificate reference found in input file");
+						//throw new Exception("SMEV2_CERTIFICATE_REFERENCE_NOT_FOUND] No certificate reference found in input file");
+						throw ExceptionFactory.GetException(ExceptionType.SMEV2_CERTIFICATE_REFERENCE_NOT_FOUND);
 					}
 					string binaryTokenReference = ((XmlElement)referenceList[0]).GetAttribute("URI");
 					if(string.IsNullOrEmpty(binaryTokenReference) || binaryTokenReference[0] != '#') {
