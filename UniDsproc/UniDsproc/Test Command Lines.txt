@@ -1,6 +1,8 @@
 ﻿
 Signing:
-	
+	rsa_sha256.string
+		sign -ignore_expired=true -signature_type=rsa_sha256.string -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" input_string.txt signed.txt
+
 	rsa2048_sha256.string
 		sign -ignore_expired=true -signature_type=rsa2048_sha256.string -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" input_string.txt signed.txt
 

@@ -13,6 +13,10 @@ echo %dsproc%
 ::==================================================================SIGNING
 echo Testing signing
 echo ------------------------
+echo rsa_sha256.string
+	%dsproc% sign -ignore_expired=true -signature_type=rsa_sha256.string -thumbprint=%thumb% input_string.txt signed.txt
+pause
+echo ------------------------
 echo rsa2048_sha256.string
 	%dsproc% sign -ignore_expired=true -signature_type=rsa2048_sha256.string -thumbprint=%thumb% input_string.txt signed.txt
 pause

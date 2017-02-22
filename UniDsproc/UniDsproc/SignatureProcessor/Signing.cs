@@ -25,7 +25,8 @@ namespace UniDsproc.SignatureProcessor {
 		Unknown,
 		Pkcs7,
 		Pkcs7String,
-		Rsa2048Sha256String
+		Rsa2048Sha256String,
+		RsaSha256String
 	};
 
 	public enum ShaAlgorithmType
@@ -99,6 +100,8 @@ namespace UniDsproc.SignatureProcessor {
 						return Convert.ToBase64String(SignStringPkcs7(stringToSign,cert));
 					case SignatureType.Rsa2048Sha256String:
 						return Convert.ToBase64String(SignStringRsa2048Sha256(stringToSign, cert));
+					case SignatureType.RsaSha256String:
+						return Convert.ToBase64String(SignStringRsaSha(stringToSign, cert, ShaAlgorithmType.SHA256));
 				}
 			} catch (Exception e) {
 				throw ExceptionFactory.GetException(ExceptionType.UNKNOWN_SIGNING_EXCEPTION, e.Message);
