@@ -29,10 +29,12 @@ error_code:
 
 	Signing:
 
-		PRIVATE_KEY_MISSING		- в переданном сертификате отсутствует закрытый ключ
-		NODE_ID_REQUIRED		- не указано обяхательное значение -node_id
-		UNKNOWN_SIGNING_EXCEPTION	- неизвестная ошибка подписания (см. Orignal message для определения)
-		CERT_EXPIRED			- сертификат для подписи истек. Для отключения воспользоваться ключом -ignore_expired=1
+		PRIVATE_KEY_MISSING			- в переданном сертификате отсутствует закрытый ключ
+		NODE_ID_REQUIRED			- не указано обяхательное значение -node_id
+		UNKNOWN_SIGNING_EXCEPTION		- неизвестная ошибка подписания (см. Orignal message для определения)
+		CERT_EXPIRED				- сертификат для подписи истек. Для отключения воспользоваться ключом -ignore_expired=1
+		DS_ASSIGNMENT_NOT_SUPPORTED		- функция установки ds: префиксов на узлы signature не поддерживается для данного алгоритма подписи
+		CERTIFICATE_PRIVATE_KEY_INVALID_LENGTH	- для выбранного алгоритма подписи длина закрытого ключа сертификата не подходит.
 
 	SignatureVerification:
 

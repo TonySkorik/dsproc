@@ -9,7 +9,7 @@ namespace UniDsproc {
 		private static void Main(string[] args) {
 			if (args.Length > 0) {
 				if (args[0] == @"\?" || args[0] == @"?" || args[0] == "help") {
-					showHelp();
+					ShowHelp();
 					return;
 				}
 				ArgsInfo a = new ArgsInfo(args);
@@ -17,29 +17,29 @@ namespace UniDsproc {
 					//args successfully loaded - continue
 					switch (a.Function) {
 						case ProgramFunction.Sign: //check!
-							Console.WriteLine(sign(a).ToJsonString());
+							Console.WriteLine(Sign(a).ToJsonString());
 							break;
 						case ProgramFunction.Verify:
-							Console.WriteLine(verify(a).ToJsonString());
+							Console.WriteLine(Verify(a).ToJsonString());
 							break;
 						case ProgramFunction.Extract: //check!
-							Console.WriteLine(extract(a).ToJsonString());
+							Console.WriteLine(Extract(a).ToJsonString());
 							break;
 						case ProgramFunction.VerifyAndExtract:
-							Console.WriteLine(verifyAndExtract(a).ToJsonString());
+							Console.WriteLine(VerifyAndExtract(a).ToJsonString());
 							break;
 					}
 				} else {
 					Console.WriteLine(new StatusInfo(a.InitError).ToJsonString());
 				}
 			} else {
-				showHelp();
+				ShowHelp();
 				return;
 			}
 		}
 
 		#region [HELP MESSAGE]
-		private static void showHelp() {
+		private static void ShowHelp() {
 			string version = $"{Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor}.{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
 			int l = 32;
 			string help = $"[UniDSProc v{version}]\n" +
@@ -65,7 +65,7 @@ namespace UniDsproc {
 						$"		  <smev2_base.detached>, <smev2_charge.enveloped>, " +
 						$"		  <smev2_sidebyside.detached>, <smev3_base.detached>, " +
 						$"		  <smev3_sidebyside.detached>, <smev3_ack>, <sig.detached> - experimental" +
-						$"		  <pkcs7> - not implemented, <pkcs7.string>\n\n" +
+						$"		  <pkcs7> - not implemented, <pkcs7.string>, <rsa2048_sha256.string>\n\n" +
 						$"  node_id\n" +
 						$"		String value of <Id> attribute of the node to be signed\n" +
 						$"		Default value : 'ID_SIGN'\n\n" +
@@ -97,7 +97,7 @@ namespace UniDsproc {
 		#endregion
 
 		#region [FUNCTIONS]
-		private static StatusInfo sign(ArgsInfo args) {
+		private static StatusInfo Sign(ArgsInfo args) {
 			try {
 				string signedData = SignatureProcessor.Signing.Sign(args.SigType, args.CertThumbprint, args.InputFile,
 																	args.AssignDsInSignature, args.NodeId, args.IgnoreExpiredCert);
@@ -108,7 +108,7 @@ namespace UniDsproc {
 			}
 		}
 
-		private static StatusInfo verify(ArgsInfo args) {
+		private static StatusInfo Verify(ArgsInfo args) {
 			try {
 				bool isValid = SignatureProcessor.Verification.VerifySignature(
 					args.SigType,
@@ -127,7 +127,7 @@ namespace UniDsproc {
 			}
 		}
 
-		private static StatusInfo extract(ArgsInfo args) {
+		private static StatusInfo Extract(ArgsInfo args) {
 			StatusInfo si = new StatusInfo(new ErrorInfo(ErrorCodes.UnknownException,ErrorType.CertificateExtraction, "Unknown certificate extraction exception"));
 			try {
 				si = new StatusInfo(new ResultInfo(SignatureProcessor.CertificateProcessing.CertificateToSerializableCertificate(args.CertSource, args.InputFile, args.NodeId)));
@@ -138,12 +138,12 @@ namespace UniDsproc {
 			return si;
 		}
 
-		private static StatusInfo verifyAndExtract(ArgsInfo args) {
-			StatusInfo si = verify(args);
+		private static StatusInfo VerifyAndExtract(ArgsInfo args) {
+			StatusInfo si = Verify(args);
 			if (!si.IsError) {
 				if (si.Result.SignatureIsCorrect.HasValue && si.Result.SignatureIsCorrect.Value) {
 					args.CertSource = CertificateSource.Xml;
-					si = extract(args);
+					si = Extract(args);
 				}
 			}
 			return si;

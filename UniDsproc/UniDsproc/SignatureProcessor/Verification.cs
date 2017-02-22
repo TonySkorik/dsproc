@@ -13,11 +13,27 @@ using UniDsproc.DataModel;
 
 namespace UniDsproc.SignatureProcessor {
 	public static class Verification {
-		public enum CertificateLocation {Thumbprint = 1, CerFile = 2, Xml = 3}
-		
+		public enum CertificateLocation
+		{
+			Thumbprint = 1,
+			CerFile = 2,
+			Xml = 3
+		}
+
 		#region [STANDARD]
 		
 		public static bool VerifySignature(SignatureType mode, string documentPath, string certificateFilePath=null, string certificateThumb = null, string nodeId = null) {
+			if (new List<SignatureType>{
+					SignatureType.Rsa2048Sha256String,
+					SignatureType.Pkcs7,
+					SignatureType.Pkcs7String
+				}.Contains(mode)
+			)
+			{
+				throw new Exception(
+					$"UNSUPPORTED_SIGNATURE_TYPE] Signature type <{mode}> is unsupported. Possible values are : <smev2_base.enveloped>, <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>");
+			}
+
 			XmlDocument xd = new XmlDocument();
 			try {
 				xd.Load(documentPath);
@@ -132,6 +148,9 @@ namespace UniDsproc.SignatureProcessor {
 					break;
 				case SignatureType.SigDetached:
 				case SignatureType.Smev3Ack:
+				case SignatureType.Rsa2048Sha256String: // filtered in previously called method
+				case SignatureType.Pkcs7:			// filtered in previously called method
+				case SignatureType.Pkcs7String:		// filtered in previously called method
 					throw new Exception($"UNSUPPORTED_SIGNATURE_TYPE] Signature type <{mode}> is unsupported. Possible values are : <smev2_base.enveloped>, <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>");
 			}
 			

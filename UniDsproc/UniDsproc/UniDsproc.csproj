@@ -91,6 +91,7 @@
     <Content Include="Tests\der_cert.cer">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Tests\input_string.txt" />
     <Content Include="Tests\pkcs_cert.p7b">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

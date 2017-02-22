@@ -13,6 +13,14 @@ echo %dsproc%
 ::==================================================================SIGNING
 echo Testing signing
 echo ------------------------
+echo rsa2048_sha256.string
+	%dsproc% sign -ignore_expired=true -signature_type=rsa2048_sha256.string -thumbprint=%thumb% input_string.txt signed.txt
+pause
+echo ------------------------
+echo pkcs7.string
+	%dsproc% sign -ignore_expired=true -signature_type=pkcs7.string -thumbprint=%thumb% input_string.txt signed.txt
+pause
+echo ------------------------
 echo smev2_sidebyside.detached
 	%dsproc% sign -ignore_expired=true -signature_type=smev2_sidebyside.detached -thumbprint=%thumb% -node_id="SIGNED_BY_SERVER" smev2.sidebyside.xml smev2.sidebyside.signed.xml
 pause
