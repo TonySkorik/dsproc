@@ -34,7 +34,11 @@ namespace UniDsproc.Exceptions {
 		REFERENCED_SIGNATURE_NOT_FOUND,
 		NO_SIGNATURES_FOUND,
 		CERTIFICATE_CONTENT_CORRUPTED,
-		
+		SMEV2_MALFORMED_CERTIFICATE_REFERENCE,
+		SMEV2_CERTIFICATE_NOT_FOUND,
+		SMEV2_CERTIFICATE_CORRUPTED,
+		CHARGE_TOO_MANY_SIGNATURES_FOUND,
+		CHARGE_MALFORMED_DOCUMENT,
 	}
 
 	public static class ExceptionFactory
@@ -70,6 +74,14 @@ namespace UniDsproc.Exceptions {
 			, {ExceptionType.NO_SIGNATURES_FOUND, "No signatures found in the input file."}
 			// 0 - exception message
 			, {ExceptionType.CERTIFICATE_CONTENT_CORRUPTED, "<X509Certificate> node content appears to be corrupted. Message: {0}"}
+			, {ExceptionType.SMEV2_MALFORMED_CERTIFICATE_REFERENCE, "Certificate reference appears to be malformed"}
+			// 0 - binary token reference node
+			, {ExceptionType.SMEV2_CERTIFICATE_NOT_FOUND, "Referenced certificate not found. Reference: <{0}>"}
+			, {ExceptionType.SMEV2_CERTIFICATE_CORRUPTED, "Smev2 certificate node content appears to be corrupted. Message: {0}"}
+			// 0 - signatures in document count
+			, {ExceptionType.CHARGE_TOO_MANY_SIGNATURES_FOUND, "More than one signature found. Found: {0} sigantures."}
+			, {ExceptionType.CHARGE_MALFORMED_DOCUMENT, "Document structure is malformed. <Signature> node must be either root node descendant or root node descentant descendant."}
+
 		};
 
 		public static Exception GetException(ExceptionType type, params object[] additionalInfo)
