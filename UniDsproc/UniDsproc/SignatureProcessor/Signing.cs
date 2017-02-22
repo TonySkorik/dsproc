@@ -39,7 +39,6 @@ namespace UniDsproc.SignatureProcessor {
 			XmlDocument signedXmlDoc = new XmlDocument();
 
 			if (!cert.HasPrivateKey) {
-				//throw new Exception($"PRIVATE_KEY_MISSING] Certificate (subject: <{cert.Subject}>) private key not found.");
 				throw ExceptionFactory.GetException(ExceptionType.PRIVATE_KEY_MISSING, cert.Subject);
 			}
 
@@ -52,7 +51,6 @@ namespace UniDsproc.SignatureProcessor {
 				}.Contains(mode)
 			)
 			{
-				//throw new Exception($"DS_ASSIGNMENT_NOT_SUPPORTED] 'ds:' prefix assignment is not supported for selected signature mode {mode}. Supported modes are : <smev3_base.detached>, <smev3_sidebyside.detached>, <smev3_ack>");
 				throw ExceptionFactory.GetException(ExceptionType.DS_ASSIGNMENT_NOT_SUPPORTED);
 			}
 
@@ -61,7 +59,6 @@ namespace UniDsproc.SignatureProcessor {
 					//case SigningMode.Simple:
 					case SignatureType.Smev2SidebysideDetached:
 						if(string.IsNullOrEmpty(nodeToSign)) {
-							//throw new Exception($"NODE_ID_REQUIRED] <node_id> value is empty. This value is required");
 							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
 						}
 						signedXmlDoc = SignXmlNode(signThis, cert, nodeToSign);
@@ -77,21 +74,18 @@ namespace UniDsproc.SignatureProcessor {
 					//case SigningMode.Smev3:
 					case SignatureType.Smev3BaseDetached:
 						if (string.IsNullOrEmpty(nodeToSign)) {
-							//throw new Exception($"NODE_ID_REQUIRED] <node_id> value is empty. This value is required");
 							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
 						}
 						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs);
 						break;
 					case SignatureType.Smev3SidebysideDetached:
 						if(string.IsNullOrEmpty(nodeToSign)) {
-							//throw new Exception($"NODE_ID_REQUIRED] <node_id> value is empty. This value is required");
 							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
 						}
 						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: false, isSidebyside: true);
 						break;
 					case SignatureType.Smev3Ack:
 						if(string.IsNullOrEmpty(nodeToSign)) {
-							//throw new Exception($"NODE_ID_REQUIRED] <node_id> value is empty. This value is required");
 							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
 						}
 						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: true);
@@ -107,7 +101,6 @@ namespace UniDsproc.SignatureProcessor {
 						return Convert.ToBase64String(SignStringRsa2048Sha256(stringToSign, cert));
 				}
 			} catch (Exception e) {
-				//throw new Exception($"UNKNOWN_SIGNING_EXCEPTION] Unknown signing exception. Original message: {e.Message}");
 				throw ExceptionFactory.GetException(ExceptionType.UNKNOWN_SIGNING_EXCEPTION, e.Message);
 			}
 
@@ -129,7 +122,6 @@ namespace UniDsproc.SignatureProcessor {
 			X509Certificate2 certificate = CertificateProcessing.SearchCertificateByThumbprint(certificateThumbprint);
 
 			if (!ignoreExpiredCert && CertificateProcessing.IsCertificateExpired(certificate)) {
-				//throw new Exception($"CERT_EXPIRED] Certificate with thumbprint <{certificate.Thumbprint}> expired!");
 				throw ExceptionFactory.GetException(ExceptionType.CERT_EXPIRED, certificate.Thumbprint);
 			}
 

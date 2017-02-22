@@ -62,10 +62,10 @@ namespace UniDsproc {
 						$"  signature_type [*:sign]\n" +
 						$"		Determines what signature should be processed\n" +
 						$"		Possible values : " +
-						$"		  <smev2_base.detached>, <smev2_charge.enveloped>, " +
-						$"		  <smev2_sidebyside.detached>, <smev3_base.detached>, " +
-						$"		  <smev3_sidebyside.detached>, <smev3_ack>, <sig.detached> - experimental" +
-						$"		  <pkcs7> - not implemented, <pkcs7.string>, <rsa2048_sha256.string>\n\n" +
+						$"\n\t\t\t<smev2_base.detached>,\n\t\t\t<smev2_charge.enveloped>,\n\t\t\t" +
+						$"<smev2_sidebyside.detached>,\n\t\t\t<smev3_base.detached>,\n\t\t\t" +
+						$"<smev3_sidebyside.detached>,\n\t\t\t<smev3_ack>,\n\t\t\t<sig.detached> - experimental,\n\t\t\t" +
+						$"<pkcs7> - not implemented,\n\t\t\t<pkcs7.string>,\n\t\t\t<rsa2048_sha256.string>\n\n" +
 						$"  node_id\n" +
 						$"		String value of <Id> attribute of the node to be signed\n" +
 						$"		Default value : 'ID_SIGN'\n\n" +

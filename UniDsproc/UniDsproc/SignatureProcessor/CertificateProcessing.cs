@@ -99,7 +99,6 @@ namespace UniDsproc.SignatureProcessor {
 					if(found.Count != 0) {
 						// means found in Current User store
 					} else {
-						//throw new Exception($"CERTIFICATE_NOT_FOUND_BY_THUMBPRINT] Certificate with thumbprint {certificateThumbprint} not found");
 						throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_NOT_FOUND_BY_THUMBPRINT, certificateThumbprint);
 					}
 				} else {
@@ -109,11 +108,9 @@ namespace UniDsproc.SignatureProcessor {
 				if(found.Count == 1) {
 					return found[0];
 				} else {
-					//throw new Exception($"MORE_THAN_ONE_CERTIFICATE] More than one certificate with thumbprint {certificateThumbprint} found!");
 					throw ExceptionFactory.GetException(ExceptionType.MORE_THAN_ONE_CERTIFICATE, certificateThumbprint);
 				}
 			} catch(CryptographicException e) {
-				//throw new Exception($"UNKNOWN_CERTIFICATE_EXCEPTION] Unknown certificate exception. Original message : {e.Message}");
 				throw ExceptionFactory.GetException(ExceptionType.UNKNOWN_CERTIFICATE_EXCEPTION, e.Message);
 			}
 		}
@@ -197,11 +194,9 @@ namespace UniDsproc.SignatureProcessor {
 						select elt
 						).DefaultIfEmpty(null).First();
 				} catch {
-					//throw new Exception($"CERTIFICATE_NOT_FOUND_BY_NODE_ID] Certificate with node_id=<{nodeId}> not found in passed document");
 					throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_NOT_FOUND_BY_NODE_ID, nodeId);
 				}
 				if (signatureElement == null) {
-					//throw new Exception($"CERTIFICATE_NOT_FOUND_BY_NODE_ID] Certificate with node_id=<{nodeId}> not found in passed document");
 					throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_NOT_FOUND_BY_NODE_ID, nodeId);
 				}
 				if(isSmev2) {
@@ -210,7 +205,6 @@ namespace UniDsproc.SignatureProcessor {
 						.Descendants(wsse+ "Reference").First()
 						.Attribute("URI").Value.Replace("#","");
 					if (string.IsNullOrEmpty(smev2CertRef)) {
-						//throw new Exception("SMEV2_CERTIFICATE_REFERENCE_NOT_FOUND] No certificate reference found in input file");
 						throw ExceptionFactory.GetException(ExceptionType.SMEV2_CERTIFICATE_REFERENCE_NOT_FOUND);
 					}
 				}
@@ -241,14 +235,12 @@ namespace UniDsproc.SignatureProcessor {
 				}
 				if(string.IsNullOrEmpty(certificateNodeContent)) {
 					// means signatureInfo appears to be empty
-					//throw new Exception("CERTIFICATE_NOT_FOUND] Certificate not found in passed document");
 					throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_NOT_FOUND);
 				} else {
 					cert = new X509Certificate2(Convert.FromBase64String(certificateNodeContent));
 				}
 			} else {
 				//no Signature block
-				//throw new Exception("SIGNATURE_NOT_FOUND] Signature not found in passed document");
 				throw ExceptionFactory.GetException(ExceptionType.SIGNATURE_NOT_FOUND);
 			}
 			return cert;
@@ -284,7 +276,6 @@ namespace UniDsproc.SignatureProcessor {
 					try {
 						return new X509CertificateSerializable(new X509Certificate2(File.ReadAllBytes(filePath)));
 					} catch (Exception e) {
-						//throw new Exception($"CERTIFICATE_FILE_CORRUPTED] Input file appears to be corrupted or in wrong format. Message: {e.Message}");
 						throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_FILE_CORRUPTED, e.Message);
 					}
 				case CertificateSource.Cer:
@@ -294,7 +285,6 @@ namespace UniDsproc.SignatureProcessor {
 							X509Certificate2Collection collection = new X509Certificate2Collection();
 							collection.Import(filePath);
 							if (collection.Count < 1) {
-								//throw new Exception($"NO_CERTIFICATES_FOUND] Input certificate collection <{filePath}> appears to be empty");
 								throw ExceptionFactory.GetException(ExceptionType.NO_CERTIFICATES_FOUND, filePath);
 							}
 							if (collection.Count == 1) {
@@ -309,11 +299,9 @@ namespace UniDsproc.SignatureProcessor {
 						
 						return new X509CertificateSerializable(cer);
 					} catch(Exception e) {
-						//throw new Exception($"CERTIFICATE_FILE_CORRUPTED] Input file appears to be corrupted or in wrong format. Message: {e.Message}");
 						throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_FILE_CORRUPTED, e.Message);
 					}
 				default:
-					//throw new Exception("UNKNOWN_CERTIFICATE_SOURCE] Unknown certificate source passed. Possible values : <xml>, <base64>, <cer>");
 					throw ExceptionFactory.GetException(ExceptionType.UNKNOWN_CERTIFICATE_SOURCE);
 			}	
 		}

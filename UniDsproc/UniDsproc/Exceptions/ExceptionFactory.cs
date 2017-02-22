@@ -81,7 +81,6 @@ namespace UniDsproc.Exceptions {
 			// 0 - signatures in document count
 			, {ExceptionType.CHARGE_TOO_MANY_SIGNATURES_FOUND, "More than one signature found. Found: {0} sigantures."}
 			, {ExceptionType.CHARGE_MALFORMED_DOCUMENT, "Document structure is malformed. <Signature> node must be either root node descendant or root node descentant descendant."}
-
 		};
 
 		public static Exception GetException(ExceptionType type, params object[] additionalInfo)
