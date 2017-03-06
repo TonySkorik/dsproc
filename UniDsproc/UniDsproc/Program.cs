@@ -6,6 +6,10 @@ using UniDsproc.SignatureProcessor;
 
 namespace UniDsproc {
 	class Program {
+		private static string GetVersion => 
+			$"{Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor}.{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
+		private static string GetVersionName => "RSA";
+
 		private static void Main(string[] args) {
 			if (args.Length > 0) {
 				if (args[0] == @"\?" || args[0] == @"?" || args[0] == "help") {
@@ -40,7 +44,7 @@ namespace UniDsproc {
 
 		#region [HELP MESSAGE]
 		private static void ShowHelp() {
-			string version = $"{Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor}.{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
+			string version = $"{GetVersion} {GetVersionName}";
 			int l = 32;
 			string help = $"[UniDSProc v{version}]\n" +
 						$"{new String('-', l)}\n" +
