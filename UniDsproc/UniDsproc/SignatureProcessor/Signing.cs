@@ -109,12 +109,21 @@ namespace UniDsproc.SignatureProcessor {
 
 			return signedXmlDoc.InnerXml;
 		}
-		public static string Sign(SignatureType mode, string certificateThumbprint, string signThisPath, bool assignDs, string nodeToSign, bool ignoreExpiredCert=false) {
+
+		public static string Sign(SignatureType mode,string certificateThumbprint,string signThisPath,bool assignDs,string nodeToSign,bool ignoreExpiredCert = false)
+		{
 			XmlDocument signThis = null;
 			string stringToSign = null;
-			if (mode == SignatureType.Pkcs7String || mode == SignatureType.Rsa2048Sha256String) {
+			if (mode == SignatureType.Pkcs7String
+				|| mode == SignatureType.Pkcs7 // not implemented yet
+				|| mode == SignatureType.Rsa2048Sha256String
+				|| mode == SignatureType.RsaSha256String
+				)
+			{
 				stringToSign = File.ReadAllText(signThisPath, Encoding.UTF8);
-			} else {
+			}
+			else
+			{
 				signThis = new XmlDocument();
 				signThis.Load(signThisPath);
 			}
