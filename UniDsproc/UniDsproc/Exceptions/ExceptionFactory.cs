@@ -14,6 +14,7 @@ namespace UniDsproc.Exceptions {
 		NODE_ID_REQUIRED,
 		UNKNOWN_SIGNING_EXCEPTION,
 		CERT_EXPIRED,
+		CERTIFICATE_KEY_CONVERSION_FAILED,
 
 		// cetificate processing
 		CERTIFICATE_NOT_FOUND_BY_THUMBPRINT,
@@ -50,7 +51,8 @@ namespace UniDsproc.Exceptions {
 			, {ExceptionType.NODE_ID_REQUIRED, "<node_id> value is empty. This value is required"}
 			, {ExceptionType.UNKNOWN_SIGNING_EXCEPTION, "Unknown signing exception. Original message: {0}"}
 			, {ExceptionType.CERT_EXPIRED, "Certificate with thumbprint <{0}> expired!"}
-
+			, {ExceptionType.CERTIFICATE_KEY_CONVERSION_FAILED, "Certificate key is not valid for this signature algorithm!"}
+			
 			// cetificate processing
 			, {ExceptionType.CERTIFICATE_NOT_FOUND_BY_THUMBPRINT, "Certificate with thumbprint {0} not found"}
 			, {ExceptionType.MORE_THAN_ONE_CERTIFICATE, "More than one certificate with thumbprint {0} found!"}

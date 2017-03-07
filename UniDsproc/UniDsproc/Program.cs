@@ -7,7 +7,7 @@ using UniDsproc.SignatureProcessor;
 namespace UniDsproc {
 	class Program {
 		private static string GetVersion => 
-			$"{Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor}.{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
+			$"{Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor}.{Assembly.GetExecutingAssembly().GetName().Version.Build}.{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
 		private static string GetVersionName => "RSA";
 
 		private static void Main(string[] args) {

@@ -522,12 +522,20 @@ namespace UniDsproc.SignatureProcessor {
 		#region [RSA + SHA]
 
 		#region [Parametrized RSA(x) + SHA(y)]
-		public static byte[] SignStringRsaSha(string stringToSign, X509Certificate2 certificate, ShaAlgorithmType shaType) {
+
+		public static byte[] SignStringRsaSha(string stringToSign, X509Certificate2 certificate, ShaAlgorithmType shaType)
+		{
 			byte[] msg = Encoding.UTF8.GetBytes(stringToSign);
-			RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
-			rsa.FromXmlString(certificate.PrivateKey.ToXmlString(true));
-			return rsa.SignData(msg, CryptoConfig.MapNameToOID(shaType.ToString().ToUpper()));
+			//RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
+			RSACryptoServiceProvider rsa = certificate.PrivateKey as RSACryptoServiceProvider;
+			if (rsa != null)
+			{
+				//rsa.FromXmlString(certificate.PrivateKey.ToXmlString(true));
+				return rsa.SignData(msg, CryptoConfig.MapNameToOID(shaType.ToString().ToUpper()));
+			}
+			throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_KEY_CONVERSION_FAILED);
 		}
+
 		#endregion
 
 		#region [RSA 2048 + SHA256]
