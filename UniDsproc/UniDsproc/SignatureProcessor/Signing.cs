@@ -25,6 +25,7 @@ namespace UniDsproc.SignatureProcessor {
 		Unknown,
 		Pkcs7,
 		Pkcs7String,
+		Pkcs7StringNoCert,
 		Rsa2048Sha256String,
 		RsaSha256String
 	};
@@ -96,8 +97,10 @@ namespace UniDsproc.SignatureProcessor {
 						return Convert.ToBase64String(SignXmlFileDetached(signThis, cert, nodeToSign));
 					case SignatureType.Pkcs7:
 						throw new NotImplementedException();
+					case SignatureType.Pkcs7StringNoCert:
+						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, false));
 					case SignatureType.Pkcs7String:
-						return Convert.ToBase64String(SignStringPkcs7(stringToSign,cert));
+						return Convert.ToBase64String(SignStringPkcs7(stringToSign,cert,true));
 					case SignatureType.Rsa2048Sha256String:
 						return Convert.ToBase64String(SignStringRsa2048Sha256(stringToSign, cert));
 					case SignatureType.RsaSha256String:
@@ -115,6 +118,7 @@ namespace UniDsproc.SignatureProcessor {
 			XmlDocument signThis = null;
 			string stringToSign = null;
 			if (mode == SignatureType.Pkcs7String
+				|| mode == SignatureType.Pkcs7StringNoCert
 				|| mode == SignatureType.Pkcs7 // not implemented yet
 				|| mode == SignatureType.Rsa2048Sha256String
 				|| mode == SignatureType.RsaSha256String
@@ -495,7 +499,8 @@ namespace UniDsproc.SignatureProcessor {
 		#endregion
 
 		#region [PKCS#7]
-		public static byte[] SignStringPkcs7(string stringToSign, X509Certificate2 certificate) {
+		public static byte[] SignStringPkcs7(string stringToSign, X509Certificate2 certificate, bool includeCertificate = false)
+		{
 			byte[] msg = Encoding.UTF8.GetBytes(stringToSign);
 			// Создаем объект ContentInfo по сообщению.
 			// Это необходимо для создания объекта SignedCms.
@@ -507,15 +512,20 @@ namespace UniDsproc.SignatureProcessor {
 			// IssuerAndSerialNumber.
 			// Свойство Detached устанавливаем явно в true, таким 
 			// образом сообщение будет отделено от подписи.
-			SignedCms signedCms = new SignedCms(contentInfo, detached:true);
+			SignedCms signedCms = new SignedCms(contentInfo, detached: true);
 
 			// Определяем подписывающего, объектом CmsSigner.
-			CmsSigner cmsSigner = new CmsSigner(certificate);
+
+			CmsSigner cmsSigner = new CmsSigner(certificate)
+			{
+				IncludeOption = includeCertificate
+					? X509IncludeOption.EndCertOnly
+					: X509IncludeOption.None // don't include certificate in signature
+			};
 			// Подписываем CMS/PKCS #7 сообение.
 			signedCms.ComputeSignature(cmsSigner);
 			// Кодируем CMS/PKCS #7 подпись сообщения.
 			return signedCms.Encode();
-
 		}
 		#endregion
 
