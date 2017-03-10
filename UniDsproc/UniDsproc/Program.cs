@@ -80,8 +80,8 @@ namespace UniDsproc
 				$"\n\t\t\t<smev2_base.detached>,\n\t\t\t<smev2_charge.enveloped>,\n\t\t\t" +
 				$"<smev2_sidebyside.detached>,\n\t\t\t<smev3_base.detached>,\n\t\t\t" +
 				$"<smev3_sidebyside.detached>,\n\t\t\t<smev3_ack>,\n\t\t\t<sig.detached> - experimental,\n\t\t\t" +
-				$"<pkcs7> - not implemented,\n\t\t\t<pkcs7.string>,\n\t\t\t<rsa2048_sha256.string>,\n\t\t\t<rsa_sha256.string>\n\n"
-				+
+				$"<pkcs7> - not implemented,\n\t\t\t<pkcs7.string>,\n\t\t\t<pkcs7.string.nocert>,\n\t\t\t" +
+				$"<rsa2048_sha256.string>,\n\t\t\t<rsa_sha256.string>\n\n"+
 				$"  node_id\n" +
 				$"		String value of <Id> attribute of the node to be signed\n" +
 				$"		Default value : 'ID_SIGN'\n\n" +
