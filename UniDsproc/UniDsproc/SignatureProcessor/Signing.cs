@@ -1,6 +1,6 @@
-﻿using System;
+﻿using CryptoPro.Sharpei.Xml;
+using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
@@ -8,7 +8,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Xml;
-using CryptoPro.Sharpei.Xml;
 using UniDsproc.Exceptions;
 
 namespace UniDsproc.SignatureProcessor {
@@ -26,6 +25,7 @@ namespace UniDsproc.SignatureProcessor {
 		Pkcs7,
 		Pkcs7String,
 		Pkcs7StringNoCert,
+		Pkcs7StringAllCert,
 		Rsa2048Sha256String,
 		RsaSha256String
 	};
@@ -98,9 +98,11 @@ namespace UniDsproc.SignatureProcessor {
 					case SignatureType.Pkcs7:
 						throw new NotImplementedException();
 					case SignatureType.Pkcs7StringNoCert:
-						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, false));
+						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.None));
+					case SignatureType.Pkcs7StringAllCert:
+						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.WholeChain));
 					case SignatureType.Pkcs7String:
-						return Convert.ToBase64String(SignStringPkcs7(stringToSign,cert,true));
+						return Convert.ToBase64String(SignStringPkcs7(stringToSign,cert, X509IncludeOption.EndCertOnly));
 					case SignatureType.Rsa2048Sha256String:
 						return Convert.ToBase64String(SignStringRsa2048Sha256(stringToSign, cert));
 					case SignatureType.RsaSha256String:
@@ -118,11 +120,11 @@ namespace UniDsproc.SignatureProcessor {
 			XmlDocument signThis = null;
 			string stringToSign = null;
 			if (mode == SignatureType.Pkcs7String
+				|| mode == SignatureType.Pkcs7StringAllCert
 				|| mode == SignatureType.Pkcs7StringNoCert
 				|| mode == SignatureType.Pkcs7 // not implemented yet
 				|| mode == SignatureType.Rsa2048Sha256String
-				|| mode == SignatureType.RsaSha256String
-				)
+				|| mode == SignatureType.RsaSha256String)
 			{
 				stringToSign = File.ReadAllText(signThisPath, Encoding.UTF8);
 			}
@@ -499,7 +501,7 @@ namespace UniDsproc.SignatureProcessor {
 		#endregion
 
 		#region [PKCS#7]
-		public static byte[] SignStringPkcs7(string stringToSign, X509Certificate2 certificate, bool includeCertificate = false)
+		public static byte[] SignStringPkcs7(string stringToSign, X509Certificate2 certificate,X509IncludeOption certificateIncludeOption)
 		{
 			byte[] msg = Encoding.UTF8.GetBytes(stringToSign);
 			// Создаем объект ContentInfo по сообщению.
@@ -518,9 +520,7 @@ namespace UniDsproc.SignatureProcessor {
 
 			CmsSigner cmsSigner = new CmsSigner(certificate)
 			{
-				IncludeOption = includeCertificate
-					? X509IncludeOption.EndCertOnly
-					: X509IncludeOption.None // don't include certificate in signature
+				IncludeOption = certificateIncludeOption
 			};
 			// Подписываем CMS/PKCS #7 сообение.
 			signedCms.ComputeSignature(cmsSigner);
