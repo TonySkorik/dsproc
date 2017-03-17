@@ -49,7 +49,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CertificateProcessor.cs" />
-    <Compile Include="DataModel\X509CertificateSerializable.cs" />
     <Compile Include="Exceptions\ExceptionExtensions.cs" />
     <Compile Include="Exceptions\ExceptionFactory.cs" />
     <Compile Include="Extensions\XdocExtensions.cs" />

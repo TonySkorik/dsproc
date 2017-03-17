@@ -4,11 +4,8 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using SmartBind;
-using UniDsproc.SignatureProcessor;
+using Space.Core;
 
 namespace UniDsproc.DataModel {
 	public enum ProgramFunction {Sign = 1, Verify = 2, Extract = 3, VerifyAndExtract = 4}
@@ -33,7 +30,7 @@ namespace UniDsproc.DataModel {
 		public readonly ProgramFunction Function;
 		//=============================== via reflection set
 		[ArgBinding("signature_type")]
-		public SignatureType SigType { set; get; }
+		public Signer.SignatureType SigType { set; get; }
 		[ArgBinding("node_id")]
 		public string NodeId { set; get; }
 		[ArgBinding("thumbprint")]
@@ -45,9 +42,9 @@ namespace UniDsproc.DataModel {
 		[ArgBinding("ignore_expired")]
 		public bool IgnoreExpiredCert { set; get; } //means there will be no expiration check before signing
 		[ArgBinding(_certificateSourceKey)]
-		public CertificateSource CertSource { set; get; }
+		public CertificateProcessor.CertificateSource CertSource { set; get; }
 		//================================
-		public SignatureProcessor.Verification.CertificateLocation CertLocation;
+		public SignatureVerificator.CertificateLocation CertLocation;
 		public string InputFile { get; }
 		public string OutputFile { get; }
 		public bool Ok { get; }
@@ -57,9 +54,9 @@ namespace UniDsproc.DataModel {
 		public ArgsInfo(string[] args) {
 			Ok = false;
 
-			SigType = SignatureType.Unknown;
+			SigType = Signer.SignatureType.Unknown;
 			IgnoreExpiredCert = false;
-			CertSource = CertificateSource.Unknown;
+			CertSource = CertificateProcessor.CertificateSource.Unknown;
 			
 			if (args.Length == 0) {
 				InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, "Command line is empty!");
@@ -105,18 +102,18 @@ namespace UniDsproc.DataModel {
 										throw new ArgumentNullException(keyName,$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values : <2> or <3>");
 									}
 
-								} else if(_knownArgs[keyName].PropertyType.Name == typeof(SignatureType).Name) {
+								} else if(_knownArgs[keyName].PropertyType.Name == typeof(Signer.SignatureType).Name) {
 									//SignatureType
-									SignatureType stype;
-									if (SignatureType.TryParse(argvs[1].Replace(".","").Replace("_",""), true, out stype)) {
+									Signer.SignatureType stype;
+									if (Signer.SignatureType.TryParse(argvs[1].Replace(".","").Replace("_",""), true, out stype)) {
 										_knownArgs[keyName].SetValue(this, stype);
 									} else {
 										throw new ArgumentNullException(keyName,$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <smev2_base.detached>, <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>, <smev3_sidebyside.detached>, <smev3_ack>, <sig.detached>");
 									}
-								} else if(_knownArgs[keyName].PropertyType.Name == typeof(CertificateSource).Name) {
+								} else if(_knownArgs[keyName].PropertyType.Name == typeof(CertificateProcessor.CertificateSource).Name) {
 									//CertificateSource
-									CertificateSource csource;
-									if(CertificateSource.TryParse(argvs[1].Replace(".", "").Replace("_", ""), true, out csource)) {
+									CertificateProcessor.CertificateSource csource;
+									if(CertificateProcessor.CertificateSource.TryParse(argvs[1].Replace(".", "").Replace("_", ""), true, out csource)) {
 										_knownArgs[keyName].SetValue(this, csource);
 									} else {
 										throw new ArgumentNullException(keyName, $"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <xml> <base64> <cer>");
@@ -157,7 +154,7 @@ namespace UniDsproc.DataModel {
 						return;
 					}
 					
-					if (SigType == SignatureType.Unknown) {
+					if (SigType == Signer.SignatureType.Unknown) {
 						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_signatureTypeKey}> value is empty! This value is required!");
 						return;
 					}
@@ -190,7 +187,7 @@ namespace UniDsproc.DataModel {
 					#endregion
 				case ProgramFunction.Extract:
 					#region [EXTRACT]
-					if(CertSource == CertificateSource.Unknown) {
+					if(CertSource == CertificateProcessor.CertificateSource.Unknown) {
 						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_certificateSourceKey}> value is empty! This value is required!");
 						return;
 					}
@@ -206,7 +203,7 @@ namespace UniDsproc.DataModel {
 				case ProgramFunction.Verify:
 				case ProgramFunction.VerifyAndExtract:
 					#region [VERIFY]
-					if(SigType == SignatureType.Unknown) {
+					if(SigType == Signer.SignatureType.Unknown) {
 						InitError = new ErrorInfo(ErrorCodes.ArgumentNullValue, ErrorType.ArgumentParsing, $"<{_signatureTypeKey}> value is empty! This value is required!");
 						return;
 					}
@@ -227,13 +224,13 @@ namespace UniDsproc.DataModel {
 
 					if (!string.IsNullOrEmpty(CertThumbprint)) {
 						//means there is a thumbprint
-						CertLocation = Verification.CertificateLocation.Thumbprint;
+						CertLocation = SignatureVerificator.CertificateLocation.Thumbprint;
 					}else {
 						//no thumbprint passed
 						if (!string.IsNullOrEmpty(CertFilePath)) {
 							if (File.Exists(CertFilePath)) {
 								//means cer file exists
-								CertLocation = Verification.CertificateLocation.CerFile;
+								CertLocation = SignatureVerificator.CertificateLocation.CerFile;
 							} else {
 								//passed file doesn't exist
 								InitError = new ErrorInfo(ErrorCodes.ArgumentInvalidValue,ErrorType.ArgumentParsing, $"Certificate file <{CertFilePath}> not found");
@@ -241,7 +238,7 @@ namespace UniDsproc.DataModel {
 							}
 						} else {
 							//no thumbprint && cer file passed - check on X509Certificate node
-							CertLocation = Verification.CertificateLocation.Xml;
+							CertLocation = SignatureVerificator.CertificateLocation.Xml;
 						}
 					}
 					Ok = true;

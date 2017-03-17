@@ -1,7 +1,10 @@
-﻿using System.Xml;
+﻿using System.Security.Cryptography;
+using System.Xml;
 
-namespace Space.Core.Interfaces {
-	public interface ISignatureVerificator {
+namespace Space.Core.Interfaces
+{
+	public interface ISignatureVerificator
+	{
 		bool VerifySignature(
 			Signer.SignatureType mode,
 			string documentPath,
@@ -15,5 +18,7 @@ namespace Space.Core.Interfaces {
 			string certificateFilePath = null,
 			string certificateThumb = null,
 			string nodeId = null);
+
+		bool CheckSignatureDs(XmlDocument xmlDoc, RSACryptoServiceProvider key);
 	}
 }

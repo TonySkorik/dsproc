@@ -42,7 +42,7 @@ namespace Space.Core.Exceptions {
 	{
 		private static Dictionary<ExceptionType, string> _messages = new Dictionary<ExceptionType, string>() {
 			// signing
-			{ExceptionType.PRIVATE_KEY_MISSING, "PRIVATE_KEY_MISSING] Certificate (subject: <{0}>) private key not found."}
+			{ExceptionType.PRIVATE_KEY_MISSING, "Certificate (subject: <{0}>) private key not found."}
 			, {ExceptionType.DS_ASSIGNMENT_NOT_SUPPORTED, "'ds:' prefix assignment is not supported for selected signature mode {mode}. Supported modes are : <smev3_base.detached>, <smev3_sidebyside.detached>, <smev3_ack>"}
 			, {ExceptionType.NODE_ID_REQUIRED, "<node_id> value is empty. This value is required"}
 			, {ExceptionType.UNKNOWN_SIGNING_EXCEPTION, "Unknown signing exception. Original message: {0}"}

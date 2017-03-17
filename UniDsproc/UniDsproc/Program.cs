@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using Space.CertificateSerialization;
+using Space.Core;
+using Space.Core.Interfaces;
 using UniDsproc.DataModel;
-using UniDsproc.SignatureProcessor;
 
 namespace UniDsproc 
 {
@@ -115,9 +117,10 @@ namespace UniDsproc
 		#region [FUNCTIONS]
 		private static StatusInfo Sign(ArgsInfo args)
 		{
+			ISigner signer = new Signer();
 			try
 			{
-				string signedData = SignatureProcessor.Signing.Sign(
+				string signedData = signer.Sign(
 					args.SigType,
 					args.CertThumbprint,
 					args.InputFile,
@@ -137,13 +140,14 @@ namespace UniDsproc
 		{
 			try
 			{
-				bool isValid = SignatureProcessor.Verification.VerifySignature(
+				ISignatureVerificator verificator = new SignatureVerificator();
+				bool isValid = verificator.VerifySignature(
 					args.SigType,
 					args.InputFile,
-					args.CertLocation == Verification.CertificateLocation.CerFile
+					args.CertLocation == SignatureVerificator.CertificateLocation.CerFile
 						? args.CertFilePath
 						: null,
-					args.CertLocation == Verification.CertificateLocation.Thumbprint
+					args.CertLocation == SignatureVerificator.CertificateLocation.Thumbprint
 						? args.CertThumbprint
 						: null,
 					args.NodeId
@@ -168,10 +172,11 @@ namespace UniDsproc
 						"Unknown certificate extraction exception"));
 			try
 			{
+				ICertificateSerializer serializer = new CertificateSerializer();
 				si =
 					new StatusInfo(
 						new ResultInfo(
-							SignatureProcessor.CertificateProcessing.CertificateToSerializableCertificate(
+							serializer.CertificateToSerializableCertificate(
 								args.CertSource,
 								args.InputFile,
 								args.NodeId)));
@@ -193,7 +198,7 @@ namespace UniDsproc
 			{
 				if (si.Result.SignatureIsCorrect.HasValue && si.Result.SignatureIsCorrect.Value)
 				{
-					args.CertSource = CertificateSource.Xml;
+					args.CertSource = CertificateProcessor.CertificateSource.Xml;
 					si = Extract(args);
 				}
 			}

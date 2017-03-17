@@ -9,14 +9,19 @@ using System.Text;
 using System.Xml;
 using CryptoPro.Sharpei.Xml;
 using Space.Core.Exceptions;
+using Space.Core.Interfaces;
 
-namespace Space.Core {
-	public static class Signer {
-		public enum ShaAlgorithmType {
+namespace Space.Core
+{
+	public class Signer : ISigner
+	{
+		public enum ShaAlgorithmType
+		{
 			SHA256
 		}
 
-		public enum SignatureType {
+		public enum SignatureType
+		{
 			Smev2BaseDetached,
 			Smev2ChargeEnveloped,
 			Smev2SidebysideDetached,
@@ -33,13 +38,16 @@ namespace Space.Core {
 			RsaSha256String
 		};
 
-		public static string Sign(SignatureType mode, X509Certificate2 cert, XmlDocument signThis, bool assignDs, string nodeToSign, string stringToSign = null) {
-
-			XmlDocument signedXmlDoc = new XmlDocument();
-
-			if (!cert.HasPrivateKey) {
-				throw ExceptionFactory.GetException(ExceptionType.PRIVATE_KEY_MISSING, cert.Subject);
-			}
+		public string Sign(
+			SignatureType mode,
+			string certificateThumbprint,
+			string signThisPath,
+			bool assignDs,
+			string nodeToSign,
+			bool ignoreExpiredCert = false)
+		{
+			XmlDocument signThis = null;
+			string stringToSign = null;
 
 			if (
 				assignDs &&
@@ -53,69 +61,6 @@ namespace Space.Core {
 				throw ExceptionFactory.GetException(ExceptionType.DS_ASSIGNMENT_NOT_SUPPORTED);
 			}
 
-			try {
-				switch (mode) {
-					//case SigningMode.Simple:
-					case SignatureType.Smev2SidebysideDetached:
-						if(string.IsNullOrEmpty(nodeToSign)) {
-							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
-						}
-						signedXmlDoc = SignXmlNode(signThis, cert, nodeToSign);
-						break;
-					//case SigningMode.SimpleEnveloped:
-					case SignatureType.Smev2ChargeEnveloped:
-						signedXmlDoc = SignXmlFileEnveloped(signThis, cert);
-						break;
-					//case SigningMode.Smev2:
-					case SignatureType.Smev2BaseDetached:
-						signedXmlDoc = SignXmlFileSmev2(signThis, cert);
-						break;
-					//case SigningMode.Smev3:
-					case SignatureType.Smev3BaseDetached:
-						if (string.IsNullOrEmpty(nodeToSign)) {
-							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
-						}
-						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs);
-						break;
-					case SignatureType.Smev3SidebysideDetached:
-						if(string.IsNullOrEmpty(nodeToSign)) {
-							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
-						}
-						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: false, isSidebyside: true);
-						break;
-					case SignatureType.Smev3Ack:
-						if(string.IsNullOrEmpty(nodeToSign)) {
-							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
-						}
-						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: true);
-						break;
-					//case SigningMode.Detached:
-					case SignatureType.SigDetached:
-						return Convert.ToBase64String(SignXmlFileDetached(signThis, cert, nodeToSign));
-					case SignatureType.Pkcs7:
-						throw new NotImplementedException();
-					case SignatureType.Pkcs7StringNoCert:
-						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.None));
-					case SignatureType.Pkcs7StringAllCert:
-						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.WholeChain));
-					case SignatureType.Pkcs7String:
-						return Convert.ToBase64String(SignStringPkcs7(stringToSign,cert, X509IncludeOption.EndCertOnly));
-					case SignatureType.Rsa2048Sha256String:
-						return Convert.ToBase64String(SignStringRsa2048Sha256(stringToSign, cert));
-					case SignatureType.RsaSha256String:
-						return Convert.ToBase64String(SignStringRsaSha(stringToSign, cert, ShaAlgorithmType.SHA256));
-				}
-			} catch (Exception e) {
-				throw ExceptionFactory.GetException(ExceptionType.UNKNOWN_SIGNING_EXCEPTION, e.Message);
-			}
-
-			return signedXmlDoc.InnerXml;
-		}
-
-		public static string Sign(SignatureType mode,string certificateThumbprint,string signThisPath,bool assignDs,string nodeToSign,bool ignoreExpiredCert = false)
-		{
-			XmlDocument signThis = null;
-			string stringToSign = null;
 			if (mode == SignatureType.Pkcs7String
 				|| mode == SignatureType.Pkcs7StringAllCert
 				|| mode == SignatureType.Pkcs7StringNoCert
@@ -133,28 +78,121 @@ namespace Space.Core {
 			return Sign(mode, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert, stringToSign);
 		}
 
-		public static string Sign(SignatureType mode, string certificateThumbprint, XmlDocument signThis, bool assignDs, string nodeToSign, bool ignoreExpiredCert=false, string stringToSign=null) {
-			X509Certificate2 certificate = CertificateProcessor.SearchCertificateByThumbprint(certificateThumbprint);
+		private string Sign(
+			SignatureType mode,
+			string certificateThumbprint,
+			XmlDocument signThis,
+			bool assignDs,
+			string nodeToSign,
+			bool ignoreExpiredCert = false,
+			string stringToSign = null)
+		{
+			ICertificateProcessor cp = new CertificateProcessor();
+			X509Certificate2 certificate = cp.SearchCertificateByThumbprint(certificateThumbprint);
 
-			if (!ignoreExpiredCert && CertificateProcessor.IsCertificateExpired(certificate)) {
+			if (!certificate.HasPrivateKey)
+			{
+				throw ExceptionFactory.GetException(ExceptionType.PRIVATE_KEY_MISSING, certificate.Subject);
+			}
+
+			if (!ignoreExpiredCert && cp.IsCertificateExpired(certificate))
+			{
 				throw ExceptionFactory.GetException(ExceptionType.CERT_EXPIRED, certificate.Thumbprint);
 			}
 
 			return Sign(mode, certificate, signThis, assignDs, nodeToSign, stringToSign);
 		}
 
-		#region [SIMPLE NODE SIGN]
+		private string Sign(
+			SignatureType mode,
+			X509Certificate2 cert,
+			XmlDocument signThis,
+			bool assignDs,
+			string nodeToSign,
+			string stringToSign = null)
+		{
 
-		private static XmlNode GetNodeWithAttributeValue(XmlNodeList nodelist, string attributeValue) {
-			XmlNode ret = null;
-			foreach(XmlNode xn in nodelist) {
-				if (xn.HasChildNodes) {
-					ret = GetNodeWithAttributeValue(xn.ChildNodes, attributeValue);
-					if ( ret!= null) break;
+			XmlDocument signedXmlDoc = new XmlDocument();
+
+			try
+			{
+				switch (mode)
+				{
+					case SignatureType.Smev2SidebysideDetached:
+						if (string.IsNullOrEmpty(nodeToSign))
+						{
+							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
+						}
+						signedXmlDoc = SignXmlNode(signThis, cert, nodeToSign);
+						break;
+					case SignatureType.Smev2ChargeEnveloped:
+						signedXmlDoc = SignXmlFileEnveloped(signThis, cert);
+						break;
+					case SignatureType.Smev2BaseDetached:
+						signedXmlDoc = SignXmlFileSmev2(signThis, cert);
+						break;
+					case SignatureType.Smev3BaseDetached:
+						if (string.IsNullOrEmpty(nodeToSign))
+						{
+							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
+						}
+						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs);
+						break;
+					case SignatureType.Smev3SidebysideDetached:
+						if (string.IsNullOrEmpty(nodeToSign))
+						{
+							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
+						}
+						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: false, isSidebyside: true);
+						break;
+					case SignatureType.Smev3Ack:
+						if (string.IsNullOrEmpty(nodeToSign))
+						{
+							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
+						}
+						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: true);
+						break;
+					case SignatureType.SigDetached:
+						return Convert.ToBase64String(SignXmlFileDetached(signThis, cert, nodeToSign));
+					case SignatureType.Pkcs7:
+						throw new NotImplementedException();
+					case SignatureType.Pkcs7StringNoCert:
+						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.None));
+					case SignatureType.Pkcs7StringAllCert:
+						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.WholeChain));
+					case SignatureType.Pkcs7String:
+						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.EndCertOnly));
+					case SignatureType.Rsa2048Sha256String:
+						return Convert.ToBase64String(SignStringRsa2048Sha256(stringToSign, cert));
+					case SignatureType.RsaSha256String:
+						return Convert.ToBase64String(SignStringRsaSha(stringToSign, cert, ShaAlgorithmType.SHA256));
 				}
-				if (xn.Attributes!=null && xn.Attributes.Count != 0) {
-					foreach (XmlAttribute xa in xn.Attributes) {
-						if (xa.Value == attributeValue) {
+			}
+			catch (Exception e)
+			{
+				throw ExceptionFactory.GetException(ExceptionType.UNKNOWN_SIGNING_EXCEPTION, e.Message);
+			}
+
+			return signedXmlDoc.InnerXml;
+		}
+
+		#region [SIMPLE NODE SIGN]
+		private XmlNode GetNodeWithAttributeValue(XmlNodeList nodelist, string attributeValue)
+		{
+			XmlNode ret = null;
+			foreach (XmlNode xn in nodelist)
+			{
+				if (xn.HasChildNodes)
+				{
+					ret = GetNodeWithAttributeValue(xn.ChildNodes, attributeValue);
+					if (ret != null) break;
+				}
+				if (xn.Attributes != null && xn.Attributes.Count != 0)
+				{
+					foreach (XmlAttribute xa in xn.Attributes)
+					{
+						if (xa.Value == attributeValue)
+						{
 							ret = xn;
 							break;
 						}
@@ -164,13 +202,15 @@ namespace Space.Core {
 			return ret;
 		}
 
-		public static XmlDocument SignXmlNode(XmlDocument doc, X509Certificate2 certificate, string nodeId) {
-
+		private XmlDocument SignXmlNode(XmlDocument doc, X509Certificate2 certificate, string nodeId)
+		{
 			//----------------------------------------------------------------------------------------------CREATE SIGNED XML
-			SignedXml signedXml = new SignedXml(doc) { SigningKey = certificate.PrivateKey };
+			SignedXml signedXml = new SignedXml(doc){
+				SigningKey = certificate.PrivateKey
+			};
 			//----------------------------------------------------------------------------------------------REFERNCE
-			Reference reference = new Reference {
-				Uri = "#"+nodeId,
+			Reference reference = new Reference{
+				Uri = "#" + nodeId,
 				#pragma warning disable 612
 				DigestMethod = CryptoPro.Sharpei.Xml.CPSignedXml.XmlDsigGost3411UrlObsolete
 				#pragma warning disable 612
@@ -194,7 +234,7 @@ namespace Space.Core {
 			//----------------------------------------------------------------------------------------------GET XML
 			XmlElement xmlDigitalSignature = signedXml.GetXml();
 			//=============================================================================APPEND SIGNATURE TO DOCUMENT
-			
+
 			GetNodeWithAttributeValue(doc.ChildNodes, nodeId)?.ParentNode?.AppendChild(xmlDigitalSignature);
 
 			return doc;
@@ -202,13 +242,15 @@ namespace Space.Core {
 		#endregion
 
 		#region [SIMPLE ENVELOPED SIGN]
-
-		public static XmlDocument SignXmlFileEnveloped(XmlDocument doc, X509Certificate2 certificate, string nodeId=null) {
+		private XmlDocument SignXmlFileEnveloped(XmlDocument doc, X509Certificate2 certificate, string nodeId = null)
+		{
 			nodeId = string.Empty;
 			//----------------------------------------------------------------------------------------------CREATE SIGNED XML
-			SignedXml signedXml = new SignedXml(doc) { SigningKey = certificate.PrivateKey };
+			SignedXml signedXml = new SignedXml(doc){
+				SigningKey = certificate.PrivateKey
+			};
 			//----------------------------------------------------------------------------------------------REFERNCE
-			Reference reference = new Reference {
+			Reference reference = new Reference{
 				Uri = nodeId,
 				#pragma warning disable 612
 				DigestMethod = CryptoPro.Sharpei.Xml.CPSignedXml.XmlDsigGost3411UrlObsolete
@@ -244,7 +286,7 @@ namespace Space.Core {
 		#endregion
 
 		#region [SMEV 2]
-		
+
 		#region [UTILITY]
 
 		public const string WSSecurityWSSENamespaceUrl =
@@ -252,27 +294,31 @@ namespace Space.Core {
 		public const string WSSecurityWSUNamespaceUrl =
 			"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
 
-		public class Smev2SignedXml : SignedXml {
+		public class Smev2SignedXml : SignedXml
+		{
 			public Smev2SignedXml(XmlDocument document)
-				: base(document) { }
+				: base(document)
+			{}
 
-			public override XmlElement GetIdElement(XmlDocument document, string idValue) {
+			public override XmlElement GetIdElement(XmlDocument document, string idValue)
+			{
 				XmlNamespaceManager nsmgr = new XmlNamespaceManager(document.NameTable);
 				nsmgr.AddNamespace("wsu", WSSecurityWSUNamespaceUrl);
 				return document.SelectSingleNode("//*[@wsu:Id='" + idValue + "']", nsmgr) as XmlElement;
 			}
 		}
 		//----------------------------------------------------------------------------------------------------------------------------------------------------ADD TEMPLATE
-		public static string wsu_ = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
-		public static string soapenv_ = "http://schemas.xmlsoap.org/soap/envelope/";
-		public static string wsse_ = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
-		public static string ds_ = "http://www.w3.org/2000/09/xmldsig#";
+		private const string wsu_ = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
+		private const string soapenv_ = "http://schemas.xmlsoap.org/soap/envelope/";
+		private const string wsse_ = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
+		private const string ds_ = "http://www.w3.org/2000/09/xmldsig#";
 
 		#endregion
 
 		#region [TEMPLATE GENERATION]
 
-		static XmlDocument AddTemplate(XmlDocument baseDocument, X509Certificate2 certificate) {
+		private XmlDocument AddTemplate(XmlDocument baseDocument, X509Certificate2 certificate)
+		{
 
 			baseDocument.PreserveWhitespace = true;
 
@@ -282,10 +328,12 @@ namespace Space.Core {
 			XmlElement security = baseDocument.CreateElement("wsse", "Security", wsse_);
 			security.SetAttribute("actor", soapenv_, "http://smev.gosuslugi.ru/actors/smev");
 			XmlElement securityToken = baseDocument.CreateElement("wsse", "BinarySecurityToken", wsse_);
-			securityToken.SetAttribute("EncodingType",
-						"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary");
-			securityToken.SetAttribute("ValueType",
-						"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3");
+			securityToken.SetAttribute(
+				"EncodingType",
+				"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary");
+			securityToken.SetAttribute(
+				"ValueType",
+				"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3");
 			securityToken.SetAttribute("Id", wsu_, "CertId");
 			securityToken.Prefix = "wsse";
 			securityToken.InnerText = Convert.ToBase64String(certificate.RawData);
@@ -299,8 +347,9 @@ namespace Space.Core {
 			XmlElement securityTokenReference = baseDocument.CreateElement("wsse", "SecurityTokenReference", wsse_);
 			XmlElement reference = baseDocument.CreateElement("wsse", "Reference", wsse_);
 			reference.SetAttribute("URI", "#CertId");
-			reference.SetAttribute("ValueType",
-						"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3");
+			reference.SetAttribute(
+				"ValueType",
+				"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3");
 
 			XmlElement startElement = baseDocument.GetElementsByTagName(rootPrefix + ":Header")[0] as XmlElement;
 			startElement?.AppendChild(security).AppendChild(securityToken);
@@ -316,7 +365,8 @@ namespace Space.Core {
 		#endregion
 
 		#region [SIGN SMEV 2]
-		public static XmlDocument SignXmlFileSmev2(XmlDocument doc, X509Certificate2 certificate) {
+		private XmlDocument SignXmlFileSmev2(XmlDocument doc, X509Certificate2 certificate)
+		{
 
 			XmlNode root = doc.SelectSingleNode("/*");
 			string rootPrefix = root?.Prefix;
@@ -327,18 +377,18 @@ namespace Space.Core {
 			string referenceUri = bodyElement?.GetAttribute("wsu:Id");
 			//----------------------------------------------------------------------------------------------SignedXML CREATE
 			//нужен для корректной отработки wsu:reference 
-			Smev2SignedXml signedXml = new Smev2SignedXml(tDoc) {
+			Smev2SignedXml signedXml = new Smev2SignedXml(tDoc){
 				SigningKey = certificate.PrivateKey
 			};
 			//----------------------------------------------------------------------------------------------REFERNCE
-			Reference reference = new Reference {
+			Reference reference = new Reference{
 				DigestMethod = CryptoPro.Sharpei.Xml.CPSignedXml.XmlDsigGost3411UrlObsolete,
-				Uri = "#"+referenceUri
+				Uri = "#" + referenceUri
 			};
 
 			XmlDsigExcC14NTransform c14 = new XmlDsigExcC14NTransform();
 			reference.AddTransform(c14);
-			
+
 			signedXml.AddReference(reference);
 			//----------------------------------------------------------------------------------------------SIGNATURE SETUP
 			signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
@@ -359,22 +409,25 @@ namespace Space.Core {
 				tDoc.ImportNode(xmlDigitalSignature.GetElementsByTagName("SignatureValue")[0], true));
 			tDoc.GetElementsByTagName("Signature")[0].PrependChild(
 				tDoc.ImportNode(xmlDigitalSignature.GetElementsByTagName("SignedInfo")[0], true));
-			((XmlElement)tDoc.GetElementsByTagName("Signature")[0]).SetAttribute("xmlns", ds_);
+			((XmlElement) tDoc.GetElementsByTagName("Signature")[0]).SetAttribute("xmlns", ds_);
 
 			return tDoc;
 		}
 
 		#endregion
-		
+
 		#endregion
 
 		#region [SMEV 3]
 
 		#region [UTILITY]
-		private static void _assignNsPrefix(XmlElement element, string prefix) {
+		private void _assignNsPrefix(XmlElement element, string prefix)
+		{
 			element.Prefix = prefix;
-			foreach(var child in element.ChildNodes) {
-				if(child is XmlElement) {
+			foreach (var child in element.ChildNodes)
+			{
+				if (child is XmlElement)
+				{
 					_assignNsPrefix(child as XmlElement, prefix);
 				}
 			}
@@ -382,17 +435,26 @@ namespace Space.Core {
 		#endregion
 
 		#region [SIGN SMEV 3]
-		public static XmlDocument SignXmlFileSmev3(XmlDocument doc, X509Certificate2 certificate, string signingNodeId, bool assignDs, bool isAck=false, bool isSidebyside = false) {
+		private XmlDocument SignXmlFileSmev3(
+			XmlDocument doc,
+			X509Certificate2 certificate,
+			string signingNodeId,
+			bool assignDs,
+			bool isAck = false,
+			bool isSidebyside = false)
+		{
 			XmlNamespaceManager nsm = new XmlNamespaceManager(doc.NameTable);
 			nsm.AddNamespace("ns", "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1");
 			nsm.AddNamespace("ns1", "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/basic/1.1");
 			nsm.AddNamespace("ds", "http://www.w3.org/2000/09/xmldsig#");
 
 
-			SignedXml sxml = new SignedXml(doc) { SigningKey = certificate.PrivateKey };
+			SignedXml sxml = new SignedXml(doc){
+				SigningKey = certificate.PrivateKey
+			};
 
 			//=====================================================================================REFERENCE TRASFORMS
-			Reference reference = new Reference {
+			Reference reference = new Reference{
 				Uri = "#" + signingNodeId,
 				#pragma warning disable 612
 				//Расчет хеш-суммы ГОСТ Р 34.11-94 http://www.w3.org/2001/04/xmldsig-more#gostr3411
@@ -406,7 +468,8 @@ namespace Space.Core {
 			XmlDsigSmevTransform smevTransform = new XmlDsigSmevTransform();
 			reference.AddTransform(smevTransform);
 
-			if (isAck) {
+			if (isAck)
+			{
 				XmlDsigEnvelopedSignatureTransform enveloped = new XmlDsigEnvelopedSignatureTransform();
 				reference.AddTransform(enveloped);
 			}
@@ -427,7 +490,8 @@ namespace Space.Core {
 
 			XmlElement signature = sxml.GetXml();
 			//==================================================================================================add ds:
-			if(assignDs) {
+			if (assignDs)
+			{
 				_assignNsPrefix(signature, "ds");
 				XmlElement xmlSignedInfo = signature.SelectSingleNode("ds:SignedInfo", nsm) as XmlElement;
 
@@ -442,12 +506,14 @@ namespace Space.Core {
 				//get new hshing object based on original one
 				SignatureDescription description =
 					CryptoConfig.CreateFromName(sxml.SignedInfo.SignatureMethod) as SignatureDescription;
-				if(description == null) {
+				if (description == null)
+				{
 					throw new CryptographicException(
 						$"Не удалось создать объект SignatureDescription по имени [{sxml.SignedInfo.SignatureMethod}]");
 				}
 				HashAlgorithm hash = description.CreateDigest();
-				if(hash == null) {
+				if (hash == null)
+				{
 					throw new CryptographicException(
 						$"Не удалось создать объект HashAlgorithm из SignatureDescription по имени [{sxml.SignedInfo.SignatureMethod}]");
 				}
@@ -461,27 +527,35 @@ namespace Space.Core {
 					Convert.ToBase64String(description.CreateFormatter(sxml.SigningKey).CreateSignature(hashVal));
 			}
 			//=============================================================================APPEND SIGNATURE TO DOCUMENT
-			if (!isSidebyside) {
-				doc.GetElementsByTagName("CallerInformationSystemSignature",
-										"urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1")[0].InnerXml = "";
-				doc.GetElementsByTagName("CallerInformationSystemSignature",
-										"urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1")[0].AppendChild(signature);
-			} else {
+			if (!isSidebyside)
+			{
+				doc.GetElementsByTagName(
+					"CallerInformationSystemSignature",
+					"urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1")[0].InnerXml = "";
+				doc.GetElementsByTagName(
+					"CallerInformationSystemSignature",
+					"urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1")[0].AppendChild(signature);
+			}
+			else
+			{
 				GetNodeWithAttributeValue(doc.ChildNodes, signingNodeId)?.ParentNode?.AppendChild(signature);
 			}
 			return doc;
 		}
 		#endregion
-		
+
 		#endregion
 
 		#region [DETACHED]
 
-		public static byte[] SignXmlFileDetached(XmlDocument doc, X509Certificate2 certificate, string signingNodeId) {
+		private byte[] SignXmlFileDetached(XmlDocument doc, X509Certificate2 certificate, string signingNodeId)
+		{
 
 			ContentInfo contentInfo = new ContentInfo(Encoding.UTF8.GetBytes(doc.OuterXml));
 			SignedCms signedCms = new SignedCms(contentInfo, true);
-			CmsSigner cmsSigner = new CmsSigner(certificate) { IncludeOption = X509IncludeOption.EndCertOnly };
+			CmsSigner cmsSigner = new CmsSigner(certificate){
+				IncludeOption = X509IncludeOption.EndCertOnly
+			};
 			cmsSigner.SignedAttributes.Add(
 				new CryptographicAttributeObject(
 					new Oid("1.2.840.113549.1.9.3"),
@@ -498,7 +572,10 @@ namespace Space.Core {
 		#endregion
 
 		#region [PKCS#7]
-		public static byte[] SignStringPkcs7(string stringToSign, X509Certificate2 certificate,X509IncludeOption certificateIncludeOption)
+		private byte[] SignStringPkcs7(
+			string stringToSign,
+			X509Certificate2 certificate,
+			X509IncludeOption certificateIncludeOption)
 		{
 			byte[] msg = Encoding.UTF8.GetBytes(stringToSign);
 			// Создаем объект ContentInfo по сообщению.
@@ -515,8 +592,7 @@ namespace Space.Core {
 
 			// Определяем подписывающего, объектом CmsSigner.
 
-			CmsSigner cmsSigner = new CmsSigner(certificate)
-			{
+			CmsSigner cmsSigner = new CmsSigner(certificate){
 				IncludeOption = certificateIncludeOption
 			};
 			// Подписываем CMS/PKCS #7 сообение.
@@ -530,7 +606,7 @@ namespace Space.Core {
 
 		#region [Parametrized RSA(x) + SHA(y)]
 
-		public static byte[] SignStringRsaSha(string stringToSign, X509Certificate2 certificate, ShaAlgorithmType shaType)
+		private byte[] SignStringRsaSha(string stringToSign, X509Certificate2 certificate, ShaAlgorithmType shaType)
 		{
 			byte[] msg = Encoding.UTF8.GetBytes(stringToSign);
 			//RSACryptoServiceProvider rsa = new RSACryptoServiceProvider();
@@ -546,10 +622,12 @@ namespace Space.Core {
 		#endregion
 
 		#region [RSA 2048 + SHA256]
-		public static byte[] SignStringRsa2048Sha256(string stringToSign, X509Certificate2 certificate) {
-			if(certificate.PrivateKey.KeySize != 2048) 
+		private byte[] SignStringRsa2048Sha256(string stringToSign, X509Certificate2 certificate)
+		{
+			if (certificate.PrivateKey.KeySize != 2048)
 			{
-				throw new Exception($"CERTIFICATE_PRIVATE_KEY_INVALID_LENGTH] RSA 2048 algorithm expects certificate private key size to be of 2048. Size of {certificate.PrivateKey.KeySize} found. Use certificate with 2048 key size.");
+				throw new Exception(
+					$"CERTIFICATE_PRIVATE_KEY_INVALID_LENGTH] RSA 2048 algorithm expects certificate private key size to be of 2048. Size of {certificate.PrivateKey.KeySize} found. Use certificate with 2048 key size.");
 			}
 
 			byte[] msg = Encoding.UTF8.GetBytes(stringToSign);

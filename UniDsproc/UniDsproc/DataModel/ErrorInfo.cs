@@ -1,6 +1,5 @@
 ﻿using System.Runtime.Serialization;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace UniDsproc.DataModel {
 	public enum ErrorType { ArgumentParsing, Signing, SignatureVerification, CertificateExtraction };

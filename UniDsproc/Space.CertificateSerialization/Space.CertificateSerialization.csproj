@@ -45,10 +45,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CertificateSerializer.cs" />
+    <Compile Include="DataModel\X509CertificateSerializable.cs" />
+    <Compile Include="ICertificateSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Space.Core\Space.Core.csproj">
+      <Project>{10F8428D-46E9-4484-90CA-BF4563D1039E}</Project>
+      <Name>Space.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

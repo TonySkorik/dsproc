@@ -70,16 +70,10 @@
     <Compile Include="DataModel\ResultInfo.cs" />
     <Compile Include="DataModel\ErrorInfo.cs" />
     <Compile Include="DataModel\PrintableInfo.cs" />
-    <Compile Include="Exceptions\ExceptionExtensions.cs" />
-    <Compile Include="Exceptions\ExceptionFactory.cs" />
     <Compile Include="SmartBind.cs" />
     <Compile Include="DataModel\StatusInfo.cs" />
-    <Compile Include="DataModel\XdocExtensions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SignatureProcessor\CertificateProcessing.cs" />
-    <Compile Include="SignatureProcessor\Signing.cs" />
-    <Compile Include="SignatureProcessor\Verification.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -128,6 +122,16 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Test Command Lines.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Space.CertificateSerialization\Space.CertificateSerialization.csproj">
+      <Project>{25503144-079e-49c7-8b46-8eb071830092}</Project>
+      <Name>Space.CertificateSerialization</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Space.Core\Space.Core.csproj">
+      <Project>{10f8428d-46e9-4484-90ca-bf4563d1039e}</Project>
+      <Name>Space.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

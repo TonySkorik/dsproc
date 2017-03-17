@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
+using Newtonsoft.Json;
 
-namespace Space.Core.DataModel
+namespace Space.CertificateSerialization.DataModel
 {
 	[JsonObject("Certificate")]
 	public sealed class X509CertificateSerializable {

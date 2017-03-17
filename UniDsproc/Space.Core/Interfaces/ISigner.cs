@@ -5,10 +5,11 @@ namespace Space.Core.Interfaces {
 	public interface ISigner {
 		string Sign(
 			Signer.SignatureType mode,
-			X509Certificate2 cert,
-			XmlDocument signThis,
+			string certificateThumbprint,
+			string signThisPath,
 			bool assignDs,
 			string nodeToSign,
-			string stringToSign = null);
+			bool ignoreExpiredCert = false);
+
 	}
 }

@@ -1,7 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using UniDsproc.SignatureProcessor;
+using Space.CertificateSerialization.DataModel;
 
 namespace UniDsproc.DataModel {
 	[DataContract(Name = "result")]
