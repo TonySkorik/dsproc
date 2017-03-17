@@ -12,7 +12,7 @@ namespace UniDsproc
 	{
 		private static string GetVersion =>
 			$"{Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor}.{Assembly.GetExecutingAssembly().GetName().Version.Build}.{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
-		private static string GetVersionName => "PKCS7 NoCert";
+		private static string GetVersionName => "SPACE";
 
 		private static void Main(string[] args)
 		{
