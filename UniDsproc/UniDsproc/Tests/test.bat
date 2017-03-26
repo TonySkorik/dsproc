@@ -33,6 +33,18 @@ echo pkcs7.string.allcert
 	%dsproc% sign -ignore_expired=true -signature_type=pkcs7.string.allcert -thumbprint=%thumb% input_string.txt signed.txt
 pause
 echo ------------------------
+echo sig_detached
+	%dsproc% sign -ignore_expired=true -signature_type=sig_detached -thumbprint=%thumb% smev2.base.xml signed.sig
+pause
+echo ------------------------
+echo sig_detached.nocert
+	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.nocert -thumbprint=%thumb% smev2.base.xml signed.sig
+pause
+echo ------------------------
+echo sig_detached.allcert
+	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.allcert -thumbprint=%thumb% smev2.base.xml signed.sig
+pause
+echo ------------------------
 echo smev2_sidebyside.detached
 	%dsproc% sign -ignore_expired=true -signature_type=smev2_sidebyside.detached -thumbprint=%thumb% -node_id="SIGNED_BY_SERVER" smev2.sidebyside.xml smev2.sidebyside.signed.xml
 pause

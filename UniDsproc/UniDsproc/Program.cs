@@ -12,7 +12,7 @@ namespace UniDsproc
 	{
 		private static string GetVersion =>
 			$"{Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor}.{Assembly.GetExecutingAssembly().GetName().Version.Build}.{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
-		private static string GetVersionName => "SPACE";
+		private static string GetVersionName => "SPACE + SIG";
 
 		private static void Main(string[] args)
 		{
@@ -81,9 +81,14 @@ namespace UniDsproc
 				$"		Possible values : " +
 				$"\n\t\t\t<smev2_base.detached>,\n\t\t\t<smev2_charge.enveloped>,\n\t\t\t" +
 				$"<smev2_sidebyside.detached>,\n\t\t\t<smev3_base.detached>,\n\t\t\t" +
-				$"<smev3_sidebyside.detached>,\n\t\t\t<smev3_ack>,\n\t\t\t<sig.detached> - experimental,\n\t\t\t" +
-				$"<pkcs7> - not implemented,\n\t\t\t<pkcs7.string>,\n\t\t\t<pkcs7.string.nocert>,\n\t\t\t" +
-				$"<pkcs7.string.allcert>,\n\t\t\t<rsa2048_sha256.string>,\n\t\t\t<rsa_sha256.string>\n\n" +
+				$"<smev3_sidebyside.detached>,\n\t\t\t<smev3_ack>,\n\t\t\t" +
+				$"EXPERIMENTAL! <sig_detached> - (base64 output) end certificate included,\n\t\t\t" +
+				$"EXPERIMENTAL! <sig_detached.nocert> - (base64 output) no certificates included,\n\t\t\t" +
+				$"EXPERIMENTAL! <sig_detached.allcert> - (base64 output) whole certificate chain included,\n\t\t\t" +
+				$"<pkcs7.string> - end certificate included,\n\t\t\t" +
+				$"<pkcs7.string.nocert> - no certificates included,\n\t\t\t" +
+				$"<pkcs7.string.allcert> - whole certificate chain included,\n\t\t\t" +
+				$"<rsa2048_sha256.string>,\n\t\t\t<rsa_sha256.string>\n\n" +
 				$"  node_id\n" +
 				$"		String value of <Id> attribute of the node to be signed\n" +
 				$"		Default value : 'ID_SIGN'\n\n" +

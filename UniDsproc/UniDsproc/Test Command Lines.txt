@@ -6,12 +6,20 @@ Signing:
 	rsa2048_sha256.string
 		sign -ignore_expired=true -signature_type=rsa2048_sha256.string -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" input_string.txt signed.txt
 
+	sig_detached
+		sign -ignore_expired=true -signature_type=sig_detached -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" smev2.base.xml signed.sig
+	sig_detached.nocert
+		sign -ignore_expired=true -signature_type=sig_detached.nocert -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" smev2.base.xml signed.sig
+	sig_detached.allcert
+		sign -ignore_expired=true -signature_type=sig_detached.allcert -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" smev2.base.xml signed.sig
+
 	pkcs7.string
 		sign -ignore_expired=true -signature_type=pkcs7.string -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" input_string.txt signed.txt
 	pkcs7.string.nocert
 		sign -ignore_expired=true -signature_type=pkcs7.string.nocert -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" input_string.txt signed.txt
 	pkcs7.string.allcert
 		sign -ignore_expired=true -signature_type=pkcs7.string.allcert -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" input_string.txt signed.txt
+
 	smev2_sidebyside.detached
 		sign -ignore_expired=true -signature_type=smev2_sidebyside.detached -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" -node_id="SIGNED_BY_SERVER" smev2.sidebyside.xml smev2.sidebyside.signed.xml
 
