@@ -30,16 +30,16 @@ namespace Space.Core
 			try
 			{
 				certificateThumbprint = Regex.Replace(certificateThumbprint, @"[^\da-zA-z]", string.Empty).ToUpper();
-				X509Store compStore =
+				X509Store localMachineStore =
 					new X509Store("My", StoreLocation.LocalMachine);
-				compStore.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadOnly);
+				localMachineStore.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadOnly);
 
-				X509Store store =
+				X509Store currentUserStore =
 					new X509Store("My", StoreLocation.CurrentUser);
-				store.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadOnly);
+				currentUserStore.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadOnly);
 
 				X509Certificate2Collection found =
-					compStore.Certificates.Find(
+					localMachineStore.Certificates.Find(
 						X509FindType.FindByThumbprint,
 						// X509FindType.FindBySerialNumber, 
 						certificateThumbprint,
@@ -48,7 +48,7 @@ namespace Space.Core
 
 				if (found.Count == 0)
 				{
-					found = store.Certificates.Find(
+					found = currentUserStore.Certificates.Find(
 						X509FindType.FindByThumbprint,
 						// X509FindType.FindBySerialNumber,
 						certificateThumbprint,
@@ -106,11 +106,11 @@ namespace Space.Core
 
 		#region [GET ALL CERTS FROM STORE]
 		
-		public List<X509Certificate2> GetAllCertificatesFromStore(StoreLocation storeLocation)
+		public IEnumerable<X509Certificate2> GetAllCertificatesFromStore(StoreLocation storeLocation)
 		{
 			X509Store store = new X509Store("My", storeLocation);
 			store.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadOnly | OpenFlags.MaxAllowed);
-			return store.Certificates.Cast<X509Certificate2>().ToList();
+			return store.Certificates.Cast<X509Certificate2>();
 		}
 
 		#endregion
@@ -254,20 +254,20 @@ namespace Space.Core
 
 		#region Checks
 
-		public bool IsCertificateExpired(X509Certificate2 cert)
+		public bool IsCertificateExpired(X509Certificate2 certificate)
 		{
-			if (cert == null) return true;
+			if (certificate == null) return true;
 			DateTime dtNow = DateTime.Now.ToUniversalTime();
-			return !(dtNow > cert.NotBefore.ToUniversalTime() && dtNow < cert.NotAfter.ToUniversalTime());
+			return !(dtNow > certificate.NotBefore.ToUniversalTime() && dtNow < certificate.NotAfter.ToUniversalTime());
 		}
 
-		public bool MessageIsSmev2Base(XDocument message)
+		public bool MessageIsSmev2Base(XDocument document)
 		{
 			XNamespace wsse = Signer.WSSecurityWSSENamespaceUrl;
 			XNamespace env = "http://schemas.xmlsoap.org/soap/envelope/";
 			try
 			{
-				return message.Root.Descendants(env + "Header").First().Descendants(wsse + "Security").Any();
+				return document.Root?.Descendants(env + "Header")?.First().Descendants(wsse + "Security")?.Any() ?? false;
 			}
 			catch
 			{

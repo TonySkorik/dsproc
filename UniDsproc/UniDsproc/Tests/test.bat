@@ -21,18 +21,7 @@ echo rsa2048_sha256.string
 	%dsproc% sign -ignore_expired=true -signature_type=rsa2048_sha256.string -thumbprint=%thumb% input_string.txt signed.txt
 pause
 echo ------------------------
-echo pkcs7.string
-	%dsproc% sign -ignore_expired=true -signature_type=pkcs7.string -thumbprint=%thumb% input_string.txt signed.txt
-pause
-echo ------------------------
-echo pkcs7.string.nocert
-	%dsproc% sign -ignore_expired=true -signature_type=pkcs7.string.nocert -thumbprint=%thumb% input_string.txt signed.txt
-pause
-echo ------------------------
-echo pkcs7.string.allcert
-	%dsproc% sign -ignore_expired=true -signature_type=pkcs7.string.allcert -thumbprint=%thumb% input_string.txt signed.txt
-pause
-echo ------------------------
+
 echo sig_detached
 	%dsproc% sign -ignore_expired=true -signature_type=sig_detached -thumbprint=%thumb% smev2.base.xml signed.sig
 pause
@@ -45,6 +34,46 @@ echo sig_detached.allcert
 	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.allcert -thumbprint=%thumb% smev2.base.xml signed.sig
 pause
 echo ------------------------
+
+echo sig_detached.bin
+	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.bin -thumbprint=%thumb% smev2.base.xml signed.sig
+pause
+echo ------------------------
+echo sig_detached.bin.nocert
+	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.bin.nocert -thumbprint=%thumb% smev2.base.xml signed.sig
+pause
+echo ------------------------
+echo sig_detached.bin.allcert
+	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.bin.allcert -thumbprint=%thumb% smev2.base.xml signed.sig
+pause
+echo ------------------------
+
+echo sig_detached.string
+	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.string -thumbprint=%thumb% smev2.base.xml signed.sig
+pause
+echo ------------------------
+echo sig_detached.string.nocert
+	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.string.nocert -thumbprint=%thumb% smev2.base.xml signed.sig
+pause
+echo ------------------------
+echo sig_detached.string.allcert
+	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.string.allcert -thumbprint=%thumb% smev2.base.xml signed.sig
+pause
+echo ------------------------
+
+echo pkcs7.string
+	%dsproc% sign -ignore_expired=true -signature_type=pkcs7.string -thumbprint=%thumb% input_string.txt signed.txt
+pause
+echo ------------------------
+echo pkcs7.string.nocert
+	%dsproc% sign -ignore_expired=true -signature_type=pkcs7.string.nocert -thumbprint=%thumb% input_string.txt signed.txt
+pause
+echo ------------------------
+echo pkcs7.string.allcert
+	%dsproc% sign -ignore_expired=true -signature_type=pkcs7.string.allcert -thumbprint=%thumb% input_string.txt signed.txt
+pause
+echo ------------------------
+
 echo smev2_sidebyside.detached
 	%dsproc% sign -ignore_expired=true -signature_type=smev2_sidebyside.detached -thumbprint=%thumb% -node_id="SIGNED_BY_SERVER" smev2.sidebyside.xml smev2.sidebyside.signed.xml
 pause
@@ -57,6 +86,7 @@ echo smev2_base.detached
 	%dsproc% sign -ignore_expired=true -signature_type=smev2_base.detached -thumbprint=%thumb% smev2.base.xml smev2.base.signed.xml
 pause
 echo ------------------------
+
 echo smev3_base.detached
 	%dsproc% sign -ignore_expired=true -signature_type=smev3_base.detached -thumbprint=%thumb% -node_id="SIGNED_BY_SERVER" smev3.base.xml smev3.base.signed.xml
 pause

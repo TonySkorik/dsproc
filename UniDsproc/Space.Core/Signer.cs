@@ -22,19 +22,32 @@ namespace Space.Core
 
 		public enum SignatureType
 		{
+			Unknown,
+
 			Smev2BaseDetached,
 			Smev2ChargeEnveloped,
 			Smev2SidebysideDetached,
+
 			Smev3BaseDetached,
 			Smev3SidebysideDetached,
 			Smev3Ack,
+
+			SigDetachedBin,
+			SigDetachedBinAllCert,
+			SigDetachedBinNoCert,
+
 			SigDetached,
 			SigDetachedAllCert,
-			SigDetachedNocert,
-			Unknown,
+			SigDetachedNoCert,
+
+			SigDetachedString,
+			SigDetachedStringAllCert,
+			SigDetachedStringNoCert,
+
 			Pkcs7String,
 			Pkcs7StringNoCert,
 			Pkcs7StringAllCert,
+
 			Rsa2048Sha256String,
 			RsaSha256String
 		};
@@ -49,15 +62,16 @@ namespace Space.Core
 		{
 			XmlDocument signThis = null;
 			string stringToSign = null;
+			byte[] bytesToSign = null;
 
 			if (
-				assignDs &&
-				!new List<SignatureType>(){
+				assignDs 
+				&& !new List<SignatureType>()
+				{
 					SignatureType.Smev3BaseDetached,
 					SignatureType.Smev3SidebysideDetached,
 					SignatureType.Smev3Ack
-				}.Contains(mode)
-			)
+				}.Contains(mode))
 			{
 				throw ExceptionFactory.GetException(ExceptionType.DS_ASSIGNMENT_NOT_SUPPORTED);
 			}
@@ -65,17 +79,28 @@ namespace Space.Core
 			if (mode == SignatureType.Pkcs7String
 				|| mode == SignatureType.Pkcs7StringAllCert
 				|| mode == SignatureType.Pkcs7StringNoCert
+
+				|| mode == SignatureType.SigDetachedString
+				|| mode == SignatureType.SigDetachedStringAllCert
+				|| mode == SignatureType.SigDetachedStringNoCert
+
 				|| mode == SignatureType.Rsa2048Sha256String
 				|| mode == SignatureType.RsaSha256String)
 			{
 				stringToSign = File.ReadAllText(signThisPath, Encoding.UTF8);
+			}
+			else if (mode == SignatureType.SigDetachedBin
+				|| mode == SignatureType.SigDetachedBinNoCert
+				|| mode == SignatureType.SigDetachedBinAllCert)
+			{
+				bytesToSign = File.ReadAllBytes(signThisPath);
 			}
 			else
 			{
 				signThis = new XmlDocument();
 				signThis.Load(signThisPath);
 			}
-			return Sign(mode, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert, stringToSign);
+			return Sign(mode, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert, stringToSign, bytesToSign);
 		}
 
 		private string Sign(
@@ -85,7 +110,8 @@ namespace Space.Core
 			bool assignDs,
 			string nodeToSign,
 			bool ignoreExpiredCert = false,
-			string stringToSign = null)
+			string stringToSign = null,
+			byte[] bytesToSign = null)
 		{
 			ICertificateProcessor cp = new CertificateProcessor();
 			X509Certificate2 certificate = cp.SearchCertificateByThumbprint(certificateThumbprint);
@@ -100,7 +126,7 @@ namespace Space.Core
 				throw ExceptionFactory.GetException(ExceptionType.CERT_EXPIRED, certificate.Thumbprint);
 			}
 
-			return Sign(mode, certificate, signThis, assignDs, nodeToSign, stringToSign);
+			return Sign(mode, certificate, signThis, assignDs, nodeToSign, stringToSign, bytesToSign);
 		}
 
 		private string Sign(
@@ -109,7 +135,8 @@ namespace Space.Core
 			XmlDocument signThis,
 			bool assignDs,
 			string nodeToSign,
-			string stringToSign = null)
+			string stringToSign = null,
+			byte[] bytesToSign = null)
 		{
 
 			XmlDocument signedXmlDoc = new XmlDocument();
@@ -131,6 +158,7 @@ namespace Space.Core
 					case SignatureType.Smev2BaseDetached:
 						signedXmlDoc = SignXmlFileSmev2(signThis, cert);
 						break;
+
 					case SignatureType.Smev3BaseDetached:
 						if (string.IsNullOrEmpty(nodeToSign))
 						{
@@ -152,21 +180,34 @@ namespace Space.Core
 						}
 						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: true);
 						break;
+
+					case SignatureType.SigDetachedBin:
+						return Convert.ToBase64String(SignPkcs7(bytesToSign, cert, X509IncludeOption.EndCertOnly));
+					case SignatureType.SigDetachedBinNoCert:
+						return Convert.ToBase64String(SignPkcs7(bytesToSign, cert, X509IncludeOption.None));
+					case SignatureType.SigDetachedBinAllCert:
+						return Convert.ToBase64String(SignPkcs7(bytesToSign, cert, X509IncludeOption.WholeChain));
+
 					case SignatureType.SigDetached:
 						// technically is the same as PKCS#7 but input is XML instead of text string
 						return Convert.ToBase64String(SignXmlFileDetached(signThis, cert, X509IncludeOption.EndCertOnly));
-					case SignatureType.SigDetachedNocert:
+					case SignatureType.SigDetachedNoCert:
 						// technically is the same as PKCS#7 but input is XML instead of text string
 						return Convert.ToBase64String(SignXmlFileDetached(signThis, cert, X509IncludeOption.None));
 					case SignatureType.SigDetachedAllCert:
 						// technically is the same as PKCS#7 but input is XML instead of text string
 						return Convert.ToBase64String(SignXmlFileDetached(signThis, cert, X509IncludeOption.WholeChain));
-					case SignatureType.Pkcs7StringNoCert:
-						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.None));
-					case SignatureType.Pkcs7StringAllCert:
-						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.WholeChain));
+
+					case SignatureType.SigDetachedString:
 					case SignatureType.Pkcs7String:
 						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.EndCertOnly));
+					case SignatureType.SigDetachedStringNoCert:
+					case SignatureType.Pkcs7StringNoCert:
+						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.None));
+					case SignatureType.SigDetachedStringAllCert:
+					case SignatureType.Pkcs7StringAllCert:
+						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.WholeChain));
+
 					case SignatureType.Rsa2048Sha256String:
 						return Convert.ToBase64String(SignStringRsa2048Sha256(stringToSign, cert));
 					case SignatureType.RsaSha256String:
@@ -555,7 +596,6 @@ namespace Space.Core
 
 		private byte[] SignXmlFileDetached(XmlDocument doc, X509Certificate2 certificate, X509IncludeOption certificateIncludeOption)
 		{
-
 			string docText = doc.InnerXml;
 			return SignStringPkcs7(docText, certificate, certificateIncludeOption);
 			
@@ -572,17 +612,23 @@ namespace Space.Core
 
 		#endregion
 
-		#region [PKCS#7]
+		#region [PKCS#7 (sig)]
 		private byte[] SignStringPkcs7(
 			string stringToSign,
 			X509Certificate2 certificate,
 			X509IncludeOption certificateIncludeOption)
 		{
 			byte[] msg = Encoding.UTF8.GetBytes(stringToSign);
+			return SignPkcs7(msg,certificate,certificateIncludeOption);
+		}
+
+		private byte[] SignPkcs7(byte[] bytesToSign,
+			X509Certificate2 certificate,
+			X509IncludeOption certificateIncludeOption)
+		{
 			// Создаем объект ContentInfo по сообщению.
 			// Это необходимо для создания объекта SignedCms.
-			ContentInfo contentInfo = new ContentInfo(msg);
-
+			ContentInfo contentInfo = new ContentInfo(bytesToSign);
 			// Создаем объект SignedCms по только что созданному
 			// объекту ContentInfo.
 			// SubjectIdentifierType установлен по умолчанию в 
@@ -590,10 +636,9 @@ namespace Space.Core
 			// Свойство Detached устанавливаем явно в true, таким 
 			// образом сообщение будет отделено от подписи.
 			SignedCms signedCms = new SignedCms(contentInfo, detached: true);
-
 			// Определяем подписывающего, объектом CmsSigner.
-
-			CmsSigner cmsSigner = new CmsSigner(certificate){
+			CmsSigner cmsSigner = new CmsSigner(certificate)
+			{
 				IncludeOption = certificateIncludeOption
 			};
 			// Подписываем CMS/PKCS #7 сообение.

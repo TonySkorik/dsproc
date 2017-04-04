@@ -34,8 +34,19 @@ namespace Space.Core {
 		{
 			if (new List<Signer.SignatureType>{
 					Signer.SignatureType.Rsa2048Sha256String,
-					Signer.SignatureType.Pkcs7,
-					Signer.SignatureType.Pkcs7String
+					Signer.SignatureType.RsaSha256String,
+
+					Signer.SignatureType.Pkcs7String,
+					Signer.SignatureType.Pkcs7StringAllCert,
+					Signer.SignatureType.Pkcs7StringNoCert,
+
+					Signer.SignatureType.SigDetached,
+					Signer.SignatureType.SigDetachedAllCert,
+					Signer.SignatureType.SigDetachedNoCert,
+
+					Signer.SignatureType.SigDetachedBin,
+					Signer.SignatureType.SigDetachedBinAllCert,
+					Signer.SignatureType.SigDetachedBinNoCert,
 				}.Contains(mode)
 			)
 			{
@@ -206,7 +217,6 @@ namespace Space.Core {
 				case Signer.SignatureType.Smev3Ack:
 				case Signer.SignatureType.Rsa2048Sha256String:
 				case Signer.SignatureType.RsaSha256String:
-				case Signer.SignatureType.Pkcs7:
 				case Signer.SignatureType.Pkcs7String:
 				case Signer.SignatureType.Pkcs7StringAllCert:
 				case Signer.SignatureType.Pkcs7StringNoCert:

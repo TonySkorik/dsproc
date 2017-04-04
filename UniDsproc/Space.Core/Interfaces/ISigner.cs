@@ -1,8 +1,10 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using System.Xml;
 
-namespace Space.Core.Interfaces {
-	public interface ISigner {
+namespace Space.Core.Interfaces
+{
+	public interface ISigner
+	{
 		string Sign(
 			Signer.SignatureType mode,
 			string certificateThumbprint,
