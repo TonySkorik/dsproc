@@ -12,20 +12,6 @@ Signing:
 	sig_detached.allcert
 		sign -ignore_expired=true -signature_type=sig_detached.allcert -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" smev2.base.xml signed.sig
 		
-	sig_detached.bin
-		sign -ignore_expired=true -signature_type=sig_detached.bin -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" smev2.base.xml signed.sig
-	sig_detached.bin.nocert
-		sign -ignore_expired=true -signature_type=sig_detached.bin.nocert -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" smev2.base.xml signed.sig
-	sig_detached.bin.allcert
-		sign -ignore_expired=true -signature_type=sig_detached.bin.allcert -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" smev2.base.xml signed.sig
-
-	sig_detached.string
-		sign -ignore_expired=true -signature_type=sig_detached.string -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" smev2.base.xml signed.sig
-	sig_detached.string.nocert
-		sign -ignore_expired=true -signature_type=sig_detached.string.nocert -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" smev2.base.xml signed.sig
-	sig_detached.string.allcert
-		sign -ignore_expired=true -signature_type=sig_detached.string.allcert -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" smev2.base.xml signed.sig
-
 	pkcs7.string
 		sign -ignore_expired=true -signature_type=pkcs7.string -thumbprint="f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65" input_string.txt signed.txt
 	pkcs7.string.nocert

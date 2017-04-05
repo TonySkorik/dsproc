@@ -42,11 +42,7 @@ namespace Space.Core {
 
 					Signer.SignatureType.SigDetached,
 					Signer.SignatureType.SigDetachedAllCert,
-					Signer.SignatureType.SigDetachedNoCert,
-
-					Signer.SignatureType.SigDetachedBin,
-					Signer.SignatureType.SigDetachedBinAllCert,
-					Signer.SignatureType.SigDetachedBinNoCert,
+					Signer.SignatureType.SigDetachedNoCert
 				}.Contains(mode)
 			)
 			{

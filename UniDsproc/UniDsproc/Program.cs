@@ -12,7 +12,7 @@ namespace UniDsproc
 	{
 		private static string GetVersion =>
 			$"{Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor}.{Assembly.GetExecutingAssembly().GetName().Version.Build}.{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
-		private static string GetVersionName => "SPACE + SIG.string.bin.xml";
+		private static string GetVersionName => "SPACE + SIG bin";
 
 		private static void Main(string[] args)
 		{
@@ -79,29 +79,22 @@ namespace UniDsproc
 				$"  signature_type [*:sign]\n" +
 				$"		Determines what signature should be processed\n" +
 				$"		Suffixes:\n" +
-				$"		  *.string.* - string input\n" +
-				$"		  *.bin.* - binary input\n" +
-				$"		  default - xml input\n" +
+				$"		  *.string* - string input\n" +
+				$"		  *.bin* - binary input\n" +
+				$"		  *.nocert* - no certificates included\n" +
+				$"		  *.allcert* - whole certificate chain included\n" +
 				$"		Possible values : " +
 				$"\n\t\t\t<smev2_base.detached>,\n\t\t\t<smev2_charge.enveloped>,\n\t\t\t" +
 				$"<smev2_sidebyside.detached>,\n\t\t\t<smev3_base.detached>,\n\t\t\t" +
 				$"<smev3_sidebyside.detached>,\n\t\t\t<smev3_ack>,\n\t\t\t" +
 
-				$"EXPERIMENTAL! <sig_detached> - (base64 output) end certificate included,\n\t\t\t" +
-				$"EXPERIMENTAL! <sig_detached.nocert> - (base64 output) no certificates included,\n\t\t\t" +
-				$"EXPERIMENTAL! <sig_detached.allcert> - (base64 output) whole certificate chain included,\n\t\t\t" +
-
-				$"EXPERIMENTAL! <sig_detached.bin> - (base64 output) end certificate included,\n\t\t\t" +
-				$"EXPERIMENTAL! <sig_detached.bin.nocert> - (base64 output) no certificates included,\n\t\t\t" +
-				$"EXPERIMENTAL! <sig_detached.bin.allcert> - (base64 output) whole certificate chain included,\n\t\t\t" +
-
-				$"<sig_detached.string> - (base64 output) end certificate included,\n\t\t\t" +
-				$"<sig_detached.string.nocert> - (base64 output) no certificates included,\n\t\t\t" +
-				$"<sig_detached.string.allcert> - (base64 output) whole certificate chain included,\n\t\t\t" +
-
+				$"EXPERIMENTAL! <sig_detached> - (bin input) (base64 output) end certificate included,\n\t\t\t" +
+				$"EXPERIMENTAL! <sig_detached.nocert> - (bin input) (base64 output),\n\t\t\t" +
+				$"EXPERIMENTAL! <sig_detached.allcert> - (bin input) (base64 output),\n\t\t\t" +
+				
 				$"<pkcs7.string> - end certificate included,\n\t\t\t" +
-				$"<pkcs7.string.nocert> - no certificates included,\n\t\t\t" +
-				$"<pkcs7.string.allcert> - whole certificate chain included,\n\t\t\t" +
+				$"<pkcs7.string.nocert>,\n\t\t\t" +
+				$"<pkcs7.string.allcert>,\n\t\t\t" +
 
 				$"<rsa2048_sha256.string>,\n\t\t\t<rsa_sha256.string>\n\n" +
 				$"  node_id\n" +

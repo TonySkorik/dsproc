@@ -32,17 +32,9 @@ namespace Space.Core
 			Smev3SidebysideDetached,
 			Smev3Ack,
 
-			SigDetachedBin,
-			SigDetachedBinAllCert,
-			SigDetachedBinNoCert,
-
 			SigDetached,
 			SigDetachedAllCert,
 			SigDetachedNoCert,
-
-			SigDetachedString,
-			SigDetachedStringAllCert,
-			SigDetachedStringNoCert,
 
 			Pkcs7String,
 			Pkcs7StringNoCert,
@@ -79,19 +71,13 @@ namespace Space.Core
 			if (mode == SignatureType.Pkcs7String
 				|| mode == SignatureType.Pkcs7StringAllCert
 				|| mode == SignatureType.Pkcs7StringNoCert
-
-				|| mode == SignatureType.SigDetachedString
-				|| mode == SignatureType.SigDetachedStringAllCert
-				|| mode == SignatureType.SigDetachedStringNoCert
-
+				
 				|| mode == SignatureType.Rsa2048Sha256String
 				|| mode == SignatureType.RsaSha256String)
 			{
 				stringToSign = File.ReadAllText(signThisPath, Encoding.UTF8);
 			}
-			else if (mode == SignatureType.SigDetachedBin
-				|| mode == SignatureType.SigDetachedBinNoCert
-				|| mode == SignatureType.SigDetachedBinAllCert)
+			else if (mode == SignatureType.SigDetached)
 			{
 				bytesToSign = File.ReadAllBytes(signThisPath);
 			}
@@ -180,31 +166,18 @@ namespace Space.Core
 						}
 						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: true);
 						break;
-
-					case SignatureType.SigDetachedBin:
+						
+					case SignatureType.SigDetached:
 						return Convert.ToBase64String(SignPkcs7(bytesToSign, cert, X509IncludeOption.EndCertOnly));
-					case SignatureType.SigDetachedBinNoCert:
+					case SignatureType.SigDetachedNoCert:
 						return Convert.ToBase64String(SignPkcs7(bytesToSign, cert, X509IncludeOption.None));
-					case SignatureType.SigDetachedBinAllCert:
+					case SignatureType.SigDetachedAllCert:
 						return Convert.ToBase64String(SignPkcs7(bytesToSign, cert, X509IncludeOption.WholeChain));
 
-					case SignatureType.SigDetached:
-						// technically is the same as PKCS#7 but input is XML instead of text string
-						return Convert.ToBase64String(SignXmlFileDetached(signThis, cert, X509IncludeOption.EndCertOnly));
-					case SignatureType.SigDetachedNoCert:
-						// technically is the same as PKCS#7 but input is XML instead of text string
-						return Convert.ToBase64String(SignXmlFileDetached(signThis, cert, X509IncludeOption.None));
-					case SignatureType.SigDetachedAllCert:
-						// technically is the same as PKCS#7 but input is XML instead of text string
-						return Convert.ToBase64String(SignXmlFileDetached(signThis, cert, X509IncludeOption.WholeChain));
-
-					case SignatureType.SigDetachedString:
 					case SignatureType.Pkcs7String:
 						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.EndCertOnly));
-					case SignatureType.SigDetachedStringNoCert:
 					case SignatureType.Pkcs7StringNoCert:
 						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.None));
-					case SignatureType.SigDetachedStringAllCert:
 					case SignatureType.Pkcs7StringAllCert:
 						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.WholeChain));
 
@@ -592,27 +565,7 @@ namespace Space.Core
 
 		#endregion
 
-		#region [DETACHED] what we call SIG file
-
-		private byte[] SignXmlFileDetached(XmlDocument doc, X509Certificate2 certificate, X509IncludeOption certificateIncludeOption)
-		{
-			string docText = doc.InnerXml;
-			return SignStringPkcs7(docText, certificate, certificateIncludeOption);
-			
-			// NOTE: if doesn't work for SMEV - use the following
-			//cmsSigner.SignedAttributes.Add(
-			//	new CryptographicAttributeObject(
-			//		new Oid("1.2.840.113549.1.9.3"),
-			//		new AsnEncodedDataCollection(
-			//			new AsnEncodedData(Encoding.UTF8.GetBytes("1.2.840.113549.1.7.1"))
-			//		)
-			//	)
-			//);
-		}
-
-		#endregion
-
-		#region [PKCS#7 (sig)]
+		#region [DETACHED PKCS#7 (sig)]
 		private byte[] SignStringPkcs7(
 			string stringToSign,
 			X509Certificate2 certificate,
@@ -638,6 +591,17 @@ namespace Space.Core
 			SignedCms signedCms = new SignedCms(contentInfo, detached: true);
 			// Определяем подписывающего, объектом CmsSigner.
 			CmsSigner cmsSigner = new CmsSigner(certificate)
+
+			// NOTE: if above doesn't work for SMEV - use the following
+			//cmsSigner.SignedAttributes.Add(
+			//	new CryptographicAttributeObject(
+			//		new Oid("1.2.840.113549.1.9.3"),
+			//		new AsnEncodedDataCollection(
+			//			new AsnEncodedData(Encoding.UTF8.GetBytes("1.2.840.113549.1.7.1"))
+			//		)
+			//	)
+			//);
+
 			{
 				IncludeOption = certificateIncludeOption
 			};

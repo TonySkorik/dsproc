@@ -35,32 +35,6 @@ echo sig_detached.allcert
 pause
 echo ------------------------
 
-echo sig_detached.bin
-	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.bin -thumbprint=%thumb% smev2.base.xml signed.sig
-pause
-echo ------------------------
-echo sig_detached.bin.nocert
-	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.bin.nocert -thumbprint=%thumb% smev2.base.xml signed.sig
-pause
-echo ------------------------
-echo sig_detached.bin.allcert
-	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.bin.allcert -thumbprint=%thumb% smev2.base.xml signed.sig
-pause
-echo ------------------------
-
-echo sig_detached.string
-	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.string -thumbprint=%thumb% smev2.base.xml signed.sig
-pause
-echo ------------------------
-echo sig_detached.string.nocert
-	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.string.nocert -thumbprint=%thumb% smev2.base.xml signed.sig
-pause
-echo ------------------------
-echo sig_detached.string.allcert
-	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.string.allcert -thumbprint=%thumb% smev2.base.xml signed.sig
-pause
-echo ------------------------
-
 echo pkcs7.string
 	%dsproc% sign -ignore_expired=true -signature_type=pkcs7.string -thumbprint=%thumb% input_string.txt signed.txt
 pause
