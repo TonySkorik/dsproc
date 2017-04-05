@@ -59,6 +59,7 @@ namespace UniDsproc
 		{
 			string version = $"{GetVersion} {GetVersionName}";
 			int l = 32;
+			string ntt = "\n\t\t    ";
 			string help = $"[UniDSProc v{version}]\n" +
 				$"{new String('-', l)}\n" +
 				$" Call string: UniDsproc.exe <function> [keys] <input file> [output file]\n" +
@@ -79,24 +80,30 @@ namespace UniDsproc
 				$"  signature_type [*:sign]\n" +
 				$"		Determines what signature should be processed\n" +
 				$"		Suffixes:\n" +
-				$"		  *.string* - string input\n" +
-				$"		  *.bin* - binary input\n" +
-				$"		  *.nocert* - no certificates included\n" +
-				$"		  *.allcert* - whole certificate chain included\n" +
+				$"		    *.string* - string input\n" +
+				$"		    *.bin* - binary input\n" +
+				$"		    *.nocert* - no certificates included\n" +
+				$"		    *.allcert* - whole certificate chain included\n" +
 				$"		Possible values : " +
-				$"\n\t\t\t<smev2_base.detached>,\n\t\t\t<smev2_charge.enveloped>,\n\t\t\t" +
-				$"<smev2_sidebyside.detached>,\n\t\t\t<smev3_base.detached>,\n\t\t\t" +
-				$"<smev3_sidebyside.detached>,\n\t\t\t<smev3_ack>,\n\t\t\t" +
-
-				$"EXPERIMENTAL! <sig_detached> - (bin input) (base64 output) end certificate included,\n\t\t\t" +
-				$"EXPERIMENTAL! <sig_detached.nocert> - (bin input) (base64 output),\n\t\t\t" +
-				$"EXPERIMENTAL! <sig_detached.allcert> - (bin input) (base64 output),\n\t\t\t" +
+				$"{ntt}<smev2_base.detached>,{ntt}" +
+				$"<smev2_charge.enveloped>,{ntt}" +
+				$"<smev2_sidebyside.detached>,{ntt}" +
 				
-				$"<pkcs7.string> - end certificate included,\n\t\t\t" +
-				$"<pkcs7.string.nocert>,\n\t\t\t" +
-				$"<pkcs7.string.allcert>,\n\t\t\t" +
+				$"{ntt}<smev3_base.detached>,{ntt}" +
+				$"<smev3_sidebyside.detached>,{ntt}" +
+				$"<smev3_ack>,{ntt}" +
+				
+				$"{ntt}<sig_detached> - end certificate included,{ntt}" +
+				$"<sig_detached.nocert>,{ntt}" +
+				$"<sig_detached.allcert>,{ntt}" +
+				
+				$"{ntt}<pkcs7.string> - end certificate included,{ntt}" +
+				$"<pkcs7.string.nocert>,{ntt}" +
+				$"<pkcs7.string.allcert>,{ntt}" +
+				
+				$"{ntt}<rsa2048_sha256.string>,{ntt}" +
+				$"<rsa_sha256.string>\n\n" +
 
-				$"<rsa2048_sha256.string>,\n\t\t\t<rsa_sha256.string>\n\n" +
 				$"  node_id\n" +
 				$"		String value of <Id> attribute of the node to be signed\n" +
 				$"		Default value : 'ID_SIGN'\n\n" +
