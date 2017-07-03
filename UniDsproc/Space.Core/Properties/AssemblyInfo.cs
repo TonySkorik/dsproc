@@ -6,10 +6,10 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Space.Core")]
-[assembly: AssemblyDescription("Signature Processor And Certificate Extractor")]
+[assembly: AssemblyDescription("Signature Processor And Certificate Extractor main assembly")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("T-Soft && CRC")]
-[assembly: AssemblyProduct("Space.Core")]
+[assembly: AssemblyCompany("T-Soft@CRC")]
+[assembly: AssemblyProduct("S.P.A.C.E.")]
 [assembly: AssemblyCopyright("Copyright © TS 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

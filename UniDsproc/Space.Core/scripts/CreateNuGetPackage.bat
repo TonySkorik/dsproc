@@ -1,0 +1,1 @@
+nuget pack ../Space.Core.csproj -properties Configuration=Release -IncludeReferencedProjects -OutputDirectory ../

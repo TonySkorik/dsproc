@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <projectUrl>https://github.com/T-Soft/dsproc</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>$description$</description>
+    <releaseNotes>Initial package release.</releaseNotes>
+    <copyright>Copyright TS 2017</copyright>
+    <tags>DigitalSignature CRYPTO-PRO SMEV3</tags>
+  </metadata>
+  <files>
+    <file src="lib\CryptoPro.Sharpei.Base.dll" target="lib" />
+    <file src="lib\CryptoPro.Sharpei.Xml.dll" target="lib" />
+  </files>
+</package>

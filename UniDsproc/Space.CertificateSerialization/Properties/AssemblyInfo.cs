@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Space.CertificateSerialization")]
 [assembly: AssemblyDescription("Signature Processor And Certificate Extractor X509 to JSON serialization module")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Space.CertificateSerialization")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyCompany("T-Soft@CRC")]
+[assembly: AssemblyProduct("S.P.A.C.E.")]
+[assembly: AssemblyCopyright("Copyright © TS 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
