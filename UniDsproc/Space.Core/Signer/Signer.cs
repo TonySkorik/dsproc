@@ -141,10 +141,10 @@ namespace Space.Core
 						signedXmlDoc = SignXmlNode(signThis, cert, nodeToSign);
 						break;
 					case SignatureType.Smev2ChargeEnveloped:
-						signedXmlDoc = SignXmlFileEnveloped(signThis, cert);
+						signedXmlDoc = SignEnveloped(signThis, cert);
 						break;
 					case SignatureType.Smev2BaseDetached:
-						signedXmlDoc = SignXmlFileSmev2(signThis, cert);
+						signedXmlDoc = SignSmev2(signThis, cert);
 						break;
 
 					case SignatureType.Smev3BaseDetached:
@@ -152,21 +152,21 @@ namespace Space.Core
 						{
 							throw ExceptionFactory.GetException(ExceptionType.NodeIdRequired);
 						}
-						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs);
+						signedXmlDoc = SignSmev3(signThis, cert, nodeToSign, assignDs);
 						break;
 					case SignatureType.Smev3SidebysideDetached:
 						if (string.IsNullOrEmpty(nodeToSign))
 						{
 							throw ExceptionFactory.GetException(ExceptionType.NodeIdRequired);
 						}
-						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: false, isSidebyside: true);
+						signedXmlDoc = SignSmev3(signThis, cert, nodeToSign, assignDs, isAck: false, isSidebyside: true);
 						break;
 					case SignatureType.Smev3Ack:
 						if (string.IsNullOrEmpty(nodeToSign))
 						{
 							throw ExceptionFactory.GetException(ExceptionType.NodeIdRequired);
 						}
-						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: true);
+						signedXmlDoc = SignSmev3(signThis, cert, nodeToSign, assignDs, isAck: true);
 						break;
 
 					case SignatureType.SigDetached:
