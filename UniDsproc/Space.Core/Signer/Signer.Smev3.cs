@@ -14,20 +14,23 @@ namespace Space.Core
 	public partial class Signer
 	{
 		#region [UTILITY]
-		private void _assignNsPrefix(XmlElement element, string prefix)
+
+		private void AssignNsPrefix(XmlElement element, string prefix)
 		{
 			element.Prefix = prefix;
 			foreach (var child in element.ChildNodes)
 			{
 				if (child is XmlElement)
 				{
-					_assignNsPrefix(child as XmlElement, prefix);
+					AssignNsPrefix(child as XmlElement, prefix);
 				}
 			}
 		}
+
 		#endregion
 
 		#region [SIGN SMEV 3]
+
 		private XmlDocument SignXmlFileSmev3(
 			XmlDocument doc,
 			X509Certificate2 certificate,
@@ -86,7 +89,7 @@ namespace Space.Core
 			//==================================================================================================add ds:
 			if (assignDs)
 			{
-				_assignNsPrefix(signature, "ds");
+				AssignNsPrefix(signature, "ds");
 				XmlElement xmlSignedInfo = signature.SelectSingleNode("ds:SignedInfo", nsm) as XmlElement;
 
 				XmlDocument document = new XmlDocument();

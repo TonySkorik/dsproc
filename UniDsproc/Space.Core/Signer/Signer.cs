@@ -52,7 +52,7 @@ namespace Space.Core
 					SignatureType.Smev3Ack
 				}.Contains(mode))
 			{
-				throw ExceptionFactory.GetException(ExceptionType.DS_ASSIGNMENT_NOT_SUPPORTED);
+				throw ExceptionFactory.GetException(ExceptionType.DsAssignmentNotSupported);
 			}
 
 			if (mode == SignatureType.Pkcs7String
@@ -95,12 +95,12 @@ namespace Space.Core
 
 			if (!certificate.HasPrivateKey)
 			{
-				throw ExceptionFactory.GetException(ExceptionType.PRIVATE_KEY_MISSING, certificate.Subject);
+				throw ExceptionFactory.GetException(ExceptionType.PrivateKeyMissing, certificate.Subject);
 			}
 
 			if (!ignoreExpiredCert && cp.IsCertificateExpired(certificate))
 			{
-				throw ExceptionFactory.GetException(ExceptionType.CERT_EXPIRED, certificate.Thumbprint);
+				throw ExceptionFactory.GetException(ExceptionType.CertExpired, certificate.Thumbprint);
 			}
 
 			return Sign(mode, certificate, signThis, assignDs, nodeToSign, stringToSign, bytesToSign);
@@ -125,7 +125,7 @@ namespace Space.Core
 					case SignatureType.Smev2SidebysideDetached:
 						if (string.IsNullOrEmpty(nodeToSign))
 						{
-							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
+							throw ExceptionFactory.GetException(ExceptionType.NodeIdRequired);
 						}
 						signedXmlDoc = SignXmlNode(signThis, cert, nodeToSign);
 						break;
@@ -139,21 +139,21 @@ namespace Space.Core
 					case SignatureType.Smev3BaseDetached:
 						if (string.IsNullOrEmpty(nodeToSign))
 						{
-							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
+							throw ExceptionFactory.GetException(ExceptionType.NodeIdRequired);
 						}
 						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs);
 						break;
 					case SignatureType.Smev3SidebysideDetached:
 						if (string.IsNullOrEmpty(nodeToSign))
 						{
-							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
+							throw ExceptionFactory.GetException(ExceptionType.NodeIdRequired);
 						}
 						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: false, isSidebyside: true);
 						break;
 					case SignatureType.Smev3Ack:
 						if (string.IsNullOrEmpty(nodeToSign))
 						{
-							throw ExceptionFactory.GetException(ExceptionType.NODE_ID_REQUIRED);
+							throw ExceptionFactory.GetException(ExceptionType.NodeIdRequired);
 						}
 						signedXmlDoc = SignXmlFileSmev3(signThis, cert, nodeToSign, assignDs, isAck: true);
 						break;
@@ -180,7 +180,7 @@ namespace Space.Core
 			}
 			catch (Exception e)
 			{
-				throw ExceptionFactory.GetException(ExceptionType.UNKNOWN_SIGNING_EXCEPTION, e.Message);
+				throw ExceptionFactory.GetException(ExceptionType.UnknownSigningException, e.Message);
 			}
 
 			return signedXmlDoc.InnerXml;

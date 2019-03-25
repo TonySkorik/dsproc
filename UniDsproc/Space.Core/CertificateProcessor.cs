@@ -39,47 +39,39 @@ namespace Space.Core
 				currentUserStore.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadOnly);
 
 				X509Certificate2Collection found =
-					localMachineStore.Certificates.Find(
+					currentUserStore.Certificates.Find(
 						X509FindType.FindByThumbprint,
-						// X509FindType.FindBySerialNumber, 
 						certificateThumbprint,
 						false
 					);
 
 				if (found.Count == 0)
 				{
-					found = currentUserStore.Certificates.Find(
+					found = localMachineStore.Certificates.Find(
 						X509FindType.FindByThumbprint,
-						// X509FindType.FindBySerialNumber,
 						certificateThumbprint,
 						false
 					);
 					if (found.Count != 0)
 					{
-						// means found in Current User store
+						// means found in LocalMachine store
 					}
 					else
 					{
-						throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_NOT_FOUND_BY_THUMBPRINT, certificateThumbprint);
+						throw ExceptionFactory.GetException(ExceptionType.CertificateNotFoundByThumbprint, certificateThumbprint);
 					}
 				}
-				else
-				{
-					// means found in LocalMachine store
-				}
-
+				
 				if (found.Count == 1)
 				{
 					return found[0];
 				}
-				else
-				{
-					throw ExceptionFactory.GetException(ExceptionType.MORE_THAN_ONE_CERTIFICATE, certificateThumbprint);
-				}
+
+				throw ExceptionFactory.GetException(ExceptionType.MoreThanOneCertificate, certificateThumbprint);
 			}
 			catch (CryptographicException e)
 			{
-				throw ExceptionFactory.GetException(ExceptionType.UNKNOWN_CERTIFICATE_EXCEPTION, e.Message);
+				throw ExceptionFactory.GetException(ExceptionType.UnknownCertificateException, e.Message);
 			}
 		}
 
@@ -186,11 +178,11 @@ namespace Space.Core
 				}
 				catch
 				{
-					throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_NOT_FOUND_BY_NODE_ID, nodeId);
+					throw ExceptionFactory.GetException(ExceptionType.CertificateNotFoundByNodeId, nodeId);
 				}
 				if (signatureElement == null)
 				{
-					throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_NOT_FOUND_BY_NODE_ID, nodeId);
+					throw ExceptionFactory.GetException(ExceptionType.CertificateNotFoundByNodeId, nodeId);
 				}
 				if (isSmev2)
 				{
@@ -200,7 +192,7 @@ namespace Space.Core
 						.Attribute("URI").Value.Replace("#", "");
 					if (string.IsNullOrEmpty(smev2CertRef))
 					{
-						throw ExceptionFactory.GetException(ExceptionType.SMEV2_CERTIFICATE_REFERENCE_NOT_FOUND);
+						throw ExceptionFactory.GetException(ExceptionType.Smev2CertificateReferenceNotFound);
 					}
 				}
 			}
@@ -236,7 +228,7 @@ namespace Space.Core
 				if (string.IsNullOrEmpty(certificateNodeContent))
 				{
 					// means signatureInfo appears to be empty
-					throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_NOT_FOUND);
+					throw ExceptionFactory.GetException(ExceptionType.CertificateNotFound);
 				}
 				else
 				{
@@ -246,7 +238,7 @@ namespace Space.Core
 			else
 			{
 				//no Signature block
-				throw ExceptionFactory.GetException(ExceptionType.SIGNATURE_NOT_FOUND);
+				throw ExceptionFactory.GetException(ExceptionType.SignatureNotFound);
 			}
 			return cert;
 		}

@@ -40,7 +40,7 @@ namespace Space.Core {
 				}.Contains(mode)
 			)
 			{
-				throw ExceptionFactory.GetException(ExceptionType.UNSUPPORTED_SIGNATURE_TYPE, mode);
+				throw ExceptionFactory.GetException(ExceptionType.UnsupportedSignatureType, mode);
 			}
 
 			XmlDocument xd = new XmlDocument();
@@ -50,7 +50,7 @@ namespace Space.Core {
 			}
 			catch (Exception e)
 			{
-				throw ExceptionFactory.GetException(ExceptionType.INPUT_XML_MISSING_OR_CORRUPTED, documentPath, e.Message);
+				throw ExceptionFactory.GetException(ExceptionType.InputXmlMissingOrCorrupted, documentPath, e.Message);
 			}
 
 			return VerifySignature(mode, xd, certificateFilePath, certificateThumb, nodeId);
@@ -81,7 +81,7 @@ namespace Space.Core {
 					}
 					catch (Exception e)
 					{
-						throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_IMPORT_EXCEPTION, certificateFilePath, e.Message);
+						throw ExceptionFactory.GetException(ExceptionType.CertificateImportException, certificateFilePath, e.Message);
 					}
 				}
 				else
@@ -115,12 +115,12 @@ namespace Space.Core {
 
 			if (!string.IsNullOrEmpty(nodeId) && !signatures.ContainsKey(nodeId))
 			{
-				throw ExceptionFactory.GetException(ExceptionType.REFERENCED_SIGNATURE_NOT_FOUND, nodeId);
+				throw ExceptionFactory.GetException(ExceptionType.ReferencedSignatureNotFound, nodeId);
 			}
 
 			if (signaturesInDoc.Count < 1)
 			{
-				throw ExceptionFactory.GetException(ExceptionType.NO_SIGNATURES_FOUND);
+				throw ExceptionFactory.GetException(ExceptionType.NoSignaturesFound);
 			}
 
 			switch (mode)
@@ -136,7 +136,7 @@ namespace Space.Core {
 					}
 					catch (Exception e)
 					{
-						throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_CONTENT_CORRUPTED, e.Message);
+						throw ExceptionFactory.GetException(ExceptionType.CertificateContentCorrupted, e.Message);
 					}
 					XmlNodeList referenceList = 
 						smev2SignedXml.KeyInfo
@@ -144,18 +144,18 @@ namespace Space.Core {
 						.GetElementsByTagName("Reference", Signer.WsSecurityWsseNamespaceUrl);
 					if (referenceList.Count == 0)
 					{
-						throw ExceptionFactory.GetException(ExceptionType.SMEV2_CERTIFICATE_REFERENCE_NOT_FOUND);
+						throw ExceptionFactory.GetException(ExceptionType.Smev2CertificateReferenceNotFound);
 					}
 					string binaryTokenReference = ((XmlElement) referenceList[0]).GetAttribute("URI");
 					if (string.IsNullOrEmpty(binaryTokenReference) || binaryTokenReference[0] != '#')
 					{
-						throw ExceptionFactory.GetException(ExceptionType.SMEV2_MALFORMED_CERTIFICATE_REFERENCE);
+						throw ExceptionFactory.GetException(ExceptionType.Smev2MalformedCertificateReference);
 					}
 
 					XmlElement binaryTokenElement = smev2SignedXml.GetIdElement(message, binaryTokenReference.Substring(1));
 					if (binaryTokenElement == null)
 					{
-						throw ExceptionFactory.GetException(ExceptionType.SMEV2_CERTIFICATE_NOT_FOUND, binaryTokenReference.Substring(1));
+						throw ExceptionFactory.GetException(ExceptionType.Smev2CertificateNotFound, binaryTokenReference.Substring(1));
 					}
 
 					try
@@ -164,17 +164,17 @@ namespace Space.Core {
 					}
 					catch (Exception e)
 					{
-						throw ExceptionFactory.GetException(ExceptionType.SMEV2_CERTIFICATE_CORRUPTED, e.Message);
+						throw ExceptionFactory.GetException(ExceptionType.Smev2CertificateCorrupted, e.Message);
 					}
 					break;
 				case SignatureType.Smev2ChargeEnveloped:
 					if (signaturesInDoc.Count > 1)
 					{
-						throw ExceptionFactory.GetException(ExceptionType.CHARGE_TOO_MANY_SIGNATURES_FOUND, signaturesInDoc.Count);
+						throw ExceptionFactory.GetException(ExceptionType.ChargeTooManySignaturesFound, signaturesInDoc.Count);
 					}
 					if (!ChargeStructureOk(message))
 					{
-						throw ExceptionFactory.GetException(ExceptionType.CHARGE_MALFORMED_DOCUMENT);
+						throw ExceptionFactory.GetException(ExceptionType.ChargeMalformedDocument);
 					}
 
 					try
@@ -183,7 +183,7 @@ namespace Space.Core {
 					}
 					catch (Exception e)
 					{
-						throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_CONTENT_CORRUPTED, e.Message);
+						throw ExceptionFactory.GetException(ExceptionType.CertificateContentCorrupted, e.Message);
 					}
 
 					break;
@@ -199,7 +199,7 @@ namespace Space.Core {
 					}
 					catch (Exception e)
 					{
-						throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_CONTENT_CORRUPTED, e.Message);
+						throw ExceptionFactory.GetException(ExceptionType.CertificateContentCorrupted, e.Message);
 					}
 					break;
 				case SignatureType.Unknown:
@@ -210,7 +210,7 @@ namespace Space.Core {
 				case SignatureType.Pkcs7String:
 				case SignatureType.Pkcs7StringAllCert:
 				case SignatureType.Pkcs7StringNoCert:
-					throw ExceptionFactory.GetException(ExceptionType.UNSUPPORTED_SIGNATURE_TYPE, mode);
+					throw ExceptionFactory.GetException(ExceptionType.UnsupportedSignatureType, mode);
 				default:
 					throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
 			}

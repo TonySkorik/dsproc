@@ -25,7 +25,7 @@ namespace Space.Core
 				return rsa.SignData(msg, CryptoConfig.MapNameToOID(shaType.ToString().ToUpper()));
 			}
 
-			throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_KEY_CONVERSION_FAILED);
+			throw ExceptionFactory.GetException(ExceptionType.CertificateKeyConversionFailed);
 		}
 		#endregion
 
