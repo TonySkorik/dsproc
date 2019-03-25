@@ -8,6 +8,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Xml;
 using System.Xml.Linq;
+using Space.Core.Configuration;
 using Space.Core.Exceptions;
 using Space.Core.Extensions;
 using Space.Core.Interfaces;
@@ -16,33 +17,26 @@ using exp = System.Linq.Expressions;
 namespace Space.Core {
 	public class SignatureVerificator : ISignatureVerificator
 	{
-		public enum CertificateLocation
-		{
-			Thumbprint = 1,
-			CerFile = 2,
-			Xml = 3
-		}
-
 		#region Standard signed xml
 
 		public bool VerifySignature(
-			Signer.SignatureType mode,
+			SignatureType mode,
 			string documentPath,
 			string certificateFilePath = null,
 			string certificateThumb = null,
 			string nodeId = null)
 		{
-			if (new List<Signer.SignatureType>{
-					Signer.SignatureType.Rsa2048Sha256String,
-					Signer.SignatureType.RsaSha256String,
+			if (new List<SignatureType>{
+					SignatureType.Rsa2048Sha256String,
+					SignatureType.RsaSha256String,
 
-					Signer.SignatureType.Pkcs7String,
-					Signer.SignatureType.Pkcs7StringAllCert,
-					Signer.SignatureType.Pkcs7StringNoCert,
+					SignatureType.Pkcs7String,
+					SignatureType.Pkcs7StringAllCert,
+					SignatureType.Pkcs7StringNoCert,
 
-					Signer.SignatureType.SigDetached,
-					Signer.SignatureType.SigDetachedAllCert,
-					Signer.SignatureType.SigDetachedNoCert
+					SignatureType.SigDetached,
+					SignatureType.SigDetachedAllCert,
+					SignatureType.SigDetachedNoCert
 				}.Contains(mode)
 			)
 			{
@@ -63,7 +57,7 @@ namespace Space.Core {
 		}
 
 		public bool VerifySignature(
-			Signer.SignatureType mode,
+			SignatureType mode,
 			XmlDocument message,
 			string certificateFilePath = null,
 			string certificateThumb = null,
@@ -131,7 +125,7 @@ namespace Space.Core {
 
 			switch (mode)
 			{
-				case Signer.SignatureType.Smev2BaseDetached:
+				case SignatureType.Smev2BaseDetached:
 					smev2SignedXml = new Signer.Smev2SignedXml(message);
 					try
 					{
@@ -147,7 +141,7 @@ namespace Space.Core {
 					XmlNodeList referenceList = 
 						smev2SignedXml.KeyInfo
 						.GetXml()
-						.GetElementsByTagName("Reference", Signer.WSSecurityWSSENamespaceUrl);
+						.GetElementsByTagName("Reference", Signer.WsSecurityWsseNamespaceUrl);
 					if (referenceList.Count == 0)
 					{
 						throw ExceptionFactory.GetException(ExceptionType.SMEV2_CERTIFICATE_REFERENCE_NOT_FOUND);
@@ -173,12 +167,12 @@ namespace Space.Core {
 						throw ExceptionFactory.GetException(ExceptionType.SMEV2_CERTIFICATE_CORRUPTED, e.Message);
 					}
 					break;
-				case Signer.SignatureType.Smev2ChargeEnveloped:
+				case SignatureType.Smev2ChargeEnveloped:
 					if (signaturesInDoc.Count > 1)
 					{
 						throw ExceptionFactory.GetException(ExceptionType.CHARGE_TOO_MANY_SIGNATURES_FOUND, signaturesInDoc.Count);
 					}
-					if (!_chargeStructureOk(message))
+					if (!ChargeStructureOk(message))
 					{
 						throw ExceptionFactory.GetException(ExceptionType.CHARGE_MALFORMED_DOCUMENT);
 					}
@@ -193,9 +187,9 @@ namespace Space.Core {
 					}
 
 					break;
-				case Signer.SignatureType.Smev2SidebysideDetached:
-				case Signer.SignatureType.Smev3BaseDetached:
-				case Signer.SignatureType.Smev3SidebysideDetached:
+				case SignatureType.Smev2SidebysideDetached:
+				case SignatureType.Smev3BaseDetached:
+				case SignatureType.Smev3SidebysideDetached:
 					try
 					{
 						signedXml.LoadXml(
@@ -208,29 +202,27 @@ namespace Space.Core {
 						throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_CONTENT_CORRUPTED, e.Message);
 					}
 					break;
-				case Signer.SignatureType.Unknown:
-				case Signer.SignatureType.SigDetached:
-				case Signer.SignatureType.Smev3Ack:
-				case Signer.SignatureType.Rsa2048Sha256String:
-				case Signer.SignatureType.RsaSha256String:
-				case Signer.SignatureType.Pkcs7String:
-				case Signer.SignatureType.Pkcs7StringAllCert:
-				case Signer.SignatureType.Pkcs7StringNoCert:
+				case SignatureType.Unknown:
+				case SignatureType.SigDetached:
+				case SignatureType.Smev3Ack:
+				case SignatureType.Rsa2048Sha256String:
+				case SignatureType.RsaSha256String:
+				case SignatureType.Pkcs7String:
+				case SignatureType.Pkcs7StringAllCert:
+				case SignatureType.Pkcs7StringNoCert:
 					throw ExceptionFactory.GetException(ExceptionType.UNSUPPORTED_SIGNATURE_TYPE, mode);
 				default:
 					throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
 			}
 
-			bool result = smev2SignedXml == null
-				? cert == null
-					? signedXml.CheckSignature()
-					: signedXml.CheckSignature(cert, true)
-				: smev2SignedXml.CheckSignature(cert.PublicKey.Key);
+			bool result = smev2SignedXml?.CheckSignature(cert.PublicKey.Key) ?? (cert == null
+				? signedXml.CheckSignature()
+				: signedXml.CheckSignature(cert, true));
 
 			return result;
 		}
 
-		private bool _chargeStructureOk(XmlDocument charge)
+		private bool ChargeStructureOk(XmlDocument charge)
 		{
 			XDocument x = charge.GetXDocument();
 			XNamespace ds = SignedXml.XmlDsigNamespaceUrl;
@@ -245,23 +237,24 @@ namespace Space.Core {
 		#endregion
 
 		#region [DS: PREFIXED DOCUMENT] Some heavy wizardry here
-		private static Type tSignedXml = typeof(SignedXml);
-		private static ResourceManager SecurityResources = new ResourceManager("system.security", tSignedXml.Assembly);
+
+		private static readonly Type SignedXmlType = typeof(SignedXml);
+		private static readonly ResourceManager SecurityResources = new ResourceManager("system.security", SignedXmlType.Assembly);
 
 		//these methods from the SignedXml class still work with prefixed Signature elements, but they are private
-		private static exp.ParameterExpression thisSignedXmlParam = exp.Expression.Parameter(tSignedXml);
-		private static Func<SignedXml, bool> CheckSignatureFormat
+		private static readonly exp.ParameterExpression ThisSignedXmlParam = exp.Expression.Parameter(SignedXmlType);
+		private static readonly Func<SignedXml, bool> CheckSignatureFormat
 			= exp.Expression.Lambda<Func<SignedXml, bool>>(
 				exp.Expression.Call(
-					thisSignedXmlParam,
-					tSignedXml.GetMethod("CheckSignatureFormat", BindingFlags.NonPublic | BindingFlags.Instance)),
-				thisSignedXmlParam).Compile();
-		private static Func<SignedXml, bool> CheckDigestedReferences
+					ThisSignedXmlParam,
+					SignedXmlType.GetMethod("CheckSignatureFormat", BindingFlags.NonPublic | BindingFlags.Instance)),
+				ThisSignedXmlParam).Compile();
+		private static readonly Func<SignedXml, bool> CheckDigestedReferences
 			= exp.Expression.Lambda<Func<SignedXml, bool>>(
 				exp.Expression.Call(
-					thisSignedXmlParam,
-					tSignedXml.GetMethod("CheckDigestedReferences", BindingFlags.NonPublic | BindingFlags.Instance)),
-				thisSignedXmlParam).Compile();
+					ThisSignedXmlParam,
+					SignedXmlType.GetMethod("CheckDigestedReferences", BindingFlags.NonPublic | BindingFlags.Instance)),
+				ThisSignedXmlParam).Compile();
 
 		public bool CheckSignatureDs(XmlDocument xmlDoc, RSACryptoServiceProvider key)
 		{

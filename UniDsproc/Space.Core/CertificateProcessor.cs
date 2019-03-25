@@ -120,7 +120,7 @@ namespace Space.Core
 			X509Store store = new X509Store("MY", storeLocation);
 			store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
 			X509Certificate2Collection collection =
-				(X509Certificate2Collection)store.Certificates;
+				store.Certificates;
 
 			X509Certificate2Collection scollection =
 				X509Certificate2UI.SelectFromCollection(
@@ -146,15 +146,15 @@ namespace Space.Core
 
 		public X509Certificate2 ReadCertificateFromXmlDocument(XDocument signedXml, string nodeId)
 		{
-			X509Certificate2 cert = null;
-			XElement signatureElement = null;
+			X509Certificate2 cert;
+			XElement signatureElement;
 			XNamespace ds = SignedXml.XmlDsigNamespaceUrl;
 
 			bool isSmev2 = MessageIsSmev2Base(signedXml);
 
 			string smev2CertRef = string.Empty;
-			XNamespace wsu = Signer.WSSecurityWSUNamespaceUrl;
-			XNamespace wsse = Signer.WSSecurityWSSENamespaceUrl;
+			XNamespace wsu = Signer.WsSecurityWsuNamespaceUrl;
+			XNamespace wsse = Signer.WsSecurityWsseNamespaceUrl;
 			XNamespace soapenv = "http://schemas.xmlsoap.org/soap/envelope/";
 			if (isSmev2 && string.IsNullOrEmpty(nodeId))
 			{
@@ -207,19 +207,19 @@ namespace Space.Core
 
 			if (signatureElement != null)
 			{
-				string certificateNodeContent = string.Empty;
+				string certificateNodeContent;
 				if (!isSmev2)
 				{
 					certificateNodeContent = (
 						from node in signatureElement.Descendants()
 						where node.Name == ds + "X509Certificate"
-						select node.Value.ToString()
+						select node.Value
 					).DefaultIfEmpty(
 						//means Signature may be not named with an xmlns:ds
 						(
 							from node in signatureElement.Descendants()
 							where node.Name == "X509Certificate"
-							select node.Value.ToString()
+							select node.Value
 						).DefaultIfEmpty("").First()
 					).First();
 				}
@@ -263,11 +263,12 @@ namespace Space.Core
 
 		public bool MessageIsSmev2Base(XDocument document)
 		{
-			XNamespace wsse = Signer.WSSecurityWSSENamespaceUrl;
+			XNamespace wsse = Signer.WsSecurityWsseNamespaceUrl;
 			XNamespace env = "http://schemas.xmlsoap.org/soap/envelope/";
 			try
 			{
-				return document.Root?.Descendants(env + "Header")?.First().Descendants(wsse + "Security")?.Any() ?? false;
+				return document.Root?.Descendants(env + "Header").First().Descendants(wsse + "Security").Any()
+					?? false;
 			}
 			catch
 			{

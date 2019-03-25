@@ -1,19 +1,20 @@
 ﻿using System.Security.Cryptography;
 using System.Xml;
+using Space.Core.Configuration;
 
 namespace Space.Core.Interfaces
 {
 	public interface ISignatureVerificator
 	{
 		bool VerifySignature(
-			Signer.SignatureType mode,
+			SignatureType mode,
 			string documentPath,
 			string certificateFilePath = null,
 			string certificateThumb = null,
 			string nodeId = null);
 
 		bool VerifySignature(
-			Signer.SignatureType mode,
+			SignatureType mode,
 			XmlDocument message,
 			string certificateFilePath = null,
 			string certificateThumb = null,
