@@ -23,5 +23,13 @@ namespace Space.Core.Interfaces
 			bool assignDs = false,
 			bool ignoreExpiredCert = false);
 
+		string Sign(
+			SignatureType mode,
+			XmlDocument signThis,
+			string certificateThumbprint,
+			string nodeToSign,
+			bool assignDs = false,
+			bool ignoreExpiredCert = false);
+
 	}
 }

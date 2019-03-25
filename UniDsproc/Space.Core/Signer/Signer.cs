@@ -33,6 +33,17 @@ namespace Space.Core
 
 		public string Sign(
 			SignatureType mode,
+			XmlDocument signThis,
+			string certificateThumbprint,
+			string nodeToSign,
+			bool assignDs = false,
+			bool ignoreExpiredCert = false)
+		{
+			return Sign(mode, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert);
+		}
+
+		public string Sign(
+			SignatureType mode,
 			string certificateThumbprint,
 			string signThisPath,
 			bool assignDs,
