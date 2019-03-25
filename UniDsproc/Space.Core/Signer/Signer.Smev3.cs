@@ -31,7 +31,7 @@ namespace Space.Core
 
 		#region [SIGN SMEV 3]
 
-		private XmlDocument SignXmlFileSmev3(
+		private XmlDocument SignSmev3(
 			XmlDocument doc,
 			X509Certificate2 certificate,
 			string signingNodeId,

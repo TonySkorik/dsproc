@@ -89,7 +89,7 @@ namespace Space.Core
 		#endregion
 
 		#region [SIGN SMEV 2]
-		private XmlDocument SignXmlFileSmev2(XmlDocument doc, X509Certificate2 certificate)
+		private XmlDocument SignSmev2(XmlDocument doc, X509Certificate2 certificate)
 		{
 			XmlNode root = doc.SelectSingleNode("/*");
 			string rootPrefix = root?.Prefix;

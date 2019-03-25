@@ -16,7 +16,7 @@ namespace Space.Core
 	/// <seealso cref="Space.Core.Interfaces.ISigner" />
 	public partial class Signer
 	{
-		private XmlDocument SignXmlFileEnveloped(XmlDocument doc, X509Certificate2 certificate, string nodeId = null)
+		private XmlDocument SignEnveloped(XmlDocument doc, X509Certificate2 certificate, string nodeId = null)
 		{
 			//----------------------------------------------------------------------------------------------CREATE SIGNED XML
 			SignedXml signedXml = new SignedXml(doc)
