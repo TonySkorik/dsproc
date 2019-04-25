@@ -32,7 +32,7 @@ namespace Space.CertificateSerialization
 					}
 					catch (Exception e)
 					{
-						throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_FILE_CORRUPTED, e.Message);
+						throw ExceptionFactory.GetException(ExceptionType.CertificateFileCorrupted, e.Message);
 					}
 				case CertificateProcessor.CertificateSource.Cer:
 					try
@@ -44,7 +44,7 @@ namespace Space.CertificateSerialization
 							collection.Import(filePath);
 							if (collection.Count < 1)
 							{
-								throw ExceptionFactory.GetException(ExceptionType.NO_CERTIFICATES_FOUND, filePath);
+								throw ExceptionFactory.GetException(ExceptionType.NoCertificatesFound, filePath);
 							}
 							if (collection.Count == 1)
 							{
@@ -64,10 +64,10 @@ namespace Space.CertificateSerialization
 					}
 					catch (Exception e)
 					{
-						throw ExceptionFactory.GetException(ExceptionType.CERTIFICATE_FILE_CORRUPTED, e.Message);
+						throw ExceptionFactory.GetException(ExceptionType.CertificateFileCorrupted, e.Message);
 					}
 				default:
-					throw ExceptionFactory.GetException(ExceptionType.UNKNOWN_CERTIFICATE_SOURCE);
+					throw ExceptionFactory.GetException(ExceptionType.UnknownCertificateSource);
 			}
 		}
 	}

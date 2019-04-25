@@ -7,37 +7,43 @@ namespace Space.CertificateSerialization.DataModel
 	[JsonObject("Certificate")]
 	public sealed class X509CertificateSerializable
 	{
+		#region Props
+
 		[JsonProperty("Subject")]
-		public string SerializedSubject;
+		public string SerializedSubject { get; }
 
 		[JsonProperty("Issuer")]
-		public string SerializedIssuer;
+		public string SerializedIssuer { get; }
 
 		[JsonProperty("NotBefore")]
-		public string SerializedNotBefore;
+		public string SerializedNotBefore { get; }
 
 		[JsonProperty("NotAfter")]
-		public string SerializedNotAfter;
+		public string SerializedNotAfter { get; }
 
 		[JsonProperty("SerialNumber")]
-		public string SerializedSerial;
+		public string SerializedSerial { get; }
 
 		[JsonProperty("Thumbprint")]
-		public string SerializedThumbprint;
+		public string SerializedThumbprint { get; }
 
 		[JsonProperty("FriendlyName")]
-		public string SerializedFriendlyName;
+		public string SerializedFriendlyName { get; }
 
 		[JsonProperty("Version")]
-		public int Version;
+		public int Version { get; }
 
 		[JsonProperty("Certificates")]
-		public List<X509CertificateSerializable> Certificates;
+		public List<X509CertificateSerializable> Certificates { get; }
+
+		#endregion
+
+		#region Ctor
 
 		public X509CertificateSerializable(X509Certificate2 cer)
 		{
-			SerializedSubject = cer.Subject;
-			SerializedIssuer = cer.Issuer;
+			SerializedSubject = cer.Subject?.Replace("\"\"", "\"").Replace("\"", "\'");
+			SerializedIssuer = cer.Issuer?.Replace("\"\"", "\"").Replace("\"", "\'");
 			SerializedNotBefore = cer.NotBefore.ToString("s").Replace("T", " ");
 			SerializedNotAfter = cer.NotAfter.ToString("s").Replace("T", " ");
 			SerializedSerial = cer.SerialNumber;
@@ -56,6 +62,8 @@ namespace Space.CertificateSerialization.DataModel
 			{
 				Certificates.Add(new X509CertificateSerializable(cert));
 			}
-		}
+		} 
+
+		#endregion
 	}
 }

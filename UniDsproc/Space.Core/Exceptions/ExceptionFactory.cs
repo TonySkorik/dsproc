@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Space.Core.Exceptions
 {
-	internal enum ExceptionType
+	public enum ExceptionType
 	{
 		// signing
 		PrivateKeyMissing,
@@ -39,7 +39,7 @@ namespace Space.Core.Exceptions
 		ChargeMalformedDocument,
 	}
 
-	internal static class ExceptionFactory
+	public static class ExceptionFactory
 	{
 		private static readonly Dictionary<ExceptionType, string> Messages = new Dictionary<ExceptionType, string>()
 		{
@@ -120,7 +120,7 @@ namespace Space.Core.Exceptions
 			}
 		};
 
-		internal static Exception GetException(ExceptionType type, params object[] additionalInfo)
+		public static Exception GetException(ExceptionType type, params object[] additionalInfo)
 		{
 			return new Exception($"{type.ToString().ToUpper()}] {string.Format(Messages[type], additionalInfo)}");
 		}
