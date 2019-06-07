@@ -106,7 +106,7 @@ namespace UniDsproc
 				$"<rsa_sha256.string>\n"
 				+ $"\n" +
 
-				$"  gost_flavor [*:sign]\n" +
+				$"  gost_flavor\n" +
 				$"		Determines what gost type (flavor) should be used\n" +
 				$"		Possible values : " +
 				$"{ntt}<None>,{ntt}" +
