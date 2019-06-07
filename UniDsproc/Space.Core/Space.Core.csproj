@@ -31,11 +31,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CryptoPro.Sharpei.Base">
-      <HintPath>..\UniDsproc\CryptoPRO\CryptoPro.Sharpei.Base.dll</HintPath>
+    <Reference Include="CryptoPro.Sharpei.Base, Version=1.4.0.10, Culture=neutral, PublicKeyToken=473b8c5086e795f5, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\CryptoPro.Sharpei.Base.dll</HintPath>
     </Reference>
-    <Reference Include="CryptoPro.Sharpei.Xml">
-      <HintPath>..\UniDsproc\CryptoPRO\CryptoPro.Sharpei.Xml.dll</HintPath>
+    <Reference Include="CryptoPro.Sharpei.Xml, Version=1.4.0.10, Culture=neutral, PublicKeyToken=473b8c5086e795f5, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>lib\CryptoPro.Sharpei.Xml.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -53,6 +55,8 @@
     <Compile Include="Exceptions\ExceptionExtensions.cs" />
     <Compile Include="Exceptions\ExceptionFactory.cs" />
     <Compile Include="Extensions\XdocExtensions.cs" />
+    <Compile Include="Infrastructure\GostAlgorithmSelector.cs" />
+    <Compile Include="Infrastructure\GostFlavor.cs" />
     <Compile Include="Interfaces\ICertificateProcessor.cs" />
     <Compile Include="Interfaces\ISignatureVerificator.cs" />
     <Compile Include="Interfaces\ISigner.cs" />

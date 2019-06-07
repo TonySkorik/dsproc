@@ -1,5 +1,8 @@
-﻿namespace Space.Core.Configuration
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Space.Core.Configuration
 {
+	[SuppressMessage("ReSharper", "InconsistentNaming")]
 	public enum SignatureType
 	{
 		Unknown,
@@ -11,7 +14,7 @@
 		Smev3BaseDetached,
 		Smev3SidebysideDetached,
 		Smev3Ack,
-
+		
 		SigDetached,
 		SigDetachedAllCert,
 		SigDetachedNoCert,

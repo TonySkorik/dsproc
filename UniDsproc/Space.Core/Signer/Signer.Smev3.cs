@@ -4,6 +4,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Xml;
 using CryptoPro.Sharpei.Xml;
+using Space.Core.Infrastructure;
 
 namespace Space.Core
 {
@@ -32,6 +33,7 @@ namespace Space.Core
 		#region [SIGN SMEV 3]
 
 		private XmlDocument SignSmev3(
+			GostFlavor gostFlavor,
 			XmlDocument doc,
 			X509Certificate2 certificate,
 			string signingNodeId,
@@ -54,8 +56,9 @@ namespace Space.Core
 			{
 				Uri = "#" + signingNodeId,
 #pragma warning disable 612
-				//Расчет хеш-суммы ГОСТ Р 34.11-94 http://www.w3.org/2001/04/xmldsig-more#gostr3411
-				DigestMethod = CPSignedXml.XmlDsigGost3411UrlObsolete
+				//Расчет хеш-суммы ГОСТ Р 34.11-94 / 34.11.2012 http://www.w3.org/2001/04/xmldsig-more#gostr3411
+				DigestMethod = GostAlgorithmSelector.GetHashAlgorithmDescriptor(gostFlavor)
+					//CPSignedXml.XmlDsigGost3411UrlObsolete - old one
 #pragma warning disable 612
 			};
 
@@ -67,7 +70,8 @@ namespace Space.Core
 
 			if (isAck)
 			{
-				XmlDsigEnvelopedSignatureTransform enveloped = new XmlDsigEnvelopedSignatureTransform();
+				XmlDsigEnvelopedSignatureTransform enveloped 
+					= new XmlDsigEnvelopedSignatureTransform();
 				reference.AddTransform(enveloped);
 			}
 
@@ -76,11 +80,12 @@ namespace Space.Core
 			//=========================================================================================CREATE SIGNATURE
 			sxml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
 
-			//Формирование подписи ГОСТ Р 34.10-2001 http://www.w3.org/2001/04/xmldsig-more#gostr34102001-gostr3411 
-			sxml.SignedInfo.SignatureMethod = CPSignedXml.XmlDsigGost3410UrlObsolete;
+			//Формирование подписи ГОСТ Р 34.10-2001 / 34.10-2012 http://www.w3.org/2001/04/xmldsig-more#gostr34102001-gostr3411 
+			sxml.SignedInfo.SignatureMethod = GostAlgorithmSelector.GetSignatureAlgorithmDescriptor(gostFlavor);
+				//CPSignedXml.XmlDsigGost3410UrlObsolete; - old one
 			KeyInfo keyInfo = new KeyInfo();
-			KeyInfoX509Data X509KeyInfo = new KeyInfoX509Data(certificate);
-			keyInfo.AddClause(X509KeyInfo);
+			KeyInfoX509Data x509KeyInfo = new KeyInfoX509Data(certificate);
+			keyInfo.AddClause(x509KeyInfo);
 			sxml.KeyInfo = keyInfo;
 
 			sxml.ComputeSignature();
@@ -97,7 +102,8 @@ namespace Space.Core
 				document.LoadXml(xmlSignedInfo.OuterXml);
 
 				//create new canonicalization object based on original one
-				Transform canonicalizationMethodObject = sxml.SignedInfo.CanonicalizationMethodObject;
+				Transform canonicalizationMethodObject 
+					= sxml.SignedInfo.CanonicalizationMethodObject;
 				canonicalizationMethodObject.LoadInput(document);
 
 				//get new hshing object based on original one
@@ -128,6 +134,7 @@ namespace Space.Core
 			//=============================================================================APPEND SIGNATURE TO DOCUMENT
 			if (!isSidebyside)
 			{
+				//TODO: is using SMEV types 1.2 edit this code!
 				doc.GetElementsByTagName(
 					"CallerInformationSystemSignature",
 					"urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1")[0].InnerXml = "";

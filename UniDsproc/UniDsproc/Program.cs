@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using Space.CertificateSerialization;
 using Space.Core;
+using Space.Core.Configuration;
 using Space.Core.Interfaces;
 using UniDsproc.DataModel;
 
@@ -102,7 +103,17 @@ namespace UniDsproc
 				$"<pkcs7.string.allcert>,{ntt}" +
 				
 				$"{ntt}<rsa2048_sha256.string>,{ntt}" +
-				$"<rsa_sha256.string>\n\n" +
+				$"<rsa_sha256.string>\n"
+				+ $"\n" +
+
+				$"  gost_flavor [*:sign]\n" +
+				$"		Determines what gost type (flavor) should be used\n" +
+				$"		Possible values : " +
+				$"{ntt}<None>,{ntt}" +
+				$"<Gost_Obsolete>,{ntt}" +
+				$"<Gost2012_256>,{ntt}" +
+				$"<Gost2012_512>\n"
+				+$"\n" +
 
 				$"  node_id\n" +
 				$"		String value of <Id> attribute of the node to be signed\n" +
@@ -142,6 +153,7 @@ namespace UniDsproc
 			{
 				string signedData = signer.Sign(
 					args.SigType,
+					args.GostFlavor,
 					args.CertThumbprint,
 					args.InputFile,
 					args.AssignDsInSignature,
@@ -164,10 +176,10 @@ namespace UniDsproc
 				bool isValid = verificator.VerifySignature(
 					args.SigType,
 					args.InputFile,
-					args.CertLocation == SignatureVerificator.CertificateLocation.CerFile
+					args.CertLocation == CertificateLocation.CerFile
 						? args.CertFilePath
 						: null,
-					args.CertLocation == SignatureVerificator.CertificateLocation.Thumbprint
+					args.CertLocation == CertificateLocation.Thumbprint
 						? args.CertThumbprint
 						: null,
 					args.NodeId

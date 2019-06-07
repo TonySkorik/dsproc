@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using CryptoPro.Sharpei.Xml;
+using Space.Core.Infrastructure;
 
 namespace Space.Core
 {
@@ -16,7 +17,7 @@ namespace Space.Core
 	/// <seealso cref="Space.Core.Interfaces.ISigner" />
 	public partial class Signer
 	{
-		private XmlDocument SignEnveloped(XmlDocument doc, X509Certificate2 certificate, string nodeId = null)
+		private XmlDocument SignEnveloped(GostFlavor gostFlavor, XmlDocument doc, X509Certificate2 certificate, string nodeId = null)
 		{
 			//----------------------------------------------------------------------------------------------CREATE SIGNED XML
 			SignedXml signedXml = new SignedXml(doc)
@@ -28,7 +29,8 @@ namespace Space.Core
 			{
 				Uri = nodeId,
 #pragma warning disable 612
-				DigestMethod = CPSignedXml.XmlDsigGost3411UrlObsolete
+				DigestMethod = GostAlgorithmSelector.GetHashAlgorithmDescriptor(gostFlavor)
+					//CPSignedXml.XmlDsigGost3411UrlObsolete - old
 #pragma warning disable 612
 			};
 
@@ -41,11 +43,12 @@ namespace Space.Core
 			signedXml.AddReference(reference);
 			//----------------------------------------------------------------------------------------------SIGNATURE SETUP
 			signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
-			signedXml.SignedInfo.SignatureMethod = CPSignedXml.XmlDsigGost3410UrlObsolete;
+			signedXml.SignedInfo.SignatureMethod = GostAlgorithmSelector.GetSignatureAlgorithmDescriptor(gostFlavor);
+				//CPSignedXml.XmlDsigGost3410UrlObsolete; - old
 			//----------------------------------------------------------------------------------------------KEYINFO
 			KeyInfo keyInfo = new KeyInfo();
-			KeyInfoX509Data X509KeyInfo = new KeyInfoX509Data(certificate);
-			keyInfo.AddClause(X509KeyInfo);
+			KeyInfoX509Data x509KeyInfo = new KeyInfoX509Data(certificate);
+			keyInfo.AddClause(x509KeyInfo);
 			signedXml.KeyInfo = keyInfo;
 			//----------------------------------------------------------------------------------------------SIGN DOCUMENT
 			signedXml.ComputeSignature();

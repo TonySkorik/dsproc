@@ -3,6 +3,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Xml;
 using CryptoPro.Sharpei.Xml;
+using Space.Core.Infrastructure;
 
 namespace Space.Core
 {
@@ -89,7 +90,7 @@ namespace Space.Core
 		#endregion
 
 		#region [SIGN SMEV 2]
-		private XmlDocument SignSmev2(XmlDocument doc, X509Certificate2 certificate)
+		private XmlDocument SignSmev2(GostFlavor gostFlavor, XmlDocument doc, X509Certificate2 certificate)
 		{
 			XmlNode root = doc.SelectSingleNode("/*");
 			string rootPrefix = root?.Prefix;
@@ -108,7 +109,8 @@ namespace Space.Core
 			Reference reference = new Reference
 			{
 #pragma warning disable 612
-				DigestMethod = CPSignedXml.XmlDsigGost3411UrlObsolete,
+				DigestMethod = GostAlgorithmSelector.GetHashAlgorithmDescriptor(gostFlavor),
+					//CPSignedXml.XmlDsigGost3411UrlObsolete,
 #pragma warning restore 612
 				Uri = "#" + referenceUri
 			};
@@ -120,12 +122,13 @@ namespace Space.Core
 			//----------------------------------------------------------------------------------------------SIGNATURE SETUP
 			signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
 #pragma warning disable 612
-			signedXml.SignedInfo.SignatureMethod = CPSignedXml.XmlDsigGost3410UrlObsolete;
+			signedXml.SignedInfo.SignatureMethod = GostAlgorithmSelector.GetSignatureAlgorithmDescriptor(gostFlavor);
+				//CPSignedXml.XmlDsigGost3410UrlObsolete;
 #pragma warning disable 612
 			//----------------------------------------------------------------------------------------------KEYINFO
 			KeyInfo keyInfo = new KeyInfo();
-			KeyInfoX509Data X509KeyInfo = new KeyInfoX509Data(certificate);
-			keyInfo.AddClause(X509KeyInfo);
+			KeyInfoX509Data x509KeyInfo = new KeyInfoX509Data(certificate);
+			keyInfo.AddClause(x509KeyInfo);
 			signedXml.KeyInfo = keyInfo;
 			//----------------------------------------------------------------------------------------------SIGN DOCUMENT
 			signedXml.ComputeSignature();

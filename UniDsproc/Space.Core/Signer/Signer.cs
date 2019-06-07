@@ -12,6 +12,7 @@ using CryptoPro.Sharpei.Xml;
 using Space.Core.Configuration;
 using Space.Core.Exceptions;
 using Space.Core.Extensions;
+using Space.Core.Infrastructure;
 using Space.Core.Interfaces;
 
 namespace Space.Core
@@ -22,28 +23,31 @@ namespace Space.Core
 
 		public string Sign(
 			SignatureType mode,
+			GostFlavor gostFlavor,
 			XDocument signThis,
 			string certificateThumbprint,
 			string nodeToSign,
 			bool assignDs = false,
 			bool ignoreExpiredCert = false)
 		{
-			return Sign(mode, certificateThumbprint, signThis.GetXmlDocument(), assignDs, nodeToSign, ignoreExpiredCert);
+			return Sign(mode, gostFlavor, certificateThumbprint, signThis.GetXmlDocument(), assignDs, nodeToSign, ignoreExpiredCert);
 		}
 
 		public string Sign(
 			SignatureType mode,
+			GostFlavor gostFlavor,
 			XmlDocument signThis,
 			string certificateThumbprint,
 			string nodeToSign,
 			bool assignDs = false,
 			bool ignoreExpiredCert = false)
 		{
-			return Sign(mode, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert);
+			return Sign(mode, gostFlavor, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert);
 		}
 
 		public string Sign(
 			SignatureType mode,
+			GostFlavor gostFlavor,
 			string certificateThumbprint,
 			string signThisPath,
 			bool assignDs,
@@ -84,7 +88,7 @@ namespace Space.Core
 				signThis = new XmlDocument();
 				signThis.Load(signThisPath);
 			}
-			return Sign(mode, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert, stringToSign, bytesToSign);
+			return Sign(mode, gostFlavor, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert, stringToSign, bytesToSign);
 		}
 
 		#endregion
@@ -93,6 +97,7 @@ namespace Space.Core
 
 		private string Sign(
 			SignatureType mode,
+			GostFlavor gostFlavor,
 			string certificateThumbprint,
 			XmlDocument signThis,
 			bool assignDs,
@@ -114,11 +119,12 @@ namespace Space.Core
 				throw ExceptionFactory.GetException(ExceptionType.CertExpired, certificate.Thumbprint);
 			}
 
-			return Sign(mode, certificate, signThis, assignDs, nodeToSign, stringToSign, bytesToSign);
+			return Sign(mode, gostFlavor, certificate, signThis, assignDs, nodeToSign, stringToSign, bytesToSign);
 		}
 
 		private string Sign(
 			SignatureType mode,
+			GostFlavor gostFlavor,
 			X509Certificate2 cert,
 			XmlDocument signThis,
 			bool assignDs,
@@ -138,35 +144,35 @@ namespace Space.Core
 						{
 							throw ExceptionFactory.GetException(ExceptionType.NodeIdRequired);
 						}
-						signedXmlDoc = SignXmlNode(signThis, cert, nodeToSign);
+						signedXmlDoc = SignXmlNode(gostFlavor, signThis, cert, nodeToSign);
 						break;
 					case SignatureType.Smev2ChargeEnveloped:
-						signedXmlDoc = SignEnveloped(signThis, cert);
+						signedXmlDoc = SignEnveloped(gostFlavor,signThis, cert);
 						break;
 					case SignatureType.Smev2BaseDetached:
-						signedXmlDoc = SignSmev2(signThis, cert);
+						signedXmlDoc = SignSmev2(gostFlavor, signThis, cert);
 						break;
-
+					
 					case SignatureType.Smev3BaseDetached:
 						if (string.IsNullOrEmpty(nodeToSign))
 						{
 							throw ExceptionFactory.GetException(ExceptionType.NodeIdRequired);
 						}
-						signedXmlDoc = SignSmev3(signThis, cert, nodeToSign, assignDs);
+						signedXmlDoc = SignSmev3(gostFlavor, signThis, cert, nodeToSign, assignDs);
 						break;
 					case SignatureType.Smev3SidebysideDetached:
 						if (string.IsNullOrEmpty(nodeToSign))
 						{
 							throw ExceptionFactory.GetException(ExceptionType.NodeIdRequired);
 						}
-						signedXmlDoc = SignSmev3(signThis, cert, nodeToSign, assignDs, isAck: false, isSidebyside: true);
+						signedXmlDoc = SignSmev3(gostFlavor, signThis, cert, nodeToSign, assignDs, isAck: false, isSidebyside: true);
 						break;
 					case SignatureType.Smev3Ack:
 						if (string.IsNullOrEmpty(nodeToSign))
 						{
 							throw ExceptionFactory.GetException(ExceptionType.NodeIdRequired);
 						}
-						signedXmlDoc = SignSmev3(signThis, cert, nodeToSign, assignDs, isAck: true);
+						signedXmlDoc = SignSmev3(gostFlavor, signThis, cert, nodeToSign, assignDs, isAck: true);
 						break;
 
 					case SignatureType.SigDetached:

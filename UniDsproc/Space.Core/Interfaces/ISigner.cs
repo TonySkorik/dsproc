@@ -2,6 +2,7 @@
 using System.Xml;
 using System.Xml.Linq;
 using Space.Core.Configuration;
+using Space.Core.Infrastructure;
 
 namespace Space.Core.Interfaces
 {
@@ -9,6 +10,7 @@ namespace Space.Core.Interfaces
 	{
 		string Sign(
 			SignatureType mode,
+			GostFlavor gostFlavor,
 			string certificateThumbprint,
 			string signThisPath,
 			bool assignDs,
@@ -17,6 +19,7 @@ namespace Space.Core.Interfaces
 
 		string Sign(
 			SignatureType mode,
+			GostFlavor gostFlavor,
 			XDocument signThis,
 			string certificateThumbprint,
 			string nodeToSign,
@@ -25,6 +28,7 @@ namespace Space.Core.Interfaces
 
 		string Sign(
 			SignatureType mode,
+			GostFlavor gostFlavor,
 			XmlDocument signThis,
 			string certificateThumbprint,
 			string nodeToSign,
