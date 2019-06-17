@@ -22,6 +22,8 @@ echo rsa2048_sha256.string
 pause
 echo ------------------------
 
+
+
 echo sig_detached
 	%dsproc% sign -ignore_expired=true -signature_type=sig_detached -thumbprint=%thumb% smev2.base.xml signed.sig
 pause
@@ -34,6 +36,8 @@ echo sig_detached.allcert
 	%dsproc% sign -ignore_expired=true -signature_type=sig_detached.allcert -thumbprint=%thumb% smev2.base.xml signed.sig
 pause
 echo ------------------------
+
+
 
 echo pkcs7.string
 	%dsproc% sign -ignore_expired=true -signature_type=pkcs7.string -thumbprint=%thumb% input_string.txt signed.txt
@@ -48,31 +52,61 @@ echo pkcs7.string.allcert
 pause
 echo ------------------------
 
+
+
 echo smev2_sidebyside.detached
 	%dsproc% sign -ignore_expired=true -signature_type=smev2_sidebyside.detached -thumbprint=%thumb% -node_id="SIGNED_BY_SERVER" smev2.sidebyside.xml smev2.sidebyside.signed.xml
+pause
+echo ------------------------
+echo smev2_sidebyside.detached gost_2012_256
+	%dsproc% sign -ignore_expired=true -signature_type=smev2_sidebyside.detached -gost_flavor=Gost2012_256 -thumbprint=%thumb% -node_id="SIGNED_BY_SERVER" smev2.sidebyside.xml smev2.sidebyside.gost2012.256.signed.xml
 pause
 echo ------------------------
 echo smev2_charge.enveloped
 	%dsproc% sign -ignore_expired=true -signature_type=smev2_charge.enveloped -thumbprint=%thumb% smev2.charge.xml smev2.charge.signed.xml
 pause
 echo ------------------------
+echo smev2_charge.enveloped gost_2012_256
+	%dsproc% sign -ignore_expired=true -signature_type=smev2_charge.enveloped -gost_flavor=Gost2012_256 -thumbprint=%thumb% smev2.charge.xml smev2.charge.gost2012.256.signed.xml
+pause
+echo ------------------------
 echo smev2_base.detached
 	%dsproc% sign -ignore_expired=true -signature_type=smev2_base.detached -thumbprint=%thumb% smev2.base.xml smev2.base.signed.xml
 pause
 echo ------------------------
+echo smev2_base.detached gost_2012_256
+	%dsproc% sign -ignore_expired=true -signature_type=smev2_base.detached -gost_flavor=Gost2012_256 -thumbprint=%thumb% smev2.base.xml smev2.base.gost2012.256.signed.xml
+pause
+echo ------------------------
+
+
 
 echo smev3_base.detached
 	%dsproc% sign -ignore_expired=true -signature_type=smev3_base.detached -thumbprint=%thumb% -node_id="SIGNED_BY_SERVER" smev3.base.xml smev3.base.signed.xml
+pause
+echo ------------------------
+echo smev3_base.detached gost_2012_256
+	%dsproc% sign -ignore_expired=true -signature_type=smev3_base.detached -gost_flavor=Gost2012_256 -thumbprint=%thumb% -node_id="SIGNED_BY_SERVER" smev3.base.xml smev3.base.gost2012.256.signed.xml
 pause
 echo ------------------------
 echo smev3_sidebyside.detached
 	%dsproc% sign -ignore_expired=true -signature_type=smev3_sidebyside.detached -thumbprint=%thumb% -node_id="SIGNED_BY_SERVER" smev3.sidebyside.xml smev3.sidebyside.signed.xml
 pause
 echo ------------------------
+echo smev3_sidebyside.detached gost_2012_256
+	%dsproc% sign -ignore_expired=true -signature_type=smev3_sidebyside.detached -gost_flavor=Gost2012_256 -thumbprint=%thumb% -node_id="SIGNED_BY_SERVER" smev3.sidebyside.xml smev3.sidebyside.gost2012.256.signed.xml
+pause
+echo ------------------------
 echo smev3_ack
 	%dsproc% sign -ignore_expired=true -signature_type=smev3_ack -thumbprint=%thumb% -node_id="SIGNED_BY_SERVER" smev3.ack.xml smev3.ack.signed.xml
 pause
 echo ------------------------
+echo smev3_ack gost_2012_256
+	%dsproc% sign -ignore_expired=true -signature_type=smev3_ack -gost_flavor=Gost2012_256 -thumbprint=%thumb% -node_id="SIGNED_BY_SERVER" smev3.ack.xml smev3.ack.gost2012.256.signed.xml
+pause
+echo ------------------------
+
+
 ::==================================================================EXTRACTION
 echo Testing certificate extraction
 pause
