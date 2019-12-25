@@ -27,7 +27,9 @@ namespace Space.Core
 					ret = GetNodeWithAttributeValue(xn.ChildNodes, attributeValue);
 					if (ret != null) break;
 				}
-				if (xn.Attributes != null && xn.Attributes.Count != 0)
+
+				if (xn.Attributes != null
+					&& xn.Attributes.Count != 0)
 				{
 					foreach (XmlAttribute xa in xn.Attributes)
 					{
@@ -39,10 +41,15 @@ namespace Space.Core
 					}
 				}
 			}
+
 			return ret;
 		}
 
-		private XmlDocument SignXmlNode(GostFlavor gostFlavor, XmlDocument doc, X509Certificate2 certificate, string nodeId)
+		private XmlDocument SignXmlNode(
+			GostFlavor gostFlavor,
+			XmlDocument doc,
+			X509Certificate2 certificate,
+			string nodeId)
 		{
 			//----------------------------------------------------------------------------------------------CREATE SIGNED XML
 			SignedXml signedXml = new SignedXml(doc)
@@ -55,7 +62,7 @@ namespace Space.Core
 				Uri = "#" + nodeId,
 #pragma warning disable 612
 				DigestMethod = GostAlgorithmSelector.GetHashAlgorithmDescriptor(gostFlavor)
-					//CPSignedXml.XmlDsigGost3411UrlObsolete - old
+				//CPSignedXml.XmlDsigGost3411UrlObsolete - old
 #pragma warning disable 612
 			};
 
@@ -67,7 +74,7 @@ namespace Space.Core
 			//----------------------------------------------------------------------------------------------SIGNATURE SETUP
 			signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
 			signedXml.SignedInfo.SignatureMethod = GostAlgorithmSelector.GetSignatureAlgorithmDescriptor(gostFlavor);
-				//CPSignedXml.XmlDsigGost3410UrlObsolete;
+			//CPSignedXml.XmlDsigGost3410UrlObsolete;
 			//----------------------------------------------------------------------------------------------KEYINFO
 			KeyInfo keyInfo = new KeyInfo();
 			KeyInfoX509Data x509KeyInfo = new KeyInfoX509Data(certificate);

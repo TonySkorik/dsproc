@@ -62,7 +62,7 @@ namespace Space.CertificateSerialization.DataModel
 			{
 				Certificates.Add(new X509CertificateSerializable(cert));
 			}
-		} 
+		}
 
 		#endregion
 	}

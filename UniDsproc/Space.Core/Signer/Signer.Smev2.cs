@@ -110,7 +110,7 @@ namespace Space.Core
 			{
 #pragma warning disable 612
 				DigestMethod = GostAlgorithmSelector.GetHashAlgorithmDescriptor(gostFlavor),
-					//CPSignedXml.XmlDsigGost3411UrlObsolete,
+				//CPSignedXml.XmlDsigGost3411UrlObsolete,
 #pragma warning restore 612
 				Uri = "#" + referenceUri
 			};
@@ -123,7 +123,7 @@ namespace Space.Core
 			signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
 #pragma warning disable 612
 			signedXml.SignedInfo.SignatureMethod = GostAlgorithmSelector.GetSignatureAlgorithmDescriptor(gostFlavor);
-				//CPSignedXml.XmlDsigGost3410UrlObsolete;
+			//CPSignedXml.XmlDsigGost3410UrlObsolete;
 #pragma warning disable 612
 			//----------------------------------------------------------------------------------------------KEYINFO
 			KeyInfo keyInfo = new KeyInfo();
@@ -139,7 +139,7 @@ namespace Space.Core
 				tDoc.ImportNode(xmlDigitalSignature.GetElementsByTagName("SignatureValue")[0], true));
 			tDoc.GetElementsByTagName("Signature")[0].PrependChild(
 				tDoc.ImportNode(xmlDigitalSignature.GetElementsByTagName("SignedInfo")[0], true));
-			((XmlElement) tDoc.GetElementsByTagName("Signature")[0]).SetAttribute("xmlns", DS_NS);
+			((XmlElement)tDoc.GetElementsByTagName("Signature")[0]).SetAttribute("xmlns", DS_NS);
 
 			return tDoc;
 		}

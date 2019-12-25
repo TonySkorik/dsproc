@@ -1,6 +1,8 @@
 ﻿
-namespace UniDsproc.DataModel {
-	public static class ErrorCodes {
+namespace UniDsproc.DataModel
+{
+	public static class ErrorCodes
+	{
 		#region [CONFIG PARSING]
 		public static string ArgumentInvalidValue = "ARGUMENT_INVALID_VALUE";
 		public static string ArgumentNullValue = "ARGUMENT_NULL_VALUE";
@@ -20,7 +22,7 @@ namespace UniDsproc.DataModel {
 
 		#region [CERT EXTRACTION]
 		public static string CertificateExtractionException = "CERTIFICATE_EXTRACTION_EXCEPTION";
-		
+
 		#endregion
 
 		#region [UNKNOWN EXCEPTIONS]

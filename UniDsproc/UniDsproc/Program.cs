@@ -7,7 +7,7 @@ using Space.Core.Configuration;
 using Space.Core.Interfaces;
 using UniDsproc.DataModel;
 
-namespace UniDsproc 
+namespace UniDsproc
 {
 	internal class Program
 	{
@@ -19,7 +19,8 @@ namespace UniDsproc
 		{
 			if (args.Length > 0)
 			{
-				if(args[0] == @"\?" || args[0] == @"?" || args[0] == "help") {
+				if (args[0] == @"\?" || args[0] == @"?" || args[0] == "help")
+				{
 					ShowHelp();
 					return;
 				}
@@ -59,12 +60,12 @@ namespace UniDsproc
 		private static void ShowHelp()
 		{
 			string version = $"{GetVersion} {GetVersionName}";
-			int l = 32;
+			var separator = $"{new string('-', 32)}\n";
 			string ntt = "\n\t\t    ";
 			string help = $"[UniDSProc v{version}]\n" +
-				$"{new String('-', l)}\n" +
+				separator +
 				$" Call string: UniDsproc.exe <function> [keys] <input file> [output file]\n" +
-				$"{new String('-', l)}\n" +
+				separator +
 				$" FUNCTIONS: \n" +
 				$"  sign\n" +
 				$"\tSign file and save signed one to file\n\n" +
@@ -74,7 +75,7 @@ namespace UniDsproc
 				$"\tExtract certificate from file signature and return as JSON\n\n" +
 				$"  verifyAndExtract\n" +
 				$"\tVerify file's signature and, if it's valid - extract\n\n" +
-				$"{new String('-', l)}\n" +
+				separator +
 				$" KEYS: \n" +
 				$"  [*:<function>] - required when <function> is selected\n" +
 				$"\n" +
@@ -89,19 +90,19 @@ namespace UniDsproc
 				$"{ntt}<smev2_base.detached>,{ntt}" +
 				$"<smev2_charge.enveloped>,{ntt}" +
 				$"<smev2_sidebyside.detached>,{ntt}" +
-				
+
 				$"{ntt}<smev3_base.detached>,{ntt}" +
 				$"<smev3_sidebyside.detached>,{ntt}" +
 				$"<smev3_ack>,{ntt}" +
-				
-				$"{ntt}<sig_detached> - end certificate included,{ntt}" +
+
+				$"{ntt}<sig_detached> - signs binary content of the file provided, end certificate included,{ntt}" +
 				$"<sig_detached.nocert>,{ntt}" +
 				$"<sig_detached.allcert>,{ntt}" +
-				
-				$"{ntt}<pkcs7.string> - end certificate included,{ntt}" +
+
+				$"{ntt}<pkcs7.string> - signs text content of the file provided (reads file in UTF-8), end certificate included,{ntt}" +
 				$"<pkcs7.string.nocert>,{ntt}" +
 				$"<pkcs7.string.allcert>,{ntt}" +
-				
+
 				$"{ntt}<rsa2048_sha256.string>,{ntt}" +
 				$"<rsa_sha256.string>\n"
 				+ $"\n" +
@@ -113,7 +114,7 @@ namespace UniDsproc
 				$"<Gost_Obsolete>,{ntt}" +
 				$"<Gost2012_256>,{ntt}" +
 				$"<Gost2012_512>\n"
-				+$"\n" +
+				+ $"\n" +
 
 				$"  node_id\n" +
 				$"		String value of <Id> attribute of the node to be signed\n" +
@@ -196,12 +197,7 @@ namespace UniDsproc
 
 		private static StatusInfo Extract(ArgsInfo args)
 		{
-			StatusInfo si =
-				new StatusInfo(
-					new ErrorInfo(
-						ErrorCodes.UnknownException,
-						ErrorType.CertificateExtraction,
-						"Unknown certificate extraction exception"));
+			StatusInfo si;
 			try
 			{
 				ICertificateSerializer serializer = new CertificateSerializer();

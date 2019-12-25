@@ -12,7 +12,7 @@ using Space.Core.Interfaces;
 
 namespace Space.Core
 {
-	public class CertificateProcessor: ICertificateProcessor
+	public class CertificateProcessor : ICertificateProcessor
 	{
 		public enum CertificateSource
 		{
@@ -58,10 +58,12 @@ namespace Space.Core
 					}
 					else
 					{
-						throw ExceptionFactory.GetException(ExceptionType.CertificateNotFoundByThumbprint, certificateThumbprint);
+						throw ExceptionFactory.GetException(
+							ExceptionType.CertificateNotFoundByThumbprint,
+							certificateThumbprint);
 					}
 				}
-				
+
 				if (found.Count == 1)
 				{
 					return found[0];
@@ -97,7 +99,7 @@ namespace Space.Core
 		#endregion
 
 		#region [GET ALL CERTS FROM STORE]
-		
+
 		public IEnumerable<X509Certificate2> GetAllCertificatesFromStore(StoreLocation storeLocation)
 		{
 			X509Store store = new X509Store("My", storeLocation);
@@ -108,7 +110,8 @@ namespace Space.Core
 		#endregion
 
 		#region [SELECT CERTIFICATE UI]
-		public X509Certificate2 SelectCertificateUi(StoreLocation storeLocation) {
+		public X509Certificate2 SelectCertificateUi(StoreLocation storeLocation)
+		{
 			X509Store store = new X509Store("MY", storeLocation);
 			store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
 			X509Certificate2Collection collection =
@@ -153,7 +156,8 @@ namespace Space.Core
 				nodeId = "body";
 			}
 
-			if (string.IsNullOrEmpty(nodeId) && !isSmev2)
+			if (string.IsNullOrEmpty(nodeId)
+				&& !isSmev2)
 			{
 				signatureElement = (
 					from elt in signedXml.Root.Descendants()
@@ -180,10 +184,12 @@ namespace Space.Core
 				{
 					throw ExceptionFactory.GetException(ExceptionType.CertificateNotFoundByNodeId, nodeId);
 				}
+
 				if (signatureElement == null)
 				{
 					throw ExceptionFactory.GetException(ExceptionType.CertificateNotFoundByNodeId, nodeId);
 				}
+
 				if (isSmev2)
 				{
 					smev2CertRef = signatureElement.Descendants(ds + "KeyInfo").First()
@@ -222,9 +228,11 @@ namespace Space.Core
 						.Descendants(soapenv + "Header").First()
 						.Descendants(wsse + "Security")
 						.Where(
-							(elt) => elt.Descendants(wsse + "BinarySecurityToken").Attributes(wsu + "Id").First().Value == smev2CertRef)
+							(elt) => elt.Descendants(wsse + "BinarySecurityToken").Attributes(wsu + "Id").First().Value
+								== smev2CertRef)
 						.Select((elt) => elt.Descendants(wsse + "BinarySecurityToken").First().Value).FirstOrDefault();
 				}
+
 				if (string.IsNullOrEmpty(certificateNodeContent))
 				{
 					// means signatureInfo appears to be empty
@@ -240,6 +248,7 @@ namespace Space.Core
 				//no Signature block
 				throw ExceptionFactory.GetException(ExceptionType.SignatureNotFound);
 			}
+
 			return cert;
 		}
 		#endregion
@@ -249,6 +258,7 @@ namespace Space.Core
 		public bool IsCertificateExpired(X509Certificate2 certificate)
 		{
 			if (certificate == null) return true;
+
 			DateTime dtNow = DateTime.Now.ToUniversalTime();
 			return !(dtNow > certificate.NotBefore.ToUniversalTime() && dtNow < certificate.NotAfter.ToUniversalTime());
 		}

@@ -58,7 +58,7 @@ namespace Space.Core
 #pragma warning disable 612
 				//Расчет хеш-суммы ГОСТ Р 34.11-94 / 34.11.2012 http://www.w3.org/2001/04/xmldsig-more#gostr3411
 				DigestMethod = GostAlgorithmSelector.GetHashAlgorithmDescriptor(gostFlavor)
-					//CPSignedXml.XmlDsigGost3411UrlObsolete - old one
+				//CPSignedXml.XmlDsigGost3411UrlObsolete - old one
 #pragma warning disable 612
 			};
 
@@ -70,7 +70,7 @@ namespace Space.Core
 
 			if (isAck)
 			{
-				XmlDsigEnvelopedSignatureTransform enveloped 
+				XmlDsigEnvelopedSignatureTransform enveloped
 					= new XmlDsigEnvelopedSignatureTransform();
 				reference.AddTransform(enveloped);
 			}
@@ -82,7 +82,7 @@ namespace Space.Core
 
 			//Формирование подписи ГОСТ Р 34.10-2001 / 34.10-2012 http://www.w3.org/2001/04/xmldsig-more#gostr34102001-gostr3411 
 			sxml.SignedInfo.SignatureMethod = GostAlgorithmSelector.GetSignatureAlgorithmDescriptor(gostFlavor);
-				//CPSignedXml.XmlDsigGost3410UrlObsolete; - old one
+			//CPSignedXml.XmlDsigGost3410UrlObsolete; - old one
 			KeyInfo keyInfo = new KeyInfo();
 			KeyInfoX509Data x509KeyInfo = new KeyInfoX509Data(certificate);
 			keyInfo.AddClause(x509KeyInfo);
@@ -102,7 +102,7 @@ namespace Space.Core
 				document.LoadXml(xmlSignedInfo.OuterXml);
 
 				//create new canonicalization object based on original one
-				Transform canonicalizationMethodObject 
+				Transform canonicalizationMethodObject
 					= sxml.SignedInfo.CanonicalizationMethodObject;
 				canonicalizationMethodObject.LoadInput(document);
 

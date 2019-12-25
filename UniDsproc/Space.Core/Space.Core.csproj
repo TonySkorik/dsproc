@@ -52,7 +52,6 @@
   <ItemGroup>
     <Compile Include="Configuration\CertificateLocation.cs" />
     <Compile Include="CertificateProcessor.cs" />
-    <Compile Include="Exceptions\ExceptionExtensions.cs" />
     <Compile Include="Exceptions\ExceptionFactory.cs" />
     <Compile Include="Extensions\XdocExtensions.cs" />
     <Compile Include="Infrastructure\GostAlgorithmSelector.cs" />

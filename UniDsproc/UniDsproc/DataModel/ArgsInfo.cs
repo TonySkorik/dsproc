@@ -24,14 +24,14 @@ namespace UniDsproc.DataModel
 
 		#region [AVAILABLE KEYS]
 
-		private const string SIGNATURE_TYPE_KEY = "signature_type";
+		private const string _signatureTypeKey = "signature_type";
 		//private const string _smevModeKey = "smev_mode";
 		//private const string _nodeIdKey = "node_id";
 		//private const string _nodeNameKey = "node_name";
 		//private const string _nodeNamespaceKey = "node_namespace";
-		private const string CERTIFICATE_THUMBPRINT_KEY = "thumbprint";
-		private const string CER_FILE_PATH_KEY = "cer_file";
-		private const string CERTIFICATE_SOURCE_KEY = "certificate_source";
+		private const string _certificateThumbprintKey = "thumbprint";
+		private const string _cerFilePathKey = "cer_file";
+		private const string _certificateSourceKey = "certificate_source";
 
 		private readonly Dictionary<string, PropertyInfo> _knownArgs = CommandLineBind.BuildBindings(typeof(ArgsInfo));
 
@@ -54,7 +54,7 @@ namespace UniDsproc.DataModel
 		public bool AssignDsInSignature { set; get; } // digital signature nodes will be put in XML namespace ds:
 		[ArgBinding("ignore_expired")]
 		public bool IgnoreExpiredCert { set; get; } //means there will be no expiration check before signing
-		[ArgBinding(CERTIFICATE_SOURCE_KEY)]
+		[ArgBinding(_certificateSourceKey)]
 		public CertificateProcessor.CertificateSource CertSource { set; get; }
 		//================================
 		public CertificateLocation CertLocation;
@@ -201,7 +201,7 @@ namespace UniDsproc.DataModel
 										else
 										{
 											//string
-											if (keyName == CER_FILE_PATH_KEY
+											if (keyName == _cerFilePathKey
 												&& !File.Exists(argvs[1]))
 											{
 												throw new ArgumentNullException(
@@ -253,7 +253,7 @@ namespace UniDsproc.DataModel
 						InitError = new ErrorInfo(
 							ErrorCodes.ArgumentNullValue,
 							ErrorType.ArgumentParsing,
-							$"<{CERTIFICATE_THUMBPRINT_KEY}> value is empty! This value is required!");
+							$"<{_certificateThumbprintKey}> value is empty! This value is required!");
 						return;
 					}
 
@@ -262,7 +262,7 @@ namespace UniDsproc.DataModel
 						InitError = new ErrorInfo(
 							ErrorCodes.ArgumentNullValue,
 							ErrorType.ArgumentParsing,
-							$"<{SIGNATURE_TYPE_KEY}> value is empty! This value is required!");
+							$"<{_signatureTypeKey}> value is empty! This value is required!");
 						return;
 					}
 
@@ -317,7 +317,7 @@ namespace UniDsproc.DataModel
 						InitError = new ErrorInfo(
 							ErrorCodes.ArgumentNullValue,
 							ErrorType.ArgumentParsing,
-							$"<{CERTIFICATE_SOURCE_KEY}> value is empty! This value is required!");
+							$"<{_certificateSourceKey}> value is empty! This value is required!");
 						return;
 					}
 
@@ -347,7 +347,7 @@ namespace UniDsproc.DataModel
 						InitError = new ErrorInfo(
 							ErrorCodes.ArgumentNullValue,
 							ErrorType.ArgumentParsing,
-							$"<{SIGNATURE_TYPE_KEY}> value is empty! This value is required!");
+							$"<{_signatureTypeKey}> value is empty! This value is required!");
 						return;
 					}
 

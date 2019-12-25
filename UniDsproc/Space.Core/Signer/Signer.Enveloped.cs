@@ -17,7 +17,11 @@ namespace Space.Core
 	/// <seealso cref="Space.Core.Interfaces.ISigner" />
 	public partial class Signer
 	{
-		private XmlDocument SignEnveloped(GostFlavor gostFlavor, XmlDocument doc, X509Certificate2 certificate, string nodeId = null)
+		private XmlDocument SignEnveloped(
+			GostFlavor gostFlavor,
+			XmlDocument doc,
+			X509Certificate2 certificate,
+			string nodeId = null)
 		{
 			//----------------------------------------------------------------------------------------------CREATE SIGNED XML
 			SignedXml signedXml = new SignedXml(doc)
@@ -30,7 +34,7 @@ namespace Space.Core
 				Uri = nodeId,
 #pragma warning disable 612
 				DigestMethod = GostAlgorithmSelector.GetHashAlgorithmDescriptor(gostFlavor)
-					//CPSignedXml.XmlDsigGost3411UrlObsolete - old
+				//CPSignedXml.XmlDsigGost3411UrlObsolete - old
 #pragma warning disable 612
 			};
 
@@ -44,7 +48,7 @@ namespace Space.Core
 			//----------------------------------------------------------------------------------------------SIGNATURE SETUP
 			signedXml.SignedInfo.CanonicalizationMethod = SignedXml.XmlDsigExcC14NTransformUrl;
 			signedXml.SignedInfo.SignatureMethod = GostAlgorithmSelector.GetSignatureAlgorithmDescriptor(gostFlavor);
-				//CPSignedXml.XmlDsigGost3410UrlObsolete; - old
+			//CPSignedXml.XmlDsigGost3410UrlObsolete; - old
 			//----------------------------------------------------------------------------------------------KEYINFO
 			KeyInfo keyInfo = new KeyInfo();
 			KeyInfoX509Data x509KeyInfo = new KeyInfoX509Data(certificate);

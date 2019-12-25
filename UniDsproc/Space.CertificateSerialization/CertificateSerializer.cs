@@ -24,7 +24,8 @@ namespace Space.CertificateSerialization
 			{
 				case CertificateProcessor.CertificateSource.Xml:
 					ICertificateProcessor cp = new CertificateProcessor();
-					return new X509CertificateSerializable(cp.ReadCertificateFromXmlDocument(XDocument.Load(filePath), nodeId));
+					return new X509CertificateSerializable(
+						cp.ReadCertificateFromXmlDocument(XDocument.Load(filePath), nodeId));
 				case CertificateProcessor.CertificateSource.Base64:
 					try
 					{
@@ -46,10 +47,12 @@ namespace Space.CertificateSerialization
 							{
 								throw ExceptionFactory.GetException(ExceptionType.NoCertificatesFound, filePath);
 							}
+
 							if (collection.Count == 1)
 							{
 								cer = collection[0];
 							}
+
 							if (collection.Count > 1)
 							{
 								return new X509CertificateSerializable(collection);
