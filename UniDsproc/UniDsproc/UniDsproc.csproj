@@ -53,6 +53,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Api\Controllers\V1\SignController.cs" />
+    <Compile Include="Api\Helpers\HttpRequestHelper.cs" />
+    <Compile Include="Api\Infrastructure\InMemoryMultipartFormDataStreamProvider.cs" />
+    <Compile Include="Api\Model\SignerInputParameters.cs" />
+    <Compile Include="Api\Startup.cs" />
+    <Compile Include="Api\WebApiHost.cs" />
     <Compile Include="DataModel\ArgsInfo.cs" />
     <Compile Include="DataModel\ErrorCodes.cs" />
     <Compile Include="DataModel\ResultInfo.cs" />
@@ -149,9 +155,7 @@
       <Name>Space.Core</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Api\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

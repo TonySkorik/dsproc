@@ -38,6 +38,7 @@ namespace UniDsproc.DataModel
 		#endregion
 
 		#region [P & F]
+
 		public readonly ProgramFunction Function;
 		//=============================== via reflection set
 		[ArgBinding("signature_type")]
@@ -62,6 +63,7 @@ namespace UniDsproc.DataModel
 		public string OutputFile { get; }
 		public bool Ok { get; }
 		public ErrorInfo InitError { get; }
+
 		#endregion
 
 		public ArgsInfo(string[] args)

@@ -5,6 +5,7 @@ using Space.CertificateSerialization;
 using Space.Core;
 using Space.Core.Configuration;
 using Space.Core.Interfaces;
+using UniDsproc.Api;
 using UniDsproc.DataModel;
 
 namespace UniDsproc
@@ -14,6 +15,8 @@ namespace UniDsproc
 		private static string GetVersion =>
 			$"{Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor}.{Assembly.GetExecutingAssembly().GetName().Version.Build}.{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
 		private static string GetVersionName => "SPACE + SIG bin";
+
+		public static WebApiHost WebApiHost;
 
 		private static void Main(string[] args)
 		{
@@ -25,35 +28,33 @@ namespace UniDsproc
 					return;
 				}
 				ArgsInfo a = new ArgsInfo(args);
-				if (a.Ok)
-				{
-					//args successfully loaded - continue
-					switch (a.Function)
-					{
-						case ProgramFunction.Sign: //check!
-							Console.WriteLine(Sign(a).ToJsonString());
-							break;
-						case ProgramFunction.Verify:
-							Console.WriteLine(Verify(a).ToJsonString());
-							break;
-						case ProgramFunction.Extract: //check!
-							Console.WriteLine(Extract(a).ToJsonString());
-							break;
-						case ProgramFunction.VerifyAndExtract:
-							Console.WriteLine(VerifyAndExtract(a).ToJsonString());
-							break;
-					}
-				}
-				else
-				{
-					Console.WriteLine(new StatusInfo(a.InitError).ToJsonString());
-				}
+				var statusInfo = MainCore(a);
+				Console.WriteLine(statusInfo.ToJsonString());
 			}
 			else
 			{
 				ShowHelp();
 				return;
 			}
+		}
+
+		public static StatusInfo MainCore(ArgsInfo args)
+		{
+			if (args.Ok)
+			{
+				switch (args.Function)
+				{
+					case ProgramFunction.Sign:
+						return Sign(args);
+					case ProgramFunction.Verify:
+						return Verify(args);
+					case ProgramFunction.Extract:
+						return Extract(args);
+					case ProgramFunction.VerifyAndExtract:
+						return VerifyAndExtract(args);
+				}
+			}
+			return new StatusInfo(args.InitError);
 		}
 
 		#region [HELP MESSAGE]
