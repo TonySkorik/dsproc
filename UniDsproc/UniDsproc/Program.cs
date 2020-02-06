@@ -14,7 +14,7 @@ namespace UniDsproc
 	{
 		private static string GetVersion =>
 			$"{Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor}.{Assembly.GetExecutingAssembly().GetName().Version.Build}.{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
-		private static string GetVersionName => "SPACE + SIG bin";
+		private static string GetVersionName => "API";
 
 		public static WebApiHost WebApiHost;
 

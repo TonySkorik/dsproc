@@ -53,7 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Api\Controllers\V1\SignController.cs" />
+    <Compile Include="Api\Controllers\V1\CommandController.cs" />
     <Compile Include="Api\Helpers\HttpRequestHelper.cs" />
     <Compile Include="Api\Infrastructure\InMemoryMultipartFormDataStreamProvider.cs" />
     <Compile Include="Api\Model\SignerInputParameters.cs" />

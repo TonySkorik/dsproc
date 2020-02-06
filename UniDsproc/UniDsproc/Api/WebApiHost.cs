@@ -62,7 +62,17 @@ namespace UniDsproc.Api
 			Protocol = protocol;
 			Port = port;
 			_allowedIpAddresses = allowedIpAddresses;
+			InitLogger();
 		}
+
+		#region Initialization methods
+
+		private void InitLogger()
+		{
+
+		}
+
+		#endregion
 
 		#region Counters methods
 

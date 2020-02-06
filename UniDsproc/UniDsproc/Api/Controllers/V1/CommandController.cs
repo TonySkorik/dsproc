@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -11,16 +12,37 @@ using Serilog;
 using UniDsproc.Api.Helpers;
 using UniDsproc.Api.Infrastructure;
 using UniDsproc.Api.Model;
+using UniDsproc.DataModel;
 
 namespace UniDsproc.Api.Controllers.V1
 {
-	[RoutePrefix("api/v1/sign")]
-	public class SignController : ApiController
+	[RoutePrefix("api/v1")]
+	public class CommandController : ApiController
 	{
 		[HttpGet]
-		public async Task<IHttpActionResult> Sign()
+		[Route(("{command}"))]
+		public async Task<IHttpActionResult> Command(string command)
 		{
-			
+			if (!Request.IsAuthorized())
+			{
+				Log.Logger.Fatal($"Blocked WebApiHost request from {Request.GetRemoteIp()}.");
+				return StatusCode(HttpStatusCode.Forbidden);
+			}
+
+			var querySegments = Request.RequestUri.ParseQueryString();
+			List<string> args = new List<string>()
+			{
+				command
+			};
+			foreach (var key in querySegments.AllKeys)
+			{
+				var value = querySegments[key];
+				args.Add($"-{key}={value}");
+			}
+
+			ArgsInfo argsInfo = new ArgsInfo(args.ToArray());
+
+			var status = Program.MainCore(argsInfo);
 		}
 
 		[HttpPost]
