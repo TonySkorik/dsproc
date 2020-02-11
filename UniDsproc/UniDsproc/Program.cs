@@ -148,6 +148,12 @@ namespace UniDsproc
 		#endregion
 
 		#region [FUNCTIONS]
+
+		private static string Sign(ArgsInfo args)
+		{ 
+
+		}
+
 		private static StatusInfo Sign(ArgsInfo args)
 		{
 			ISigner signer = new Signer();

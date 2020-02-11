@@ -56,6 +56,17 @@ namespace Space.Core
 			SignatureType mode,
 			GostFlavor gostFlavor,
 			string certificateThumbprint,
+			byte[] bytesToSign,
+			string nodeToSign,
+			bool ignoreExpiredCert = false)
+		{ 
+
+		}
+		
+		public string Sign(
+			SignatureType mode,
+			GostFlavor gostFlavor,
+			string certificateThumbprint,
 			string signThisPath,
 			bool assignDs,
 			string nodeToSign,

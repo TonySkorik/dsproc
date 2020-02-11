@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Xml.Linq;
 using Serilog;
+using Space.Core;
+using Space.Core.Interfaces;
 using UniDsproc.Api.Helpers;
 using UniDsproc.Api.Infrastructure;
 using UniDsproc.Api.Model;
@@ -19,6 +21,13 @@ namespace UniDsproc.Api.Controllers.V1
 	[RoutePrefix("api/v1")]
 	public class CommandController : ApiController
 	{
+		ISigner _signer;
+
+		public CommandController()
+		{ 
+			_signer = new Signer();
+		}
+
 		[HttpGet]
 		[Route(("{command}"))]
 		public async Task<IHttpActionResult> Command(string command)
@@ -41,7 +50,24 @@ namespace UniDsproc.Api.Controllers.V1
 			}
 
 			ArgsInfo argsInfo = new ArgsInfo(args.ToArray());
-
+			switch (argsInfo.Function)
+			{
+				case ProgramFunction.Sign:
+					string signedData = _signer.Sign(
+						argsInfo.SigType,
+						argsInfo.GostFlavor,
+						argsInfo.CertThumbprint,
+						argsInfo.InputFile,
+						argsInfo.AssignDsInSignature,
+						argsInfo.NodeId,
+						argsInfo.IgnoreExpiredCert);
+					break;
+				case ProgramFunction.Verify:
+				case ProgramFunction.Extract:
+				case ProgramFunction.VerifyAndExtract:
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
 			var status = Program.MainCore(argsInfo);
 		}
 
