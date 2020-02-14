@@ -27,7 +27,7 @@ namespace UniDsproc
 					ShowHelp();
 					return;
 				}
-				ArgsInfo a = new ArgsInfo(args);
+				ArgsInfo a = new ArgsInfo(args, false);
 				var statusInfo = MainCore(a);
 				Console.WriteLine(statusInfo.ToJsonString());
 			}
@@ -148,11 +148,6 @@ namespace UniDsproc
 		#endregion
 
 		#region [FUNCTIONS]
-
-		private static string Sign(ArgsInfo args)
-		{ 
-
-		}
 
 		private static StatusInfo Sign(ArgsInfo args)
 		{

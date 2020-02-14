@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Management.Instrumentation;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Formatting;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Results;
 using System.Xml.Linq;
 using Serilog;
 using Space.Core;
@@ -21,7 +24,7 @@ namespace UniDsproc.Api.Controllers.V1
 	[RoutePrefix("api/v1")]
 	public class CommandController : ApiController
 	{
-		ISigner _signer;
+		private readonly ISigner _signer;
 
 		public CommandController()
 		{ 
@@ -38,60 +41,11 @@ namespace UniDsproc.Api.Controllers.V1
 				return StatusCode(HttpStatusCode.Forbidden);
 			}
 
-			var querySegments = Request.RequestUri.ParseQueryString();
-			List<string> args = new List<string>()
-			{
-				command
-			};
-			foreach (var key in querySegments.AllKeys)
-			{
-				var value = querySegments[key];
-				args.Add($"-{key}={value}");
-			}
-
-			ArgsInfo argsInfo = new ArgsInfo(args.ToArray());
-			switch (argsInfo.Function)
-			{
-				case ProgramFunction.Sign:
-					string signedData = _signer.Sign(
-						argsInfo.SigType,
-						argsInfo.GostFlavor,
-						argsInfo.CertThumbprint,
-						argsInfo.InputFile,
-						argsInfo.AssignDsInSignature,
-						argsInfo.NodeId,
-						argsInfo.IgnoreExpiredCert);
-					break;
-				case ProgramFunction.Verify:
-				case ProgramFunction.Extract:
-				case ProgramFunction.VerifyAndExtract:
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-			var status = Program.MainCore(argsInfo);
-		}
-
-		[HttpPost]
-		[Route("")]
-		public async Task<IHttpActionResult> Respond()
-		{
-			// Returning following statuses
-			// + 200 + 0 if all OK (output contains XML output);
-			// + 400 + 5 any parameter validation error
-			// + 417 + 4 Message from SMEV is not OK
-			// + 500 + 6 any exception in unismev : 6 Error happened before sending data to SMEV (see stdout for more details)
-			// + 408 + 7 Cancellation
-			
-			if (!Request.IsAuthorized())
-			{
-				Log.Logger.Information($"Blocked WebApiHost request from {Request.GetRemoteIp()}.");
-				return StatusCode(HttpStatusCode.Forbidden);
-			}
-
 			Program.WebApiHost.ClientConnected();
-			
-			var responderParameters = await ReadResponderParameters(Request);
-			var validationResult = ValidateParameters(responderParameters);
+
+			SignerInputParameters input = await ReadSignerParameters(Request, command);
+
+			var validationResult = ValidateParameters(input);
 
 			if (!validationResult.isParametersOk)
 			{
@@ -100,31 +54,45 @@ namespace UniDsproc.Api.Controllers.V1
 
 			try
 			{
-				SmevMessageSendStatus sendStatus = await EntryPointsManager.SendMessageViaResponder(responderParameters);
-				return sendStatus.AnalyzeMessageSendStatus(this);
+				switch (input.ArgsInfo.Function)
+				{
+					case ProgramFunction.Sign:
+						var signerResult = _signer.Sign(
+							input.ArgsInfo.SigType,
+							input.ArgsInfo.GostFlavor,
+							input.ArgsInfo.CertThumbprint,
+							input.DataToSign,
+							input.ArgsInfo.NodeId,
+							input.ArgsInfo.IgnoreExpiredCert);
+
+						return signerResult.IsResultBase64Bytes
+							? (IHttpActionResult) Content(
+								HttpStatusCode.OK,
+								Convert.FromBase64String(signerResult.SignedData),
+								new FormUrlEncodedMediaTypeFormatter(),
+								"application/x-binary")
+							: (IHttpActionResult) Content(
+								HttpStatusCode.OK,
+								signerResult.SignedData,
+								new FormUrlEncodedMediaTypeFormatter(),
+								"text/plain;base64");
+					case ProgramFunction.Verify:
+					case ProgramFunction.Extract:
+					case ProgramFunction.VerifyAndExtract:
+					default:
+						return BadRequest($"Command {command} not supported.");
+				}
 			}
 			catch (Exception ex)
 			{
-				//means something gone wrong
-				SmevClient.WriteToSystemLog(
-					new EventEntry(
-						EventType.Error,
-						$"Responder message processing failed",
-						null,
-						false
-					)
-					{
-						DetailsContent = ex.ToString()
-					}
-				);
-
-				return BadRequest("Exception happened during Reponder API processing.");
+				Log.Logger.Error(ex, "Error occured during signing process");
+				return BadRequest(ex.Message);
 			}
 			finally
 			{
-				EntryPointsManager.SignalBusinessOperationCompletion(operationId);
 				Program.WebApiHost.ClientDisconnected();
 			}
+
 		}
 
 		#region Test methods
@@ -143,32 +111,17 @@ namespace UniDsproc.Api.Controllers.V1
 
 		#region Service methods
 		
-		private (bool isParametersOk, string errorReason) ValidateParameters(ResponderInputParameters parameters)
+		private (bool isParametersOk, string errorReason) ValidateParameters(SignerInputParameters parameters)
 		{
-			if (parameters.CommandType == ResponderCommandType.Unknown)
+			if (parameters.DataToSign == null)
 			{
-				return (false, $"Unknown command type.");
-			}
-
-			if (string.IsNullOrEmpty(parameters.GroupNick))
-			{
-				return (false, $"Group nick is empty.");
-			}
-
-			if (string.IsNullOrEmpty(parameters.GroupNick))
-			{
-				return (false, $"Group nick is empty.");
-			}
-
-			if (parameters.BusinessData == null)
-			{
-				return (false, $"Message XML is malformed.");
+				return (false, $"No data to sign.");
 			}
 
 			return (true, string.Empty);
 		}
 
-		private async Task<SignerInputParameters> ReadResponderParameters(HttpRequestMessage request)
+		private async Task<SignerInputParameters> ReadSignerParameters(HttpRequestMessage request, string command)
 		{
 			var clientDisconnected = request.GetOwinContext()?.Request?.CallCancelled ?? CancellationToken.None;
 
@@ -179,34 +132,35 @@ namespace UniDsproc.Api.Controllers.V1
 			var streamProvider = new InMemoryMultipartFormDataStreamProvider();
 			await request.Content.ReadAsMultipartAsync(streamProvider, clientDisconnected);
 
-			var parameters = request.RequestUri.ParseQueryString();
+			var querySegments = request.RequestUri.ParseQueryString();
 
-			Enum.TryParse(streamProvider.FormData["type"], true, out ResponderCommandType commandType);
-			
-			ResponderInputParameters responderParameters = new ResponderInputParameters()
+			List<string> args = new List<string>()
 			{
-				CommandType = commandType,
-				GroupNick = streamProvider.FormData["group"],
-				ReplyTo = streamProvider.FormData["reply_to"],
-				CancellationToken = clientDisconnected
+				command
+			};
+			foreach (var key in querySegments.AllKeys)
+			{
+				var value = querySegments[key];
+				args.Add($"-{key}={value}");
+			}
+
+			ArgsInfo argsInfo = new ArgsInfo(args.ToArray(), true);
+
+			var dataToSignFile = streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == "data_to_sign");
+
+			byte[] dataToSign = null;
+			if (dataToSignFile != null)
+			{
+				dataToSign = await dataToSignFile.ReadAsByteArrayAsync();
+			}
+
+			SignerInputParameters ret = new SignerInputParameters()
+			{
+				ArgsInfo = argsInfo,
+				DataToSign = dataToSign
 			};
 
-			var messageXmlFile = streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == "message_xml");
-			if (messageXmlFile != null)
-			{
-				(await messageXmlFile.ReadAsStringAsync()).TryParseAsXml(out XDocument businessData);
-				responderParameters.BusinessData = businessData;
-			}
-
-			var fileListFile =
-				streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == "filelist");
-			if (fileListFile != null)
-			{
-				var fileListContent = await fileListFile.ReadAsStringAsync();
-				responderParameters.FileList = FileList2.Parse(fileListContent);
-			}
-
-			return responderParameters;
+			return ret;
 		}
 		
 		#endregion

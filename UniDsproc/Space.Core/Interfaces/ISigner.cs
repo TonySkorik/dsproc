@@ -35,5 +35,12 @@ namespace Space.Core.Interfaces
 			bool assignDs = false,
 			bool ignoreExpiredCert = false);
 
+		(string SignedData, bool IsResultBase64Bytes) Sign(
+			SignatureType mode,
+			GostFlavor gostFlavor,
+			string certificateThumbprint,
+			byte[] bytesToSign,
+			string nodeToSign,
+			bool ignoreExpiredCert = false);
 	}
 }

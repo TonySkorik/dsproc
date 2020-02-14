@@ -6,7 +6,6 @@ namespace UniDsproc.DataModel
 	[DataContract(Name = "status")]
 	public class StatusInfo : PrintableInfo
 	{
-
 		[JsonProperty("is_error", DefaultValueHandling = DefaultValueHandling.Include)]
 		[JsonConverter(typeof(BoolToIntConverter))]
 		public bool IsError { get; }

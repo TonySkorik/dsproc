@@ -7,7 +7,6 @@ namespace UniDsproc.DataModel
 	[DataContract(Name = "result")]
 	public class ResultInfo : PrintableInfo
 	{
-
 		[DataMember(Name = "message")]
 		public string Message { get; }
 

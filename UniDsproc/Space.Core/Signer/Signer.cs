@@ -52,15 +52,49 @@ namespace Space.Core
 			return Sign(mode, gostFlavor, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert);
 		}
 
-		public string Sign(
+		public (string SignedData, bool IsResultBase64Bytes) Sign(
 			SignatureType mode,
 			GostFlavor gostFlavor,
 			string certificateThumbprint,
 			byte[] bytesToSign,
 			string nodeToSign,
 			bool ignoreExpiredCert = false)
-		{ 
+		{
+			XmlDocument signThis = null;
+			string stringToSign = null;
+			bool isResultBase64Bytes = false;
 
+			if (mode == SignatureType.Pkcs7String
+				|| mode == SignatureType.Pkcs7StringAllCert
+				|| mode == SignatureType.Pkcs7StringNoCert
+
+				|| mode == SignatureType.Rsa2048Sha256String
+				|| mode == SignatureType.RsaSha256String)
+			{
+				stringToSign = Encoding.UTF8.GetString(bytesToSign);
+				isResultBase64Bytes = true;
+			}
+			else
+			{
+				signThis = new XmlDocument();
+				var stringContent = Encoding.UTF8.GetString(bytesToSign);
+				signThis.LoadXml(stringContent);
+			}
+
+			var signedData = Sign(
+				mode,
+				gostFlavor,
+				certificateThumbprint,
+				signThis,
+				false,
+				nodeToSign,
+				ignoreExpiredCert,
+				stringToSign,
+				string.IsNullOrEmpty(stringToSign)
+					? bytesToSign
+					: null);
+
+			return (signedData, isResultBase64Bytes);
 		}
 		
 		public string Sign(

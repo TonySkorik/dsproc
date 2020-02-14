@@ -66,7 +66,7 @@ namespace UniDsproc.DataModel
 
 		#endregion
 
-		public ArgsInfo(string[] args)
+		public ArgsInfo(string[] args, bool isBypassFileChecks)
 		{
 			Ok = false;
 
@@ -245,11 +245,13 @@ namespace UniDsproc.DataModel
 			args = args.Where(arg => !arg.StartsWith("-")).ToArray();
 
 			#region [FUNCTION BASED ARGS CHECK]
+			
 			switch (Function)
 			{
 				case ProgramFunction.Sign:
 
 					#region [SIGN]
+
 					if (string.IsNullOrEmpty(CertThumbprint))
 					{
 						InitError = new ErrorInfo(
@@ -268,8 +270,17 @@ namespace UniDsproc.DataModel
 						return;
 					}
 
+					if (isBypassFileChecks)
+					{
+						InputFile = null;
+						OutputFile = null;
+						Ok = true;
+						break;
+					}
+					
 					string infile = string.Empty;
 					string outfile = string.Empty;
+
 					if (args.Length == 3)
 					{
 						infile = args[args.Length - 2];
@@ -307,6 +318,7 @@ namespace UniDsproc.DataModel
 							ErrorType.ArgumentParsing,
 							$"Input file <{infile}> not found");
 					}
+					
 
 					break;
 				#endregion
