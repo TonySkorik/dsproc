@@ -1,11 +1,15 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using Microsoft.Extensions.Configuration;
+using Serilog;
 using Space.CertificateSerialization;
 using Space.Core;
 using Space.Core.Configuration;
 using Space.Core.Interfaces;
+using Topshelf;
 using UniDsproc.Api;
+using UniDsproc.Configuration;
 using UniDsproc.DataModel;
 
 namespace UniDsproc
@@ -13,20 +17,41 @@ namespace UniDsproc
 	internal class Program
 	{
 		private static string GetVersion =>
-			$"{Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor}.{Assembly.GetExecutingAssembly().GetName().Version.Build}.{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
-		private static string GetVersionName => "API";
+			$"{Assembly.GetExecutingAssembly().GetName().Version.Major}"
+			+ $".{Assembly.GetExecutingAssembly().GetName().Version.Minor}"
+			+ $".{Assembly.GetExecutingAssembly().GetName().Version.Build}"
+			+ $".{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
+		private static string GetVersionName => "API-enabled";
 
-		public static WebApiHost WebApiHost;
+		public static WebApiHost WebApiHost { get; private set; }
 
 		private static void Main(string[] args)
 		{
 			if (args.Length > 0)
 			{
+				
 				if (args[0] == @"\?" || args[0] == @"?" || args[0] == "help")
 				{
 					ShowHelp();
 					return;
 				}
+
+				var configuration = GetConfiguration();
+				InitializeLogger(configuration);
+				WebApiHost = new WebApiHost(configuration);
+
+				if (args[0] == "api")
+				{ 
+					ConfigureService(string.Empty);
+				}
+
+				if (args[0] == "install" 
+					|| args[0] == "uninstall")
+				{ 
+					ConfigureService(args[0]);
+					return;
+				}
+
 				ArgsInfo a = new ArgsInfo(args, false);
 				var statusInfo = MainCore(a);
 				Console.WriteLine(statusInfo.ToJsonString());
@@ -37,6 +62,59 @@ namespace UniDsproc
 				return;
 			}
 		}
+
+		#region Initialization methods
+
+		private static void InitializeLogger(AppSettings settings)
+		{
+			var loggerConfig = new LoggerConfiguration()
+				.WriteTo
+				.File(settings.Logger.FilePath, settings.Logger.MinimumEventLevel)
+				.WriteTo
+				.Console();
+			Log.Logger = loggerConfig.CreateLogger();
+		}
+
+		public static AppSettings GetConfiguration()
+		{
+			var configRoot = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+			AppSettings ret = configRoot.Get<AppSettings>();
+			return ret;
+		}
+
+		#endregion
+
+		#region Web Api Service configuration methods
+
+		private static void ConfigureService(string verb)
+		{
+			var host = HostFactory.New(
+				x =>
+				{
+					x.Service<WebApiHost>(
+						s =>
+						{
+							s.ConstructUsing(() => WebApiHost);
+							s.WhenStarted(apiHost => apiHost.Start());
+							s.WhenStopped(apiHost => apiHost.Stop());
+						});
+					x.RunAsLocalSystem();
+					x.StartAutomatically();
+					
+
+					x.ApplyCommandLine(verb);
+					x.SetDescription("UniDsProc signing service");
+					x.SetDisplayName("UniDsProcApi");
+					x.SetServiceName("UniDsProcApi");
+				});
+			
+			var rc = host.Run();
+
+			var exitCode = (int)Convert.ChangeType(rc, rc.GetTypeCode());
+			Environment.ExitCode = exitCode;
+		}
+
+		#endregion
 
 		public static StatusInfo MainCore(ArgsInfo args)
 		{
@@ -68,6 +146,12 @@ namespace UniDsproc
 				$" Call string: UniDsproc.exe <function> [keys] <input file> [output file]\n" +
 				separator +
 				$" FUNCTIONS: \n" +
+				$"  install \n" +
+				$"\tInstall UniDsProc as a self-hosted web service (via Windows Services mechanism)\n\n" +
+				$"  uninstall \n" +
+				$"\tUninstall previously installed UniDsProc windows service\n\n" +
+				$"  api \n" +
+				$"\tRun UniDsProc in interactive web api mode (as a self hosted web server)\n\n" +
 				$"  sign\n" +
 				$"\tSign file and save signed one to file\n\n" +
 				$"  verify\n" +

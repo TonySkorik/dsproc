@@ -12,7 +12,7 @@ namespace UniDsproc.Api.Helpers
 		public static bool IsAuthorized(this HttpRequestMessage request)
 		{
 			string remoteIp = request.GetRemoteIp();
-			return SmevClient.WebApiHost.IsIpAllowedToConnect(remoteIp);
+			return Program.WebApiHost.IsIpAllowedToConnect(remoteIp);
 		}
 	}
 }

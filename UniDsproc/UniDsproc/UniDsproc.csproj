@@ -59,6 +59,7 @@
     <Compile Include="Api\Model\SignerInputParameters.cs" />
     <Compile Include="Api\Startup.cs" />
     <Compile Include="Api\WebApiHost.cs" />
+    <Compile Include="Configuration\AppSettings.cs" />
     <Compile Include="DataModel\ArgsInfo.cs" />
     <Compile Include="DataModel\ErrorCodes.cs" />
     <Compile Include="DataModel\ResultInfo.cs" />
@@ -125,6 +126,12 @@
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.WebApi.OwinSelfHost">
       <Version>5.2.7</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration">
+      <Version>3.1.2</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder">
+      <Version>3.1.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.Json">
       <Version>3.1.1</Version>

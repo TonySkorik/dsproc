@@ -4,10 +4,13 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.Owin.Hosting;
+using Serilog;
+using Topshelf;
+using UniDsproc.Configuration;
 
 namespace UniDsproc.Api
 {
-	public class WebApiHost : INotifyPropertyChanged
+	internal class WebApiHost : ServiceControl, INotifyPropertyChanged
 	{
 		#region NotifyPropertyChanged
 
@@ -57,20 +60,14 @@ namespace UniDsproc.Api
 
 		#endregion
 
-		public WebApiHost(string protocol, int port, HashSet<string> allowedIpAddresses)
+		#region Ctor
+		
+		public WebApiHost(AppSettings settings)
 		{
-			Protocol = protocol;
-			Port = port;
-			_allowedIpAddresses = allowedIpAddresses;
-			InitLogger();
-		}
-
-		#region Initialization methods
-
-		private void InitLogger()
-		{
-
-		}
+			Protocol = settings.ApiHost.Protocol;
+			Port = settings.ApiHost.Port;
+			_allowedIpAddresses = settings.ApiHost.AllowedIpAddresses;
+		} 
 
 		#endregion
 
@@ -100,8 +97,8 @@ namespace UniDsproc.Api
 		{
 			IsActive = true;
 			string baseAddress = $"{Protocol}://*:{Port}/";
+			Log.Information("Starting listening on {address}", baseAddress);
 			_apiServer = WebApp.Start<Startup>(baseAddress);
-			
 		}
 
 		public void Stop()
@@ -120,6 +117,22 @@ namespace UniDsproc.Api
 
 		public bool IsIpAllowedToConnect(string ipAddress)
 			=> !_allowedIpAddresses.Any() || _allowedIpAddresses.Contains(ipAddress);
+
+		#endregion
+
+		#region Topshelf service methods
+		
+		public bool Start(HostControl hostControl)
+		{
+			Start();
+			return true;
+		}
+
+		public bool Stop(HostControl hostControl)
+		{
+			Stop();
+			return true;
+		} 
 
 		#endregion
 	}
