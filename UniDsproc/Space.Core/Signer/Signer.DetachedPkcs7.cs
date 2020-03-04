@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography.Pkcs;
+﻿using System;
+using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
@@ -13,16 +14,18 @@ namespace Space.Core
 		private byte[] SignStringPkcs7(
 			string stringToSign,
 			X509Certificate2 certificate,
-			X509IncludeOption certificateIncludeOption)
+			X509IncludeOption certificateIncludeOption,
+			bool isAddSigningTime)
 		{
 			byte[] msg = Encoding.UTF8.GetBytes(stringToSign);
-			return SignPkcs7(msg, certificate, certificateIncludeOption);
+			return SignPkcs7(msg, certificate, certificateIncludeOption, isAddSigningTime);
 		}
 
 		private byte[] SignPkcs7(
 			byte[] bytesToSign,
 			X509Certificate2 certificate,
-			X509IncludeOption certificateIncludeOption)
+			X509IncludeOption certificateIncludeOption,
+			bool isAddSigningTime)
 		{
 			// Создаем объект ContentInfo по сообщению.
 			// Это необходимо для создания объекта SignedCms.
@@ -36,20 +39,25 @@ namespace Space.Core
 			SignedCms signedCms = new SignedCms(contentInfo, detached: true);
 			// Определяем подписывающего, объектом CmsSigner.
 			CmsSigner cmsSigner = new CmsSigner(certificate)
+			{
+				IncludeOption = certificateIncludeOption
+			};
 
-				// NOTE: if above doesn't work for SMEV - use the following
-				//cmsSigner.SignedAttributes.Add(
-				//	new CryptographicAttributeObject(
-				//		new Oid("1.2.840.113549.1.9.3"),
-				//		new AsnEncodedDataCollection(
-				//			new AsnEncodedData(Encoding.UTF8.GetBytes("1.2.840.113549.1.7.1"))
-				//		)
-				//	)
-				//);
+			// NOTE: if above doesn't work for SMEV - use the following
+			//cmsSigner.SignedAttributes.Add(
+			//	new CryptographicAttributeObject(
+			//		new Oid("1.2.840.113549.1.9.3"),
+			//		new AsnEncodedDataCollection(
+			//			new AsnEncodedData(Encoding.UTF8.GetBytes("1.2.840.113549.1.7.1"))
+			//		)
+			//	)
+			//);
 
-				{
-					IncludeOption = certificateIncludeOption
-				};
+			if (isAddSigningTime)
+			{
+				cmsSigner.SignedAttributes.Add(new Pkcs9SigningTime(DateTime.UtcNow));
+			}
+			
 			// Подписываем CMS/PKCS #7 сообение.
 			signedCms.ComputeSignature(cmsSigner);
 			// Кодируем CMS/PKCS #7 подпись сообщения.

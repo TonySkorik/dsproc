@@ -63,7 +63,8 @@ namespace UniDsproc.Api.Controllers.V1
 							input.ArgsInfo.CertThumbprint,
 							input.DataToSign,
 							input.ArgsInfo.NodeId,
-							input.ArgsInfo.IgnoreExpiredCert);
+							input.ArgsInfo.IgnoreExpiredCert,
+							input.ArgsInfo.IsAddSigningTime);
 
 						return signerResult.IsResultBase64Bytes
 							? (IHttpActionResult) Content(

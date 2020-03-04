@@ -28,7 +28,8 @@ namespace Space.Core
 			string certificateThumbprint,
 			string nodeToSign,
 			bool assignDs = false,
-			bool ignoreExpiredCert = false)
+			bool ignoreExpiredCert = false,
+			bool? isAddSigningTime = null)
 		{
 			return Sign(
 				mode,
@@ -37,7 +38,8 @@ namespace Space.Core
 				signThis.GetXmlDocument(),
 				assignDs,
 				nodeToSign,
-				ignoreExpiredCert);
+				ignoreExpiredCert, 
+				isAddSigningTime: isAddSigningTime);
 		}
 
 		public string Sign(
@@ -47,9 +49,10 @@ namespace Space.Core
 			string certificateThumbprint,
 			string nodeToSign,
 			bool assignDs = false,
-			bool ignoreExpiredCert = false)
+			bool ignoreExpiredCert = false,
+			bool? isAddSigningTime = null)
 		{
-			return Sign(mode, gostFlavor, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert);
+			return Sign(mode, gostFlavor, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert, isAddSigningTime: isAddSigningTime);
 		}
 
 		public (string SignedData, bool IsResultBase64Bytes) Sign(
@@ -58,7 +61,8 @@ namespace Space.Core
 			string certificateThumbprint,
 			byte[] bytesToSign,
 			string nodeToSign,
-			bool ignoreExpiredCert = false)
+			bool ignoreExpiredCert = false,
+			bool? isAddSigningTime = null)
 		{
 			XmlDocument signThis = null;
 			string stringToSign = null;
@@ -92,7 +96,8 @@ namespace Space.Core
 				stringToSign,
 				string.IsNullOrEmpty(stringToSign)
 					? bytesToSign
-					: null);
+					: null,
+				isAddSigningTime);
 
 			return (signedData, isResultBase64Bytes);
 		}
@@ -104,7 +109,8 @@ namespace Space.Core
 			string signThisPath,
 			bool assignDs,
 			string nodeToSign,
-			bool ignoreExpiredCert = false)
+			bool ignoreExpiredCert = false,
+			bool? isAddSigningTime = null)
 		{
 			XmlDocument signThis = null;
 			string stringToSign = null;
@@ -150,7 +156,8 @@ namespace Space.Core
 				nodeToSign,
 				ignoreExpiredCert,
 				stringToSign,
-				bytesToSign);
+				bytesToSign,
+				isAddSigningTime);
 		}
 
 		#endregion
@@ -166,7 +173,8 @@ namespace Space.Core
 			string nodeToSign,
 			bool ignoreExpiredCert = false,
 			string stringToSign = null,
-			byte[] bytesToSign = null)
+			byte[] bytesToSign = null,
+			bool? isAddSigningTime = null)
 		{
 			ICertificateProcessor cp = new CertificateProcessor();
 			X509Certificate2 certificate = cp.SearchCertificateByThumbprint(certificateThumbprint);
@@ -182,7 +190,7 @@ namespace Space.Core
 				throw ExceptionFactory.GetException(ExceptionType.CertExpired, certificate.Thumbprint);
 			}
 
-			return Sign(mode, gostFlavor, certificate, signThis, assignDs, nodeToSign, stringToSign, bytesToSign);
+			return Sign(mode, gostFlavor, certificate, signThis, assignDs, nodeToSign, stringToSign, bytesToSign, isAddSigningTime);
 		}
 
 		private string Sign(
@@ -193,7 +201,8 @@ namespace Space.Core
 			bool assignDs,
 			string nodeToSign,
 			string stringToSign = null,
-			byte[] bytesToSign = null)
+			byte[] bytesToSign = null,
+			bool? isAddSigningTime = null)
 		{
 
 			XmlDocument signedXmlDoc = new XmlDocument();
@@ -250,20 +259,20 @@ namespace Space.Core
 						break;
 
 					case SignatureType.SigDetached:
-						return Convert.ToBase64String(SignPkcs7(bytesToSign, cert, X509IncludeOption.EndCertOnly));
+						return Convert.ToBase64String(SignPkcs7(bytesToSign, cert, X509IncludeOption.EndCertOnly, isAddSigningTime ?? false));
 					case SignatureType.SigDetachedNoCert:
-						return Convert.ToBase64String(SignPkcs7(bytesToSign, cert, X509IncludeOption.None));
+						return Convert.ToBase64String(SignPkcs7(bytesToSign, cert, X509IncludeOption.None, isAddSigningTime ?? false));
 					case SignatureType.SigDetachedAllCert:
-						return Convert.ToBase64String(SignPkcs7(bytesToSign, cert, X509IncludeOption.WholeChain));
+						return Convert.ToBase64String(SignPkcs7(bytesToSign, cert, X509IncludeOption.WholeChain, isAddSigningTime ?? false));
 
 					case SignatureType.Pkcs7String:
 						return Convert.ToBase64String(
-							SignStringPkcs7(stringToSign, cert, X509IncludeOption.EndCertOnly));
+							SignStringPkcs7(stringToSign, cert, X509IncludeOption.EndCertOnly, isAddSigningTime ?? false));
 					case SignatureType.Pkcs7StringNoCert:
-						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.None));
+						return Convert.ToBase64String(SignStringPkcs7(stringToSign, cert, X509IncludeOption.None, isAddSigningTime ?? false));
 					case SignatureType.Pkcs7StringAllCert:
 						return Convert.ToBase64String(
-							SignStringPkcs7(stringToSign, cert, X509IncludeOption.WholeChain));
+							SignStringPkcs7(stringToSign, cert, X509IncludeOption.WholeChain, isAddSigningTime ?? false));
 
 					case SignatureType.Rsa2048Sha256String:
 						return Convert.ToBase64String(SignStringRsa2048Sha256(stringToSign, cert));

@@ -245,7 +245,8 @@ namespace UniDsproc
 					args.InputFile,
 					args.AssignDsInSignature,
 					args.NodeId,
-					args.IgnoreExpiredCert);
+					args.IgnoreExpiredCert,
+					args.IsAddSigningTime);
 				File.WriteAllText(args.OutputFile, signedData);
 				return new StatusInfo($"OK. Signed file path: {args.OutputFile}");
 			}

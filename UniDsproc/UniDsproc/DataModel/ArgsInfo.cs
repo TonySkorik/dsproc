@@ -55,6 +55,8 @@ namespace UniDsproc.DataModel
 		public bool AssignDsInSignature { set; get; } // digital signature nodes will be put in XML namespace ds:
 		[ArgBinding("ignore_expired")]
 		public bool IgnoreExpiredCert { set; get; } //means there will be no expiration check before signing
+		[ArgBinding("add_signing_time")]
+		public bool IsAddSigningTime { set; get; }
 		[ArgBinding(_certificateSourceKey)]
 		public CertificateProcessor.CertificateSource CertSource { set; get; }
 		//================================
@@ -72,6 +74,7 @@ namespace UniDsproc.DataModel
 
 			SigType = SignatureType.Unknown;
 			IgnoreExpiredCert = false;
+			IsAddSigningTime = false;
 			CertSource = CertificateProcessor.CertificateSource.Unknown;
 
 			if (args.Length == 0)

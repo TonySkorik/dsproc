@@ -15,7 +15,8 @@ namespace Space.Core.Interfaces
 			string signThisPath,
 			bool assignDs,
 			string nodeToSign,
-			bool ignoreExpiredCert = false);
+			bool ignoreExpiredCert = false,
+			bool? isAddSigningTime = null);
 
 		string Sign(
 			SignatureType mode,
@@ -24,7 +25,8 @@ namespace Space.Core.Interfaces
 			string certificateThumbprint,
 			string nodeToSign,
 			bool assignDs = false,
-			bool ignoreExpiredCert = false);
+			bool ignoreExpiredCert = false,
+			bool? isAddSigningTime = null);
 
 		string Sign(
 			SignatureType mode,
@@ -33,7 +35,8 @@ namespace Space.Core.Interfaces
 			string certificateThumbprint,
 			string nodeToSign,
 			bool assignDs = false,
-			bool ignoreExpiredCert = false);
+			bool ignoreExpiredCert = false,
+			bool? isAddSigningTime = null);
 
 		(string SignedData, bool IsResultBase64Bytes) Sign(
 			SignatureType mode,
@@ -41,6 +44,7 @@ namespace Space.Core.Interfaces
 			string certificateThumbprint,
 			byte[] bytesToSign,
 			string nodeToSign,
-			bool ignoreExpiredCert = false);
+			bool ignoreExpiredCert = false,
+			bool? isAddSigningTime = null);
 	}
 }
