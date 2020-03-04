@@ -222,6 +222,11 @@ namespace UniDsproc
 				$"		If 'false' and certificate is expired - error returned\n" +
 				$"		Possible values : 'true', 'false', '1', '0', 'on', 'off'\n" +
 				$"		Default value : 'false' \n\n" +
+				$"  add_signing_time [EXPERIMAENTAL]\n" +
+				$"		Add signing time to a signed message attrinutes\n" +
+				$"		Works only for Pkcs#7 signatures\n" +
+				$"		Possible values : 'true', 'false', '1', '0', 'on', 'off'\n" +
+				$"		Default value : 'false' \n\n" +
 				$"  certificate_source [*:verify, verifyAndExtract]\n" +
 				$"		Sets the source from which to extract the certificate\n" +
 				$"		Possible values : 'xml', 'base64', 'cer'" +
