@@ -31,7 +31,7 @@ namespace UniDsproc.Api.Controllers.V1
 			_signer = new Signer();
 		}
 
-		[HttpGet]
+		[HttpPost]
 		[Route(("{command}"))]
 		public async Task<IHttpActionResult> Command(string command)
 		{
