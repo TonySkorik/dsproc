@@ -159,7 +159,7 @@ namespace UniDsproc.Api.Controllers.V1
 
 			ArgsInfo argsInfo = new ArgsInfo(args.ToArray(), true);
 
-			var dataToSignFile = streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == "data_to_sign");
+			var dataToSignFile = streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == "data_file");
 
 			byte[] dataToSign = null;
 			if (dataToSignFile != null)
