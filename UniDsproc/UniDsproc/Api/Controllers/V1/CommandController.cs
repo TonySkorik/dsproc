@@ -40,7 +40,7 @@ namespace UniDsproc.Api.Controllers.V1
 		{
 			if (!Request.IsAuthorized())
 			{
-				Log.Logger.Fatal($"Blocked WebApiHost request from {Request.GetRemoteIp()}.");
+				Log.Fatal("Blocked WebApiHost request from {blockedIp}.", Request.GetRemoteIp());
 				return StatusCode(HttpStatusCode.Forbidden);
 			}
 
@@ -94,12 +94,12 @@ namespace UniDsproc.Api.Controllers.V1
 			}
 			catch (OperationCanceledException opce)
 			{
-				Log.Logger.Warning("Client disconnected prior to singing completion.");
+				Log.Warning("Client disconnected prior to singing completion.");
 				return BadRequest(opce.Message);
 			}
 			catch (Exception ex)
 			{
-				Log.Logger.Error(ex, "Error occured during signing process with command: {command}", command);
+				Log.Error(ex, "Error occured during signing process with command: {command}", command);
 				return BadRequest(ex.Message);
 			}
 			finally
