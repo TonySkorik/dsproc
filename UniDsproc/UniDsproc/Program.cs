@@ -16,8 +16,8 @@ namespace UniDsproc
 {
 	internal class Program
 	{
-		public static string Version =>
-			$"{Assembly.GetExecutingAssembly().GetName().Version.Major}"
+		public static string Version { get; } =
+		$"{Assembly.GetExecutingAssembly().GetName().Version.Major}"
 			+ $".{Assembly.GetExecutingAssembly().GetName().Version.Minor}"
 			+ $".{Assembly.GetExecutingAssembly().GetName().Version.Build}"
 			+ $".{Assembly.GetExecutingAssembly().GetName().Version.Revision}";

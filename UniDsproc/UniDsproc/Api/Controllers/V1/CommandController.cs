@@ -83,7 +83,9 @@ namespace UniDsproc.Api.Controllers.V1
 						};
 
 						returnMessage.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-						returnMessage.Headers.Add("UniDsProcVersion", Program.Version);
+
+						returnMessage.Headers.Add("UniApp", "UnDsProc");
+						returnMessage.Headers.Add("UniVersion", Program.Version);
 
 						return ResponseMessage(returnMessage);
 					default:
