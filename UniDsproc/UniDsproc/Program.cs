@@ -16,11 +16,12 @@ namespace UniDsproc
 {
 	internal class Program
 	{
-		private static string GetVersion =>
+		public static string Version =>
 			$"{Assembly.GetExecutingAssembly().GetName().Version.Major}"
 			+ $".{Assembly.GetExecutingAssembly().GetName().Version.Minor}"
 			+ $".{Assembly.GetExecutingAssembly().GetName().Version.Build}"
 			+ $".{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
+
 		private static string GetVersionName => "API-enabled";
 
 		public static WebApiHost WebApiHost { get; private set; }
@@ -144,7 +145,7 @@ namespace UniDsproc
 		#region [HELP MESSAGE]
 		private static void ShowHelp()
 		{
-			string version = $"{GetVersion} {GetVersionName}";
+			string version = $"{Version} {GetVersionName}";
 			var separator = $"{new string('-', 32)}\n";
 			string ntt = "\n\t\t    ";
 			string help = $"[UniDSProc v{version}]\n" +

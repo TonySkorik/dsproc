@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Management.Instrumentation;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -67,15 +69,23 @@ namespace UniDsproc.Api.Controllers.V1
 							input.ArgsInfo.IgnoreExpiredCert,
 							input.ArgsInfo.IsAddSigningTime);
 
-						var valueToReturn = signerResult.IsResultBase64Bytes
-							? (IHttpActionResult)Content(
-								HttpStatusCode.OK,
-								Convert.FromBase64String(signerResult.SignedData))
-							: (IHttpActionResult)Content(
-								HttpStatusCode.OK,
-								signerResult.SignedData);
+						//var signerResult = (SignedData:"Test", IsResultBase64Bytes:false);
 
-						return valueToReturn;
+						var binaryData = signerResult.IsResultBase64Bytes
+							? Convert.FromBase64String(signerResult.SignedData)
+							: Encoding.UTF8.GetBytes(signerResult.SignedData);
+
+						var streamToReturn = new MemoryStream(binaryData);
+
+						var returnMessage= new HttpResponseMessage(HttpStatusCode.OK)
+						{
+							Content = new StreamContent(streamToReturn),
+						};
+
+						returnMessage.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+						returnMessage.Headers.Add("UniDsProcVersion", Program.Version);
+
+						return ResponseMessage(returnMessage);
 					default:
 						return BadRequest($"Command {command} not supported.");
 				}
