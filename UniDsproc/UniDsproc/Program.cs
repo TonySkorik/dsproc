@@ -77,7 +77,7 @@ namespace UniDsproc
 
 		public static AppSettings GetConfiguration()
 		{
-			var configRoot = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+			var configRoot = new ConfigurationBuilder().AddJsonFile("UniDsproc.json").Build();
 			AppSettings ret = configRoot.Get<AppSettings>();
 			return ret;
 		}
