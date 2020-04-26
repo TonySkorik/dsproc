@@ -25,7 +25,7 @@ namespace UniDsproc.Api
 
 		#region Private
 
-		private static readonly object SyncRoot = new object();
+		private static readonly object _syncRoot = new object();
 		private IDisposable _apiServer;
 		private readonly HashSet<string> _allowedIpAddresses;
 
@@ -77,7 +77,7 @@ namespace UniDsproc.Api
 
 		public void ClientConnected()
 		{
-			lock (SyncRoot)
+			lock (_syncRoot)
 			{
 				ConnectedClientsCount++;
 			}
@@ -85,7 +85,7 @@ namespace UniDsproc.Api
 
 		public void ClientDisconnected()
 		{
-			lock (SyncRoot)
+			lock (_syncRoot)
 			{
 				ConnectedClientsCount--;
 			}

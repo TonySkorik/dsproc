@@ -76,9 +76,6 @@ namespace UniDsproc.Api.Controllers.V1
 								signerResult.SignedData);
 
 						return valueToReturn;
-					case ProgramFunction.Verify:
-					case ProgramFunction.Extract:
-					case ProgramFunction.VerifyAndExtract:
 					default:
 						return BadRequest($"Command {command} not supported.");
 				}
