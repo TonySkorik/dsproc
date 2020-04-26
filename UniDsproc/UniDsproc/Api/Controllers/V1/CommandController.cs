@@ -5,6 +5,7 @@ using System.Management.Instrumentation;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Formatting;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,20 +41,20 @@ namespace UniDsproc.Api.Controllers.V1
 				Log.Logger.Fatal($"Blocked WebApiHost request from {Request.GetRemoteIp()}.");
 				return StatusCode(HttpStatusCode.Forbidden);
 			}
-
-			Program.WebApiHost.ClientConnected();
-
-			SignerInputParameters input = await ReadSignerParameters(Request, command);
-
-			var validationResult = ValidateParameters(input);
-
-			if (!validationResult.isParametersOk)
-			{
-				return BadRequest(validationResult.errorReason);
-			}
-
+			
 			try
 			{
+				Program.WebApiHost.ClientConnected();
+
+				SignerInputParameters input = await ReadSignerParameters(Request, command);
+
+				var validationResult = ValidateParameters(input);
+
+				if (!validationResult.isParametersOk)
+				{
+					return BadRequest(validationResult.errorReason);
+				}
+
 				switch (input.ArgsInfo.Function)
 				{
 					case ProgramFunction.Sign:
@@ -86,7 +87,7 @@ namespace UniDsproc.Api.Controllers.V1
 			}
 			catch (Exception ex)
 			{
-				Log.Logger.Error(ex, "Error occured during signing process");
+				Log.Logger.Error(ex, "Error occured during signing process with command: {command}", command);
 				return BadRequest(ex.Message);
 			}
 			finally
