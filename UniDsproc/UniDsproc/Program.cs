@@ -70,9 +70,12 @@ namespace UniDsproc
 		{
 			var loggerConfig = new LoggerConfiguration()
 				.WriteTo
-				.File(settings.Logger.FilePath, settings.Logger.MinimumEventLevel)
+				.File(settings.Logger.FilePath)
 				.WriteTo
-				.Console();
+				.Console()
+				.MinimumLevel
+				.Is(settings.Logger.MinimumEventLevel);
+
 			Log.Logger = loggerConfig.CreateLogger();
 		}
 

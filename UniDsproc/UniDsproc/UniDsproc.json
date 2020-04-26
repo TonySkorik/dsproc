@@ -5,7 +5,7 @@
 	},
 	"ApiHost": {
 		"Protocol": "http",
-		"Port": 5000,
+		"Port": 5550,
 		"AllowedIpAddresses": [
 			"localhost"
 		]

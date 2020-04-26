@@ -56,7 +56,7 @@ namespace UniDsproc.Api.Controllers.V1
 				{
 					return BadRequest(validationResult.errorReason);
 				}
-
+				
 				switch (input.ArgsInfo.Function)
 				{
 					case ProgramFunction.Sign:
@@ -85,7 +85,7 @@ namespace UniDsproc.Api.Controllers.V1
 						returnMessage.Headers.Add("UniApp", "UnDsProc");
 						returnMessage.Headers.Add("UniVersion", Program.Version);
 
-						Log.Logger.Debug("Successfully signed file with command {command}", command);
+						Log.Debug("Successfully signed file with command {command}", command);
 
 						return ResponseMessage(returnMessage);
 					default:
