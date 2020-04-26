@@ -67,6 +67,8 @@ namespace UniDsproc.Api
 			Protocol = settings.ApiHost.Protocol;
 			Port = settings.ApiHost.Port;
 			_allowedIpAddresses = settings.ApiHost.AllowedIpAddresses;
+			_allowedIpAddresses.Add("::1");
+			_allowedIpAddresses.Add("localhost");
 		} 
 
 		#endregion

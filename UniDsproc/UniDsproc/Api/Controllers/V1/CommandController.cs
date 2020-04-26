@@ -67,17 +67,15 @@ namespace UniDsproc.Api.Controllers.V1
 							input.ArgsInfo.IgnoreExpiredCert,
 							input.ArgsInfo.IsAddSigningTime);
 
-						return signerResult.IsResultBase64Bytes
+						var valueToReturn = signerResult.IsResultBase64Bytes
 							? (IHttpActionResult)Content(
 								HttpStatusCode.OK,
-								Convert.FromBase64String(signerResult.SignedData),
-								new FormUrlEncodedMediaTypeFormatter(),
-								"application/x-binary")
+								Convert.FromBase64String(signerResult.SignedData))
 							: (IHttpActionResult)Content(
 								HttpStatusCode.OK,
-								signerResult.SignedData,
-								new FormUrlEncodedMediaTypeFormatter(),
-								"application/x-www-form-urlencoded");
+								signerResult.SignedData);
+
+						return valueToReturn;
 					case ProgramFunction.Verify:
 					case ProgramFunction.Extract:
 					case ProgramFunction.VerifyAndExtract:
@@ -87,7 +85,7 @@ namespace UniDsproc.Api.Controllers.V1
 			}
 			catch (OperationCanceledException opce)
 			{
-				Log.Warning("Client disconnected prior to singing completion.");
+				Log.Logger.Warning("Client disconnected prior to singing completion.");
 				return BadRequest(opce.Message);
 			}
 			catch (Exception ex)
