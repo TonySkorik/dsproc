@@ -41,7 +41,7 @@ namespace UniDsproc.Api.Controllers.V1
 				Log.Logger.Fatal($"Blocked WebApiHost request from {Request.GetRemoteIp()}.");
 				return StatusCode(HttpStatusCode.Forbidden);
 			}
-			
+
 			try
 			{
 				Program.WebApiHost.ClientConnected();
@@ -68,22 +68,27 @@ namespace UniDsproc.Api.Controllers.V1
 							input.ArgsInfo.IsAddSigningTime);
 
 						return signerResult.IsResultBase64Bytes
-							? (IHttpActionResult) Content(
+							? (IHttpActionResult)Content(
 								HttpStatusCode.OK,
 								Convert.FromBase64String(signerResult.SignedData),
 								new FormUrlEncodedMediaTypeFormatter(),
 								"application/x-binary")
-							: (IHttpActionResult) Content(
+							: (IHttpActionResult)Content(
 								HttpStatusCode.OK,
 								signerResult.SignedData,
 								new FormUrlEncodedMediaTypeFormatter(),
-								"text/plain;base64");
+								"application/x-www-form-urlencoded");
 					case ProgramFunction.Verify:
 					case ProgramFunction.Extract:
 					case ProgramFunction.VerifyAndExtract:
 					default:
 						return BadRequest($"Command {command} not supported.");
 				}
+			}
+			catch (OperationCanceledException opce)
+			{
+				Log.Warning("Client disconnected prior to singing completion.");
+				return BadRequest(opce.Message);
 			}
 			catch (Exception ex)
 			{
@@ -94,7 +99,6 @@ namespace UniDsproc.Api.Controllers.V1
 			{
 				Program.WebApiHost.ClientDisconnected();
 			}
-
 		}
 
 		#region Test methods
@@ -154,6 +158,10 @@ namespace UniDsproc.Api.Controllers.V1
 			if (dataToSignFile != null)
 			{
 				dataToSign = await dataToSignFile.ReadAsByteArrayAsync();
+			}
+			else
+			{
+				Log.Error("File to sign is not found.");
 			}
 
 			SignerInputParameters ret = new SignerInputParameters()
