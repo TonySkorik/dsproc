@@ -21,7 +21,6 @@ namespace UniDsproc.DataModel
 
 	public class ArgsInfo
 	{
-
 		#region [AVAILABLE KEYS]
 
 		private const string _signatureTypeKey = "signature_type";
@@ -432,6 +431,11 @@ namespace UniDsproc.DataModel
 				#endregion
 			}
 			#endregion
+		}
+
+		public override string ToString()
+		{
+			return $"{nameof(SignatureType)}={SigType};{nameof(GostFlavor)}={GostFlavor};{nameof(CertThumbprint)}={CertThumbprint};{nameof(NodeId)}={NodeId}";
 		}
 	}
 }

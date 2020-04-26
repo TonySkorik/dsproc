@@ -85,7 +85,7 @@ namespace UniDsproc.Api.Controllers.V1
 						returnMessage.Headers.Add("UniApp", "UnDsProc");
 						returnMessage.Headers.Add("UniVersion", Program.Version);
 
-						Log.Debug("Successfully signed file with command {command}", command);
+						Log.Debug("Successfully signed file with following parameters: [{parameters}]", input.ArgsInfo.ToString());
 
 						return ResponseMessage(returnMessage);
 					default:
