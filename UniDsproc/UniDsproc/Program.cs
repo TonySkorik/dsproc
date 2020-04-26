@@ -88,30 +88,36 @@ namespace UniDsproc
 
 		private static void ConfigureService(string verb)
 		{
-			var host = HostFactory.New(
-				x =>
-				{
-					x.Service<WebApiHost>(
-						s =>
-						{
-							s.ConstructUsing(() => WebApiHost);
-							s.WhenStarted(apiHost => apiHost.Start());
-							s.WhenStopped(apiHost => apiHost.Stop());
-						});
-					x.RunAsLocalSystem();
-					x.StartAutomatically();
-					
+			try
+			{
+				var host = HostFactory.New(
+					x =>
+					{
+						x.Service<WebApiHost>(
+							s =>
+							{
+								s.ConstructUsing(() => WebApiHost);
+								s.WhenStarted(apiHost => apiHost.Start());
+								s.WhenStopped(apiHost => apiHost.Stop());
+							});
+						x.RunAsLocalSystem();
+						x.StartAutomatically();
 
-					x.ApplyCommandLine(verb);
-					x.SetDescription("UniDsProc signing service");
-					x.SetDisplayName("UniDsProcApi");
-					x.SetServiceName("UniDsProcApi");
-				});
-			
-			var rc = host.Run();
+						x.ApplyCommandLine(verb);
+						x.SetDescription("UniDsProc signing service");
+						x.SetDisplayName("UniDsProcApi");
+						x.SetServiceName("UniDsProcApi");
+					});
 
-			var exitCode = (int)Convert.ChangeType(rc, rc.GetTypeCode());
-			Environment.ExitCode = exitCode;
+				var rc = host.Run();
+
+				var exitCode = (int)Convert.ChangeType(rc, rc.GetTypeCode());
+				Environment.ExitCode = exitCode;
+			}
+			catch (Exception ex)
+			{
+				Log.Logger.Error("Exception happened during service startup. {ex}", ex);
+			}
 		}
 
 		#endregion
