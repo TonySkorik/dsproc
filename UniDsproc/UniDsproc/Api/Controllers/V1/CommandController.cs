@@ -69,8 +69,6 @@ namespace UniDsproc.Api.Controllers.V1
 							input.ArgsInfo.IgnoreExpiredCert,
 							input.ArgsInfo.IsAddSigningTime);
 
-						//var signerResult = (SignedData:"Test", IsResultBase64Bytes:false);
-
 						var binaryData = signerResult.IsResultBase64Bytes
 							? Convert.FromBase64String(signerResult.SignedData)
 							: Encoding.UTF8.GetBytes(signerResult.SignedData);
@@ -86,6 +84,8 @@ namespace UniDsproc.Api.Controllers.V1
 
 						returnMessage.Headers.Add("UniApp", "UnDsProc");
 						returnMessage.Headers.Add("UniVersion", Program.Version);
+
+						Log.Logger.Debug("Successfully signed file with command {command}", command);
 
 						return ResponseMessage(returnMessage);
 					default:
