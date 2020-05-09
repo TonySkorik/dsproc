@@ -20,6 +20,7 @@ using Space.Core.Interfaces;
 using UniDsproc.Api.Helpers;
 using UniDsproc.Api.Infrastructure;
 using UniDsproc.Api.Model;
+using UniDsproc.Configuration;
 using UniDsproc.DataModel;
 
 namespace UniDsproc.Api.Controllers.V1
@@ -27,11 +28,13 @@ namespace UniDsproc.Api.Controllers.V1
 	[RoutePrefix("api/v1")]
 	public class CommandController : ApiController
 	{
+		private readonly AppSettings _settings;
 		private readonly ISigner _signer;
-
-		public CommandController()
-		{ 
-			_signer = new Signer();
+		
+		public CommandController(AppSettings settings, ISigner signer)
+		{
+			_settings = settings;
+			_signer = signer;
 		}
 
 		[HttpPost]
@@ -63,10 +66,10 @@ namespace UniDsproc.Api.Controllers.V1
 						var signerResult = _signer.Sign(
 							input.ArgsInfo.SigType,
 							input.ArgsInfo.GostFlavor,
-							input.ArgsInfo.CertThumbprint,
+							input.ArgsInfo.CertificateThumbprint,
 							input.DataToSign,
 							input.ArgsInfo.NodeId,
-							input.ArgsInfo.IgnoreExpiredCert,
+							input.ArgsInfo.IgnoreExpiredCertificate,
 							input.ArgsInfo.IsAddSigningTime);
 
 						var binaryData = signerResult.IsResultBase64Bytes
@@ -157,7 +160,7 @@ namespace UniDsproc.Api.Controllers.V1
 				args.Add($"-{key}={value}");
 			}
 
-			ArgsInfo argsInfo = new ArgsInfo(args.ToArray(), true);
+			ArgsInfo argsInfo = ArgsInfo.Parse(args.ToArray(), true, _settings.Singner.KnownThumbprints);
 
 			var dataToSignFile = streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == "data_file");
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.OleDb;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -21,251 +22,257 @@ namespace UniDsproc.DataModel
 
 	public class ArgsInfo
 	{
-		#region [AVAILABLE KEYS]
+		#region Private
 
 		private const string _signatureTypeKey = "signature_type";
-		//private const string _smevModeKey = "smev_mode";
-		//private const string _nodeIdKey = "node_id";
-		//private const string _nodeNameKey = "node_name";
-		//private const string _nodeNamespaceKey = "node_namespace";
 		private const string _certificateThumbprintKey = "thumbprint";
+		private const string _certificateNickKey = "cert_nick";
 		private const string _cerFilePathKey = "cer_file";
 		private const string _certificateSourceKey = "certificate_source";
-
-		private readonly Dictionary<string, PropertyInfo> _knownArgs = CommandLineBind.BuildBindings(typeof(ArgsInfo));
+		private static readonly Dictionary<string, PropertyInfo> _knownArgs = CommandLineBind.BuildBindings(typeof(ArgsInfo));
 
 		#endregion
 
-		#region [P & F]
+		#region Props
+		
+		#region Set via reflection
 
-		public readonly ProgramFunction Function;
-		//=============================== via reflection set
-		[ArgBinding("signature_type")]
+		[ArgBinding(_signatureTypeKey)]
 		public SignatureType SigType { set; get; }
 		[ArgBinding("gost_flavor")]
 		public GostFlavor GostFlavor { set; get; } = GostFlavor.Gost_Obsolete;
 		[ArgBinding("node_id")]
 		public string NodeId { set; get; }
-		[ArgBinding("thumbprint")]
-		public string CertThumbprint { set; get; }
-		[ArgBinding("cer_file")]
-		public string CertFilePath { set; get; }
+		[ArgBinding(_certificateThumbprintKey)]
+		public string CertificateThumbprint { set; get; }
+		[ArgBinding(_certificateNickKey)]
+		public string CertificateNick { set; get; }
+		[ArgBinding(_cerFilePathKey)]
+		public string CertificateFilePath { set; get; }
 		[ArgBinding("ds")]
 		public bool AssignDsInSignature { set; get; } // digital signature nodes will be put in XML namespace ds:
 		[ArgBinding("ignore_expired")]
-		public bool IgnoreExpiredCert { set; get; } //means there will be no expiration check before signing
+		public bool IgnoreExpiredCertificate { set; get; } //means there will be no expiration check before signing
 		[ArgBinding("add_signing_time")]
 		public bool IsAddSigningTime { set; get; }
 		[ArgBinding(_certificateSourceKey)]
-		public CertificateProcessor.CertificateSource CertSource { set; get; }
-		//================================
-		public CertificateLocation CertLocation;
-		public string InputFile { get; }
-		public string OutputFile { get; }
-		public bool Ok { get; }
-		public ErrorInfo InitError { get; }
+		public CertificateProcessor.CertificateSource CertificateSource { set; get; } 
 
 		#endregion
 
-		public ArgsInfo(string[] args, bool isBypassFileChecks)
+		public ProgramFunction Function { get; private set; }
+		public CertificateLocation CertificateLocation { private set; get; }
+		public string InputFile { get; private set; }
+		public string OutputFile { get; private set; }
+		public bool Ok { get; private set; }
+		public ErrorInfo InitError { get; private set; }
+
+		#endregion
+
+		#region Ctor
+
+		/// <summary>
+		/// Prevents a default instance of the <see cref="ArgsInfo"/> class from being created.
+		/// </summary>
+		private ArgsInfo()
 		{
 			Ok = false;
 
 			SigType = SignatureType.Unknown;
-			IgnoreExpiredCert = false;
+			IgnoreExpiredCertificate = false;
 			IsAddSigningTime = false;
-			CertSource = CertificateProcessor.CertificateSource.Unknown;
+			CertificateSource = CertificateProcessor.CertificateSource.Unknown;
+		}
+		
+		#endregion
+
+		#region Methods for arguments parsing
+
+		public static ArgsInfo Parse(string[] args, bool isBypassFileChecks, Dictionary<string, string> knownCertificateThumbprints)
+		{
+			var ret = new ArgsInfo();
 
 			if (args.Length == 0)
 			{
-				InitError = new ErrorInfo(
+				ret.InitError = new ErrorInfo(
 					ErrorCodes.ArgumentNullValue,
 					ErrorType.ArgumentParsing,
 					"Command line is empty!");
-				return;
+				return ret;
 			}
 
 			string function = args[0];
-			if (!Enum.TryParse(function, true, out Function))
+			if (!Enum.TryParse(function, true, out ProgramFunction parsedFunction))
 			{
-				InitError = new ErrorInfo(
+				ret.InitError = new ErrorInfo(
 					ErrorCodes.UnknownFunction,
 					ErrorType.ArgumentParsing,
 					$"Unknown program command - <{function}>");
-				return;
+				return ret;
 			}
 
-			#region [SWITCHES PARSING]
-			Dictionary<string, string> switches = new Dictionary<string, string>();
+			ret.Function = parsedFunction;
+
 			try
 			{
-				switches =
-					args
-						.Where(arg => arg.StartsWith("-"))
-						.Select((arg) => arg.Split('='))
-						.ToDictionary(
-							(argvs) =>
-							{
-								string keyName = argvs[0].Substring(1);
-								if (_knownArgs.ContainsKey(keyName))
-								{
-									return argvs[0].Substring(1);
-								}
-
-								throw new ArgumentOutOfRangeException(keyName, $"Unknown argument <{keyName}>");
-							},
-							(argvs) =>
-							{
-								string keyName = argvs[0].Substring(1);
-								if (!string.IsNullOrEmpty(argvs[1]))
-								{
-									if (_knownArgs.ContainsKey(keyName))
-									{
-										if (_knownArgs[keyName].PropertyType.Name == typeof(bool).Name)
-										{
-											//bool
-											_knownArgs[keyName].SetValue(
-												this,
-												argvs[1].ToLower() == "true" || argvs[1] == "1"
-												|| argvs[1].ToLower() == "on");
-										}
-										else if (_knownArgs[keyName].PropertyType.Name == typeof(byte).Name)
-										{
-											//byte
-											if (byte.TryParse(argvs[1], out byte smevNum))
-											{
-												if (smevNum == 2
-													|| smevNum == 3)
-												{
-													_knownArgs[keyName].SetValue(this, smevNum);
-												}
-												else
-												{
-													throw new ArgumentNullException(
-														keyName,
-														$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values : <2> or <3>");
-												}
-											}
-											else
-											{
-												throw new ArgumentNullException(
-													keyName,
-													$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values : <2> or <3>");
-											}
-
-										}
-										else if (_knownArgs[keyName].PropertyType.Name == typeof(SignatureType).Name)
-										{
-											//SignatureType
-											if (Enum.TryParse(
-												argvs[1].Replace(".", "").Replace("_", ""),
-												true,
-												out SignatureType stype))
-											{
-												_knownArgs[keyName].SetValue(this, stype);
-											}
-											else
-											{
-												throw new ArgumentNullException(
-													keyName,
-													$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <smev2_base.detached>, <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>, <smev3_sidebyside.detached>, <smev3_ack>, <sig.detached>");
-											}
-										}
-										else if (_knownArgs[keyName].PropertyType.Name == typeof(GostFlavor).Name)
-										{
-											//GostFlavor
-											if (Enum.TryParse(argvs[1], true, out GostFlavor gostFlavor))
-											{
-												_knownArgs[keyName].SetValue(this, gostFlavor);
-											}
-											else
-											{
-												_knownArgs[keyName].SetValue(this, GostFlavor.Gost_Obsolete);
-												//throw new ArgumentNullException(keyName, $"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <None>, <Gost_Obsolete>, <Gost2012_256>, <Gost2012_512>");
-											}
-										}
-										else if (_knownArgs[keyName].PropertyType.Name
-											== typeof(CertificateProcessor.CertificateSource).Name)
-										{
-											//CertificateSource
-											if (Enum.TryParse(
-												argvs[1].Replace(".", "").Replace("_", ""),
-												true,
-												out CertificateProcessor.CertificateSource csource))
-											{
-												_knownArgs[keyName].SetValue(this, csource);
-											}
-											else
-											{
-												throw new ArgumentNullException(
-													keyName,
-													$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <xml> <base64> <cer>");
-											}
-										}
-										else
-										{
-											//string
-											if (keyName == _cerFilePathKey
-												&& !File.Exists(argvs[1]))
-											{
-												throw new ArgumentNullException(
-													keyName,
-													$"Argument <{keyName}> value <{argvs[1]}> is invalid. File not found.");
-											}
-
-											_knownArgs[keyName].SetValue(this, argvs[1]);
-										}
-									}
-
-									return argvs[1];
-								}
-
-								throw new ArgumentNullException(keyName, $"Argument <{keyName}> value is NULL");
-							});
-			}
-			catch (ArgumentOutOfRangeException e)
-			{
-				InitError = new ErrorInfo(ErrorCodes.UnknownArgument, ErrorType.ArgumentParsing, e.Message);
-				return;
-			}
-			catch (ArgumentNullException e)
-			{
-				InitError = new ErrorInfo(ErrorCodes.ArgumentInvalidValue, ErrorType.ArgumentParsing, e.Message);
-				return;
+				ParseKnownSwitches(ret, args);
+				args = args.Where(arg => !arg.StartsWith("-")).ToArray();
 			}
 			catch (Exception e)
 			{
-				InitError = new ErrorInfo(
+				ret.InitError = new ErrorInfo(
 					ErrorCodes.UnknownException,
 					ErrorType.ArgumentParsing,
-					$"Unknown exception : {e.Message}");
-				return;
+					$"Unknown exception happened during command line switches parse: {e.Message}");
+				return ret;
 			}
-			#endregion
 
-			//remove switches from comand line
-			args = args.Where(arg => !arg.StartsWith("-")).ToArray();
-
-			#region [FUNCTION BASED ARGS CHECK]
-			
-			switch (Function)
+			// set certificate thumbprint from certificate thumbprint nick
+			if (string.IsNullOrEmpty(ret.CertificateThumbprint)
+				&& !string.IsNullOrEmpty(ret.CertificateNick)
+				&& knownCertificateThumbprints.ContainsKey(ret.CertificateNick.ToLowerInvariant()))
 			{
-				case ProgramFunction.Sign:
+				ret.CertificateThumbprint = knownCertificateThumbprints[ret.CertificateNick.ToLowerInvariant()];
+			}
 
-					#region [SIGN]
+			CheckArgumentsAndSetFiles(ret, args, isBypassFileChecks);
 
-					if (string.IsNullOrEmpty(CertThumbprint))
+			return ret;
+		}
+
+		private static void ParseKnownSwitches(ArgsInfo target, string[] args)
+		{
+			foreach (var argvs in args.Where(arg => arg.StartsWith("-")).Select((arg) => arg.Split('=')))
+			{
+				string keyName = argvs[0].Substring(1);
+				if (!_knownArgs.ContainsKey(keyName))
+				{
+					target.InitError = new ErrorInfo(ErrorCodes.UnknownArgument, ErrorType.ArgumentParsing, $"Unknown argument <{keyName}>");
+					return;
+				}
+
+				if (string.IsNullOrEmpty(argvs[1]))
+				{
+					target.InitError = new ErrorInfo(ErrorCodes.ArgumentInvalidValue, ErrorType.ArgumentParsing, $"Argument <{keyName}> value is NULL");
+					return;
+				}
+
+				if (_knownArgs[keyName].PropertyType.Name == nameof(Boolean))
+				{
+					//parse bool
+					_knownArgs[keyName].SetValue(
+						target,
+						argvs[1].ToLower() == "true" || argvs[1] == "1"
+						|| argvs[1].ToLower() == "on");
+				}
+				else if (_knownArgs[keyName].PropertyType.Name == nameof(Byte))
+				{
+					//parse byte
+					if (byte.TryParse(argvs[1], out byte smevNum))
 					{
-						InitError = new ErrorInfo(
-							ErrorCodes.ArgumentNullValue,
+						if (smevNum == 2
+							|| smevNum == 3)
+						{
+							_knownArgs[keyName].SetValue(target, smevNum);
+						}
+						else
+						{
+							target.InitError = new ErrorInfo(
+								ErrorCodes.ArgumentInvalidValue,
+								ErrorType.ArgumentParsing,
+								$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values : <2> or <3>");
+							return;
+						}
+					}
+					else
+					{
+						target.InitError = new ErrorInfo(
+							ErrorCodes.ArgumentInvalidValue,
 							ErrorType.ArgumentParsing,
-							$"<{_certificateThumbprintKey}> value is empty! This value is required!");
+							$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values : <2> or <3>");
 						return;
 					}
 
-					if (SigType == SignatureType.Unknown)
+				}
+				else if (_knownArgs[keyName].PropertyType.Name == nameof(SignatureType))
+				{
+					//parse SignatureType
+					if (Enum.TryParse(
+						argvs[1].Replace(".", "").Replace("_", ""),
+						true,
+						out SignatureType stype))
 					{
-						InitError = new ErrorInfo(
+						_knownArgs[keyName].SetValue(target, stype);
+					}
+					else
+					{
+						target.InitError = new ErrorInfo(
+							ErrorCodes.ArgumentInvalidValue,
+							ErrorType.ArgumentParsing,
+							$"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <smev2_base.detached>, <smev2_charge.enveloped>, <smev2_sidebyside.detached>, <smev3_base.detached>, <smev3_sidebyside.detached>, <smev3_ack>, <sig.detached>");
+						return;
+					}
+				}
+				else if (_knownArgs[keyName].PropertyType.Name == nameof(Space.Core.Infrastructure.GostFlavor))
+				{
+					//parse GostFlavor
+					_knownArgs[keyName].SetValue(
+						target,
+						Enum.TryParse(argvs[1], true, out GostFlavor gostFlavor)
+							? gostFlavor
+							: GostFlavor.Gost_Obsolete);
+				}
+				else if (_knownArgs[keyName].PropertyType.Name == nameof(CertificateProcessor.CertificateSource))
+				{
+					//parse CertificateSource
+					if (Enum.TryParse(
+						argvs[1].Replace(".", "").Replace("_", ""),
+						true,
+						out CertificateProcessor.CertificateSource csource))
+					{
+						_knownArgs[keyName].SetValue(target, csource);
+					}
+					else
+					{
+						target.InitError = new ErrorInfo(ErrorCodes.ArgumentInvalidValue, ErrorType.ArgumentParsing, $"Argument <{keyName}> value <{argvs[1]}> is invalid. Possible values are : <xml> <base64> <cer>");
+						return;
+					}
+				}
+				else
+				{
+					//parse string
+					if (keyName == _cerFilePathKey
+						&& !File.Exists(argvs[1]))
+					{
+						target.InitError = new ErrorInfo(
+							ErrorCodes.ArgumentInvalidValue,
+							ErrorType.ArgumentParsing,
+							$"Argument <{keyName}> value <{argvs[1]}> is invalid. File not found.");
+						return;
+					}
+
+					_knownArgs[keyName].SetValue(target, argvs[1]);
+				}
+			}
+		}
+
+		private static void CheckArgumentsAndSetFiles(ArgsInfo target, string[] args, bool isBypassFileChecks)
+		{
+			switch (target.Function)
+			{
+				case ProgramFunction.Sign:
+					if (string.IsNullOrEmpty(target.CertificateThumbprint) && string.IsNullOrEmpty(target.CertificateNick))
+					{
+						target.InitError = new ErrorInfo(
+							ErrorCodes.ArgumentNullValue,
+							ErrorType.ArgumentParsing,
+							$"Both <{_certificateThumbprintKey}> and <{_certificateNickKey}> values are empty! One of these values is required!");
+						return;
+					}
+
+					if (target.SigType == SignatureType.Unknown)
+					{
+						target.InitError = new ErrorInfo(
 							ErrorCodes.ArgumentNullValue,
 							ErrorType.ArgumentParsing,
 							$"<{_signatureTypeKey}> value is empty! This value is required!");
@@ -274,12 +281,12 @@ namespace UniDsproc.DataModel
 
 					if (isBypassFileChecks)
 					{
-						InputFile = null;
-						OutputFile = null;
-						Ok = true;
+						target.InputFile = null;
+						target.OutputFile = null;
+						target.Ok = true;
 						break;
 					}
-					
+
 					string infile = string.Empty;
 					string outfile = string.Empty;
 
@@ -291,7 +298,7 @@ namespace UniDsproc.DataModel
 					else if (args.Length == 2)
 					{
 						//means there is only one file passed - let it be input
-						InitError = new ErrorInfo(
+						target.InitError = new ErrorInfo(
 							ErrorCodes.ArgumentNullValue,
 							ErrorType.ArgumentParsing,
 							"Output file not specified!");
@@ -300,7 +307,7 @@ namespace UniDsproc.DataModel
 					else if (args.Length == 1)
 					{
 						//means no files passed
-						InitError = new ErrorInfo(
+						target.InitError = new ErrorInfo(
 							ErrorCodes.ArgumentNullValue,
 							ErrorType.ArgumentParsing,
 							"Neither input nor output file is specified!");
@@ -309,28 +316,23 @@ namespace UniDsproc.DataModel
 
 					if (File.Exists(infile))
 					{
-						InputFile = infile;
-						OutputFile = outfile;
-						Ok = true;
+						target.InputFile = infile;
+						target.OutputFile = outfile;
+						target.Ok = true;
 					}
 					else
 					{
-						InitError = new ErrorInfo(
+						target.InitError = new ErrorInfo(
 							ErrorCodes.FileNotExist,
 							ErrorType.ArgumentParsing,
 							$"Input file <{infile}> not found");
 					}
-					
 
 					break;
-				#endregion
-
 				case ProgramFunction.Extract:
-
-					#region [EXTRACT]
-					if (CertSource == CertificateProcessor.CertificateSource.Unknown)
+					if (target.CertificateSource == CertificateProcessor.CertificateSource.Unknown)
 					{
-						InitError = new ErrorInfo(
+						target.InitError = new ErrorInfo(
 							ErrorCodes.ArgumentNullValue,
 							ErrorType.ArgumentParsing,
 							$"<{_certificateSourceKey}> value is empty! This value is required!");
@@ -340,44 +342,39 @@ namespace UniDsproc.DataModel
 					string extractFile = args[args.Length - 1];
 					if (File.Exists(extractFile))
 					{
-						InputFile = extractFile;
-						Ok = true;
+						target.InputFile = extractFile;
+						target.Ok = true;
 					}
 					else
 					{
-						InitError = new ErrorInfo(
+						target.InitError = new ErrorInfo(
 							ErrorCodes.FileNotExist,
 							ErrorType.ArgumentParsing,
 							$"Input file <{extractFile}> not found");
 					}
 
 					break;
-				#endregion
-
 				case ProgramFunction.Verify:
 				case ProgramFunction.VerifyAndExtract:
-
-					#region [VERIFY]
-					if (SigType == SignatureType.Unknown)
+					if (target.SigType == SignatureType.Unknown)
 					{
-						InitError = new ErrorInfo(
+						target.InitError = new ErrorInfo(
 							ErrorCodes.ArgumentNullValue,
 							ErrorType.ArgumentParsing,
 							$"<{_signatureTypeKey}> value is empty! This value is required!");
 						return;
 					}
 
-					string verfile = string.Empty;
 					if (args.Length == 2)
 					{
-						verfile = args[args.Length - 1];
+						string verfile = args[args.Length - 1];
 						if (File.Exists(verfile))
 						{
-							InputFile = verfile;
+							target.InputFile = verfile;
 						}
 						else
 						{
-							InitError = new ErrorInfo(
+							target.InitError = new ErrorInfo(
 								ErrorCodes.FileNotExist,
 								ErrorType.ArgumentParsing,
 								$"Input file <{verfile}> not found");
@@ -387,55 +384,67 @@ namespace UniDsproc.DataModel
 					else if (args.Length < 2)
 					{
 						//means there is only one file passed - let it be input
-						InitError = new ErrorInfo(
+						target.InitError = new ErrorInfo(
 							ErrorCodes.ArgumentNullValue,
 							ErrorType.ArgumentParsing,
 							"Input file not specified!");
 						return;
 					}
 
-					if (!string.IsNullOrEmpty(CertThumbprint))
+					if (!string.IsNullOrEmpty(target.CertificateThumbprint))
 					{
 						//means there is a thumbprint
-						CertLocation = CertificateLocation.Thumbprint;
+						target.CertificateLocation = CertificateLocation.Thumbprint;
 					}
 					else
 					{
 						//no thumbprint passed
-						if (!string.IsNullOrEmpty(CertFilePath))
+						if (!string.IsNullOrEmpty(target.CertificateFilePath))
 						{
-							if (File.Exists(CertFilePath))
+							if (File.Exists(target.CertificateFilePath))
 							{
 								//means cer file exists
-								CertLocation = CertificateLocation.CerFile;
+								target.CertificateLocation = CertificateLocation.CerFile;
 							}
 							else
 							{
 								//passed file doesn't exist
-								InitError = new ErrorInfo(
+								target.InitError = new ErrorInfo(
 									ErrorCodes.ArgumentInvalidValue,
 									ErrorType.ArgumentParsing,
-									$"Certificate file <{CertFilePath}> not found");
+									$"Certificate file <{target.CertificateFilePath}> not found");
 								return;
 							}
 						}
 						else
 						{
 							//no thumbprint && cer file passed - check on X509Certificate node
-							CertLocation = CertificateLocation.Xml;
+							target.CertificateLocation = CertificateLocation.Xml;
 						}
 					}
 
-					Ok = true;
+					target.Ok = true;
 					break;
-				#endregion
+				default:
+					throw new ArgumentOutOfRangeException(nameof(target.Function), target.Function, "Unknown program function");
 			}
-			#endregion
 		}
 
+		#endregion
+
+		#region ToString implementation
+		
 		public override string ToString()
 		{
-			return $"{nameof(SignatureType)}={SigType};{nameof(GostFlavor)}={GostFlavor};{nameof(CertThumbprint)}={CertThumbprint};{nameof(NodeId)}={NodeId}";
-		}
+			var ret = $"{nameof(SignatureType)}={SigType};{nameof(GostFlavor)}={GostFlavor};{nameof(CertificateThumbprint)}={CertificateThumbprint};{nameof(NodeId)}={NodeId}";
+			if (!string.IsNullOrEmpty(CertificateNick))
+			{
+				ret = $"{ret};{nameof(CertificateNick)}={CertificateNick}";
+			}
+
+			return ret;
+		} 
+
+		#endregion
 	}
 }

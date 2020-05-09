@@ -9,5 +9,12 @@
 		"AllowedIpAddresses": [
 			"localhost"
 		]
+	},
+	"Singner": {
+		"KnownThumbprints": { // keys are compared in case insensitive mode but can be assigned in any form
+			"Sig1": "f0 43 bb 22 44 ad 2e 45 87 ae 7c b9 4d 5d bf 3d 45 09 c6 65", // redundant spaces are automatically removed
+			"sig2": "b9 4d 5d bf 3d 45 09 c6 65 ae f0 43 bb 22 44 ad 2e 45 87 7c",
+			"sig3": "6837c11a8ae04a1eec5b5d4e4d3957505cbd463d"
+		}
 	}
 }

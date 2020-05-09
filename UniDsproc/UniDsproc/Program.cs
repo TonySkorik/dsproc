@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Serilog;
@@ -28,40 +29,37 @@ namespace UniDsproc
 
 		private static void Main(string[] args)
 		{
-			if (args.Length > 0)
-			{
-				
-				if (args[0] == @"\?" || args[0] == @"?" || args[0] == "help")
-				{
-					ShowHelp();
-					return;
-				}
-
-				var configuration = GetConfiguration();
-				InitializeLogger(configuration);
-				WebApiHost = new WebApiHost(configuration);
-
-				if (args[0] == "api")
-				{ 
-					ConfigureService(string.Empty);
-				}
-
-				if (args[0] == "install" 
-					|| args[0] == "uninstall")
-				{ 
-					ConfigureService(args[0]);
-					return;
-				}
-
-				ArgsInfo a = new ArgsInfo(args, false);
-				var statusInfo = MainCore(a);
-				Console.WriteLine(statusInfo.ToJsonString());
-			}
-			else
+			if (args.Length <= 0)
 			{
 				ShowHelp();
 				return;
 			}
+			
+			if (args[0] == @"\?" || args[0] == @"?" || args[0] == "help")
+			{
+				ShowHelp();
+				return;
+			}
+
+			var configuration = GetConfiguration();
+			InitializeLogger(configuration);
+			WebApiHost = new WebApiHost(configuration);
+
+			if (args[0] == "api")
+			{ 
+				ConfigureService(string.Empty);
+			}
+
+			if (args[0] == "install" 
+				|| args[0] == "uninstall")
+			{ 
+				ConfigureService(args[0]);
+				return;
+			}
+
+			ArgsInfo inputArguments = ArgsInfo.Parse(args, false, configuration.Singner.KnownThumbprints);
+			var statusInfo = MainCore(inputArguments);
+			Console.WriteLine(statusInfo.ToJsonString());
 		}
 
 		#region Initialization methods
@@ -83,6 +81,16 @@ namespace UniDsproc
 		{
 			var configRoot = new ConfigurationBuilder().AddJsonFile("UniDsproc.json").Build();
 			AppSettings ret = configRoot.Get<AppSettings>();
+
+			// normalize Thumbprints settings
+			if(ret.Singner.KnownThumbprints != null && ret.Singner.KnownThumbprints.Count > 0)
+			{
+				ret.Singner.KnownThumbprints = ret.Singner.KnownThumbprints.ToDictionary(
+					kv => kv.Key.ToLowerInvariant(), // lower the keys
+					kv => kv.Value.Replace(" ", "") // remove extra spaces
+				); 
+			}
+
 			return ret;
 		}
 
@@ -125,33 +133,15 @@ namespace UniDsproc
 		}
 
 		#endregion
+		
+		#region Display help methods
 
-		public static StatusInfo MainCore(ArgsInfo args)
-		{
-			if (args.Ok)
-			{
-				switch (args.Function)
-				{
-					case ProgramFunction.Sign:
-						return Sign(args);
-					case ProgramFunction.Verify:
-						return Verify(args);
-					case ProgramFunction.Extract:
-						return Extract(args);
-					case ProgramFunction.VerifyAndExtract:
-						return VerifyAndExtract(args);
-				}
-			}
-			return new StatusInfo(args.InitError);
-		}
-
-		#region [HELP MESSAGE]
 		private static void ShowHelp()
 		{
 			string version = $"{Version} {GetVersionName}";
 			var separator = $"{new string('-', 32)}\n";
 			string ntt = "\n\t\t    ";
-			string help = $"[UniDSProc v{version}]\n" +
+			string helpMessage = $"[UniDSProc v{version}]\n" +
 				separator +
 				$" Call string: UniDsproc.exe <function> [keys] <input file> [output file]\n" +
 				separator +
@@ -241,29 +231,49 @@ namespace UniDsproc
 				$"		Sets the source from which to extract the certificate\n" +
 				$"		Possible values : 'xml', 'base64', 'cer'" +
 				$"";
-			Console.WriteLine(help);
 
+			Console.WriteLine(helpMessage);
 		}
+
 		#endregion
 
-		#region [FUNCTIONS]
+		#region Program functions methods
 
-		private static StatusInfo Sign(ArgsInfo args)
+		public static StatusInfo MainCore(ArgsInfo arguments)
+		{
+			if (arguments.Ok)
+			{
+				switch (arguments.Function)
+				{
+					case ProgramFunction.Sign:
+						return Sign(arguments);
+					case ProgramFunction.Verify:
+						return Verify(arguments);
+					case ProgramFunction.Extract:
+						return Extract(arguments);
+					case ProgramFunction.VerifyAndExtract:
+						return VerifyAndExtract(arguments);
+				}
+			}
+			return new StatusInfo(arguments.InitError);
+		}
+
+		private static StatusInfo Sign(ArgsInfo arguments)
 		{
 			ISigner signer = new Signer();
 			try
 			{
 				string signedData = signer.Sign(
-					args.SigType,
-					args.GostFlavor,
-					args.CertThumbprint,
-					args.InputFile,
-					args.AssignDsInSignature,
-					args.NodeId,
-					args.IgnoreExpiredCert,
-					args.IsAddSigningTime);
-				File.WriteAllText(args.OutputFile, signedData);
-				return new StatusInfo($"OK. Signed file path: {args.OutputFile}");
+					arguments.SigType,
+					arguments.GostFlavor,
+					arguments.CertificateThumbprint,
+					arguments.InputFile,
+					arguments.AssignDsInSignature,
+					arguments.NodeId,
+					arguments.IgnoreExpiredCertificate,
+					arguments.IsAddSigningTime);
+				File.WriteAllText(arguments.OutputFile, signedData);
+				return new StatusInfo($"OK. Signed file path: {arguments.OutputFile}");
 			}
 			catch (Exception e)
 			{
@@ -271,21 +281,21 @@ namespace UniDsproc
 			}
 		}
 
-		private static StatusInfo Verify(ArgsInfo args)
+		private static StatusInfo Verify(ArgsInfo arguments)
 		{
 			try
 			{
 				ISignatureVerificator verificator = new SignatureVerificator();
 				bool isValid = verificator.VerifySignature(
-					args.SigType,
-					args.InputFile,
-					args.CertLocation == CertificateLocation.CerFile
-						? args.CertFilePath
+					arguments.SigType,
+					arguments.InputFile,
+					arguments.CertificateLocation == CertificateLocation.CerFile
+						? arguments.CertificateFilePath
 						: null,
-					args.CertLocation == CertificateLocation.Thumbprint
-						? args.CertThumbprint
+					arguments.CertificateLocation == CertificateLocation.Thumbprint
+						? arguments.CertificateThumbprint
 						: null,
-					args.NodeId
+					arguments.NodeId
 				);
 				return isValid
 					? new StatusInfo(new ResultInfo("Signature is correct", true))
@@ -297,7 +307,7 @@ namespace UniDsproc
 			}
 		}
 
-		private static StatusInfo Extract(ArgsInfo args)
+		private static StatusInfo Extract(ArgsInfo arguments)
 		{
 			StatusInfo si;
 			try
@@ -307,9 +317,9 @@ namespace UniDsproc
 					new StatusInfo(
 						new ResultInfo(
 							serializer.CertificateToSerializableCertificate(
-								args.CertSource,
-								args.InputFile,
-								args.NodeId)));
+								arguments.CertificateSource,
+								arguments.InputFile,
+								arguments.NodeId)));
 			}
 			catch (Exception e)
 			{
@@ -321,20 +331,20 @@ namespace UniDsproc
 			return si;
 		}
 
-		private static StatusInfo VerifyAndExtract(ArgsInfo args)
+		private static StatusInfo VerifyAndExtract(ArgsInfo arguments)
 		{
-			StatusInfo si = Verify(args);
+			StatusInfo si = Verify(arguments);
 			if (!si.IsError)
 			{
 				if (si.Result.SignatureIsCorrect.HasValue && si.Result.SignatureIsCorrect.Value)
 				{
-					args.CertSource = CertificateProcessor.CertificateSource.Xml;
-					si = Extract(args);
+					arguments.CertificateSource = CertificateProcessor.CertificateSource.Xml;
+					si = Extract(arguments);
 				}
 			}
 			return si;
 		}
-		#endregion
 
+		#endregion
 	}
 }

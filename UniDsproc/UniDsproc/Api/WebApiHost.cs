@@ -12,6 +12,8 @@ namespace UniDsproc.Api
 {
 	internal class WebApiHost : ServiceControl, INotifyPropertyChanged
 	{
+		private readonly AppSettings _settings;
+
 		#region NotifyPropertyChanged
 
 		public event PropertyChangedEventHandler PropertyChanged;
@@ -64,6 +66,7 @@ namespace UniDsproc.Api
 		
 		public WebApiHost(AppSettings settings)
 		{
+			_settings = settings;
 			Protocol = settings.ApiHost.Protocol;
 			Port = settings.ApiHost.Port;
 			_allowedIpAddresses = settings.ApiHost.AllowedIpAddresses;
@@ -97,20 +100,29 @@ namespace UniDsproc.Api
 
 		public void Start()
 		{
+			var stratupClass = new Startup(_settings);
+
 			IsActive = true;
 			string baseAddress = $"{Protocol}://*:{Port}/";
 			Log.Information("Starting listening on {address}", baseAddress);
-			_apiServer = WebApp.Start<Startup>(baseAddress);
+			_apiServer = WebApp.Start(
+				baseAddress,
+				builder =>
+				{
+					stratupClass.Configure(builder);
+				});
 		}
 
 		public void Stop()
 		{
-			if (_apiServer != null)
+			if (_apiServer == null)
 			{
-				_apiServer.Dispose();
-				_apiServer = null;
-				IsActive = false;
+				return;
 			}
+
+			_apiServer.Dispose();
+			_apiServer = null;
+			IsActive = false;
 		}
 
 		#endregion

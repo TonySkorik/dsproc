@@ -106,6 +106,13 @@ echo smev3_ack gost_2012_256
 pause
 echo ------------------------
 
+::==================================================================SIGNING USING CERTIFICATE NICK
+
+echo smev3_base.detached
+	%dsproc% sign -ignore_expired=true -signature_type=smev3_base.detached -cert_nick=sig3 -node_id="SIGNED_BY_SERVER" smev3.base.xml smev3.base.signed.xml
+pause
+echo ------------------------
+
 
 ::==================================================================EXTRACTION
 echo Testing certificate extraction
