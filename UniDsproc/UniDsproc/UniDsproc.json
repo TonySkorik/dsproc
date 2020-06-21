@@ -8,6 +8,19 @@
 		"Port": 5550,
 		"AllowedIpAddresses": [
 			"localhost"
+		],
+		"UserRestrictions": [
+			{
+				"UserIp": "192.168.1.1",
+				"RestrictedSignatureTypes": [
+					"Smev3BaseDetached",
+					"Smev3SidebysideDetached",
+					"Smev3Ack"
+				],
+				"RestrictedXmlXpathExpressions": [
+					"test |AND| test2"
+				]
+			} 
 		]
 	},
 	"Singner": {

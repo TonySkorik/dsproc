@@ -10,7 +10,9 @@ using Autofac.Integration.WebApi;
 using Owin;
 using Space.Core;
 using Space.Core.Interfaces;
+using UniDsproc.Api.Infrastructure;
 using UniDsproc.Configuration;
+using UniDsproc.DataModel.Security;
 
 namespace UniDsproc.Api
 {
@@ -49,8 +51,17 @@ namespace UniDsproc.Api
 			builder.RegisterWebApiFilterProvider(httpCOnfiguration);
 			builder.RegisterWebApiModelBinderProvider();
 
-			builder.RegisterInstance(_settings).AsSelf().SingleInstance();
-			builder.RegisterType<Signer>().As<ISigner>().SingleInstance();
+			builder.RegisterInstance(_settings)
+				.AsSelf()
+				.SingleInstance();
+
+			builder.RegisterType<Signer>()
+				.As<ISigner>()
+				.SingleInstance();
+
+			builder.RegisterType<UserRestrictionsChecker>()
+				.AsSelf()
+				.SingleInstance();
 
 			var container = builder.Build();
 

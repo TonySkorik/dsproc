@@ -22,6 +22,7 @@ using UniDsproc.Api.Infrastructure;
 using UniDsproc.Api.Model;
 using UniDsproc.Configuration;
 using UniDsproc.DataModel;
+using UniDsproc.DataModel.Security;
 
 namespace UniDsproc.Api.Controllers.V1
 {
@@ -30,11 +31,13 @@ namespace UniDsproc.Api.Controllers.V1
 	{
 		private readonly AppSettings _settings;
 		private readonly ISigner _signer;
-		
-		public CommandController(AppSettings settings, ISigner signer)
+		private readonly UserRestrictionsChecker _restrictionsChecker;
+
+		internal CommandController(AppSettings settings, ISigner signer, UserRestrictionsChecker restrictionsChecker)
 		{
 			_settings = settings;
 			_signer = signer;
+			_restrictionsChecker = restrictionsChecker;
 		}
 
 		[HttpPost]
@@ -59,7 +62,13 @@ namespace UniDsproc.Api.Controllers.V1
 				{
 					return BadRequest(validationResult.errorReason);
 				}
-				
+
+				if (!_restrictionsChecker.IsUserAllowed(Request.GetRemoteIp(), input))
+				{
+					Log.Fatal("Blocked restricted WebApiHost request from {blockedIp}.", Request.GetRemoteIp());
+					return StatusCode(HttpStatusCode.Forbidden);
+				}
+
 				switch (input.ArgsInfo.Function)
 				{
 					case ProgramFunction.Sign:

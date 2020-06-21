@@ -38,6 +38,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -47,6 +48,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
@@ -70,6 +72,7 @@
   <ItemGroup>
     <Compile Include="Api\Controllers\V1\CommandController.cs" />
     <Compile Include="Api\Helpers\HttpRequestHelper.cs" />
+    <Compile Include="Api\Helpers\XmlHelper.cs" />
     <Compile Include="Api\Infrastructure\InMemoryMultipartFormDataStreamProvider.cs" />
     <Compile Include="Api\Model\SignerInputParameters.cs" />
     <Compile Include="Api\Startup.cs" />
@@ -80,6 +83,8 @@
     <Compile Include="DataModel\ResultInfo.cs" />
     <Compile Include="DataModel\ErrorInfo.cs" />
     <Compile Include="DataModel\PrintableInfo.cs" />
+    <Compile Include="DataModel\Security\UserRestrictions.cs" />
+    <Compile Include="Api\Infrastructure\UserRestrictionsChecker.cs" />
     <Compile Include="SmartBind.cs" />
     <Compile Include="DataModel\StatusInfo.cs" />
     <Compile Include="Program.cs" />

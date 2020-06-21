@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Serilog.Events;
+using UniDsproc.DataModel.Security;
 
 namespace UniDsproc.Configuration
 {
@@ -18,6 +19,7 @@ namespace UniDsproc.Configuration
 			public string Protocol { set; get; }
 			public int Port { set; get; }
 			public HashSet<string> AllowedIpAddresses { set; get; }
+			public List<UserRestrictions> UserRestrictions { set; get; }
 		}
 
 		public class LoggerConfiguration
