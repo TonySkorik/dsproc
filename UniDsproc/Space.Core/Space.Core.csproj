@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Communication\SignerResponse.cs" />
     <Compile Include="Configuration\CertificateLocation.cs" />
     <Compile Include="CertificateProcessor.cs" />
     <Compile Include="Exceptions\ExceptionFactory.cs" />
@@ -76,6 +77,7 @@
       <Version>4.5.0</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

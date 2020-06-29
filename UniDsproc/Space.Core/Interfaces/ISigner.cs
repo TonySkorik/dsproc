@@ -1,6 +1,7 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using System.Xml;
 using System.Xml.Linq;
+using Space.Core.Communication;
 using Space.Core.Configuration;
 using Space.Core.Infrastructure;
 
@@ -38,7 +39,7 @@ namespace Space.Core.Interfaces
 			bool ignoreExpiredCert = false,
 			bool? isAddSigningTime = null);
 
-		(string SignedData, bool IsResultBase64Bytes) Sign(
+		SignerResponse Sign(
 			SignatureType mode,
 			GostFlavor gostFlavor,
 			string certificateThumbprint,

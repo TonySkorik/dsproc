@@ -24,6 +24,7 @@ namespace UniDsproc.Configuration
 		{
 			public string FilePath { set; get; }
 			public LogEventLevel MinimumEventLevel { set; get; }
+			public bool IsVerboseModeOn { set; get; }
 		}
 
 		public class SignerConfiguration

@@ -16,6 +16,7 @@ using System.Web.Http.Results;
 using System.Xml.Linq;
 using Serilog;
 using Space.Core;
+using Space.Core.Communication;
 using Space.Core.Interfaces;
 using UniDsproc.Api.Helpers;
 using UniDsproc.Api.Infrastructure;
@@ -47,35 +48,41 @@ namespace UniDsproc.Api.Controllers.V1
 				return StatusCode(HttpStatusCode.Forbidden);
 			}
 
+			var context = new OperationContext();
+			
 			try
 			{
 				Program.WebApiHost.ClientConnected();
 
-				SignerInputParameters input = await ReadSignerParameters(Request, command);
+				var inputParameters = await ReadSignerParameters(Request, command);
+				
+				context.SetInputParameters(inputParameters);
 
-				var validationResult = ValidateParameters(input);
+				var validationResult = ValidateParameters(inputParameters);
 
 				if (!validationResult.isParametersOk)
 				{
-					return BadRequest(validationResult.errorReason);
+					return ErrorResult(validationResult.errorReason, context);
 				}
 				
-				switch (input.ArgsInfo.Function)
+				switch (inputParameters.ArgsInfo.Function)
 				{
 					case ProgramFunction.Sign:
-						var signerResult = _signer.Sign(
-							input.ArgsInfo.SigType,
-							input.ArgsInfo.GostFlavor,
-							input.ArgsInfo.CertificateThumbprint,
-							input.DataToSign,
-							input.ArgsInfo.NodeId,
-							input.ArgsInfo.IgnoreExpiredCertificate,
-							input.ArgsInfo.IsAddSigningTime);
+						var signerResponse = _signer.Sign(
+							inputParameters.ArgsInfo.SigType,
+							inputParameters.ArgsInfo.GostFlavor,
+							inputParameters.ArgsInfo.CertificateThumbprint,
+							inputParameters.DataToSign,
+							inputParameters.ArgsInfo.NodeId,
+							inputParameters.ArgsInfo.IgnoreExpiredCertificate,
+							inputParameters.ArgsInfo.IsAddSigningTime);
 
-						var binaryData = signerResult.IsResultBase64Bytes
-							? Convert.FromBase64String(signerResult.SignedData)
-							: Encoding.UTF8.GetBytes(signerResult.SignedData);
+						context.SetSignerResponse(signerResponse);
 
+						var binaryData = signerResponse.IsResultBase64Bytes
+							? Convert.FromBase64String(signerResponse.SignedData)
+							: Encoding.UTF8.GetBytes(signerResponse.SignedData);
+						
 						var streamToReturn = new MemoryStream(binaryData);
 
 						var returnMessage= new HttpResponseMessage(HttpStatusCode.OK)
@@ -88,28 +95,54 @@ namespace UniDsproc.Api.Controllers.V1
 						returnMessage.Headers.Add("UniApp", "UnDsProc");
 						returnMessage.Headers.Add("UniVersion", Program.Version);
 
-						Log.Debug("Successfully signed file from ip {requesterIp} with following parameters: [{parameters}]", Request.GetRemoteIp(), input.ArgsInfo.ToString());
+						Log.Debug(
+							"Successfully signed file from ip {requesterIp} with following parameters: [{parameters}]",
+							Request.GetRemoteIp(),
+							inputParameters.ArgsInfo.ToString());
 
-						return ResponseMessage(returnMessage);
+						return SuccessResult(returnMessage, context);
 					default:
-						return BadRequest($"Command {command} not supported.");
+						return ErrorResult($"Command {command} not supported.", context);
 				}
 			}
 			catch (OperationCanceledException opce)
 			{
 				Log.Warning("Client disconnected prior to singing completion.");
-				return BadRequest(opce.Message);
+				return ErrorResult(opce, context);
 			}
 			catch (Exception ex)
 			{
 				Log.Error(ex, "Error occured during signing process with command: {command}", command);
-				return BadRequest(ex.Message);
+				return ErrorResult(ex, context);
 			}
 			finally
 			{
+				SaveOperationContext(context);
 				Program.WebApiHost.ClientDisconnected();
 			}
 		}
+
+		#region Methods for creating responses
+
+		private IHttpActionResult SuccessResult(HttpResponseMessage message, OperationContext context)
+		{
+			context.SetStatusCode(HttpStatusCode.OK);
+			return ResponseMessage(message);
+		}
+
+		private IHttpActionResult ErrorResult(Exception exception, OperationContext context)
+		{
+			context.SetException(exception);
+			return BadRequest(exception.Message);
+		}
+
+		private IHttpActionResult ErrorResult(string message, OperationContext context)
+		{
+			context.SetStatusCode(HttpStatusCode.BadRequest);
+			return BadRequest(message);
+		}
+
+		#endregion
 
 		#region Test methods
 
@@ -124,9 +157,29 @@ namespace UniDsproc.Api.Controllers.V1
 		}
 
 		#endregion
-
+		
 		#region Service methods
 		
+		private void SaveOperationContext(OperationContext context)
+		{
+			if (!_settings.Logger.IsVerboseModeOn)
+			{
+				return;
+			}
+
+			var now = DateTime.Now;
+			string path = $"data\\{now.Year:D4}\\{now.Month:D2}\\{now.Day:D2}\\{now.Hour:D2}-{now.Minute:D2}-{now.Second:D2}_{now.Millisecond:D3}";
+			Directory.CreateDirectory(path);
+
+			string requestParametersFileName = Path.Combine(path, "parameters.txt");
+			string inputDataFileName = Path.Combine(path, "input.bin");
+			string outputDataFileName = Path.Combine(path, $"output.{context.ReturnedStatusCode}");
+
+			File.WriteAllText(requestParametersFileName, context.InputParameters.ArgsInfo.ToString());
+			File.WriteAllBytes(inputDataFileName, context.InputParameters?.DataToSign ?? new byte[0]);
+			File.WriteAllText(outputDataFileName, context.SignerResponse?.SignedData);
+		}
+
 		private (bool isParametersOk, string errorReason) ValidateParameters(SignerInputParameters parameters)
 		{
 			if (parameters.DataToSign == null)

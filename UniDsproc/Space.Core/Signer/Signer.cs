@@ -9,6 +9,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using CryptoPro.Sharpei.Xml;
+using Space.Core.Communication;
 using Space.Core.Configuration;
 using Space.Core.Exceptions;
 using Space.Core.Extensions;
@@ -55,7 +56,7 @@ namespace Space.Core
 			return Sign(mode, gostFlavor, certificateThumbprint, signThis, assignDs, nodeToSign, ignoreExpiredCert, isAddSigningTime: isAddSigningTime);
 		}
 
-		public (string SignedData, bool IsResultBase64Bytes) Sign(
+		public SignerResponse Sign(
 			SignatureType mode,
 			GostFlavor gostFlavor,
 			string certificateThumbprint,
@@ -99,7 +100,7 @@ namespace Space.Core
 					: null,
 				isAddSigningTime);
 
-			return (signedData, isResultBase64Bytes);
+			return new SignerResponse(signedData, isResultBase64Bytes);
 		}
 		
 		public string Sign(

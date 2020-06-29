@@ -1,7 +1,8 @@
 {
 	"Logger": {
 		"FilePath": "log.txt",
-		"MinimumEventLevel": "Debug"
+		"MinimumEventLevel": "Debug",
+		"IsVerboseModeOn" : true
 	},
 	"ApiHost": {
 		"Protocol": "http",
