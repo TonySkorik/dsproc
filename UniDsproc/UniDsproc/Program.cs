@@ -206,6 +206,8 @@ namespace UniDsproc
 				$"		Default value : 'ID_SIGN'\n\n" +
 				$"  thumbprint [*:sign]\n" +
 				$"		Signature certificate thumbprint\n\n" +
+				$"  cert_nick [*:sign]\n" +
+				$"		Signature certificate nick\n\n" +
 				$"  cer_file\n" +
 				$"		Certificate file path for signature verification\n" +
 				$"		If <thumbprint> key used - this key is ignored while\n" +

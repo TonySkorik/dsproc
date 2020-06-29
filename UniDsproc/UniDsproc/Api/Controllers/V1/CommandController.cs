@@ -88,7 +88,7 @@ namespace UniDsproc.Api.Controllers.V1
 						returnMessage.Headers.Add("UniApp", "UnDsProc");
 						returnMessage.Headers.Add("UniVersion", Program.Version);
 
-						Log.Debug("Successfully signed file with following parameters: [{parameters}]", input.ArgsInfo.ToString());
+						Log.Debug("Successfully signed file from ip {requesterIp} with following parameters: [{parameters}]", Request.GetRemoteIp(), input.ArgsInfo.ToString());
 
 						return ResponseMessage(returnMessage);
 					default:
