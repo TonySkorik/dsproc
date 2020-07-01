@@ -3,6 +3,8 @@ name: dsproc Build
 on:
   push:
     branches: master
+    #tags:
+    #  - v*
 
 jobs:
   build:
@@ -44,21 +46,33 @@ jobs:
       with:
         name: binaries
         path: _artifacts # or path/to/artifact
-      
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+    
+    - name: Set enviroment for github-release
+      run: |
+        echo ::set-env name=RELEASE_TAG::"v1.0.0"
+        echo ::set-env name=RELEASE_NAME::"$GITHUB_WORKFLOW"
+
+    - uses: meeDamian/github-release@2.0
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        body: |
-            Changes in this Release
-            - First Change
-            - Second Change
-        draft: false
-        prerelease: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ env.RELEASE_TAG }}
+        name: ${{ env.RELEASE_NAME }}
+        files: _artifacts
+    
+    #- name: Create Release
+    #  id: create_release
+    #  uses: actions/create-release@v1
+    #  env:
+    #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+    #  with:
+    #    tag_name: ${{ github.ref }}
+    #    release_name: Release ${{ github.ref }}
+    #    body: |
+    #        Changes in this Release
+    #        - First Change
+    #        - Second Change
+    #    draft: false
+    #    prerelease: false
         
     #- name: GitHub Releases
     #  uses: fnkr/github-action-ghr@v1.3
