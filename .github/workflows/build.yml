@@ -17,18 +17,18 @@ jobs:
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.0.2
       
-    - name: Navigate to Workspace
-      run: cd UniDsproc
+    #- name: Navigate to Workspace
+    #  run: cd $GITHUB_WORKSPACE
 
     #- name: Create Build Directory
     #  run: mkdir _build
       
     - name: Restore Packages
-      run: nuget restore UniDsproc.sln
+      run: nuget restore ./UniDsproc/UniDsproc.sln
 
     - name: Build Solution
       run: |
-        msbuild.exe UniDsproc.sln /nologo /nr:false /p:DeleteExistingFiles=True /p:platform="Any CPU" /p:configuration="Release" /p:PublishUrl="../_build"
+        msbuild.exe ./UniDsproc.sln /nologo /nr:false /p:DeleteExistingFiles=True /p:platform="Any CPU" /p:configuration="Release" /p:PublishUrl="../_build"
         
     - name: GitHub Releases
       uses: fnkr/github-action-ghr@v1.3
