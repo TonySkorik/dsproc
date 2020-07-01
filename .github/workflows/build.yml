@@ -17,7 +17,8 @@ jobs:
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.0.2
     
-    - name: Test list files - root
+    - name: Test list files - solution folder
+      working-directory: ./UniDsproc
       run: ls
     
     #- name: Navigate to solution directory
@@ -31,11 +32,11 @@ jobs:
     #  run: mkdir _build
       
     - name: Restore Packages
-      working-directory: $GITHUB_WORKSPACE/UniDsproc
+      working-directory: ./UniDsproc
       run: nuget restore UniDsproc.sln
 
     - name: Build Solution
-      working-directory: $GITHUB_WORKSPACE/UniDsproc
+      working-directory: ./UniDsproc
       run: |
         msbuild.exe UniDsproc.sln /nologo /nr:false /p:DeleteExistingFiles=True /p:platform="Any CPU" /p:configuration="Release" /p:PublishUrl="../_build"
         
