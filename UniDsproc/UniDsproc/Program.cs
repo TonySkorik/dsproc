@@ -23,7 +23,7 @@ namespace UniDsproc
 			+ $".{Assembly.GetExecutingAssembly().GetName().Version.Build}"
 			+ $".{Assembly.GetExecutingAssembly().GetName().Version.Revision}";
 
-		private static string GetVersionName => "API-enabled";
+		private static string GetVersionName => "Verbose";
 
 		public static WebApiHost WebApiHost { get; private set; }
 
@@ -143,7 +143,7 @@ namespace UniDsproc
 			string ntt = "\n\t\t    ";
 			string helpMessage = $"[UniDSProc v{version}]\n" +
 				separator +
-				$" Call string: UniDsproc.exe <function> [keys] <input file> [output file]\n" +
+				$" Call string: UniDsproc.exe <function> [parameters] <input file> [output file]\n" +
 				separator +
 				$" FUNCTIONS: \n" +
 				$"  install \n" +
@@ -161,7 +161,7 @@ namespace UniDsproc
 				$"  verifyAndExtract\n" +
 				$"\tVerify file's signature and, if it's valid - extract\n\n" +
 				separator +
-				$" KEYS: \n" +
+				$" PARAMETERS: \n" +
 				$"  [*:<function>] - required when <function> is selected\n" +
 				$"\n" +
 				$"  signature_type [*:sign]\n" +
@@ -198,9 +198,9 @@ namespace UniDsproc
 				$"{ntt}<None>,{ntt}" +
 				$"<Gost_Obsolete>,{ntt}" +
 				$"<Gost2012_256>,{ntt}" +
-				$"<Gost2012_512>\n"
-				+ $"\n" +
-
+				$"<Gost2012_512>\n" +
+				$"		Default value : 'Gost_Obsolete'\n" +
+				$"\n" +
 				$"  node_id\n" +
 				$"		String value of <Id> attribute of the node to be signed\n" +
 				$"		Default value : 'ID_SIGN'\n\n" +
@@ -231,7 +231,24 @@ namespace UniDsproc
 				$"		Default value : 'false' \n\n" +
 				$"  certificate_source [*:verify, verifyAndExtract]\n" +
 				$"		Sets the source from which to extract the certificate\n" +
-				$"		Possible values : 'xml', 'base64', 'cer'" +
+				$"		Possible values : 'xml', 'base64', 'cer'\n\n" +
+				separator +
+				$" WEB API: \n" +
+				$"  UniDsProc supoorts two WEB API modes:\n" + 
+				$"   - interactive api mode [function: api]\n" +
+				$"\tIn this mode api server is hosted in currently running process.\n" +
+				$"   - hosted service api mode [function: install]\n" +
+				$"\tIn this mode UniDsProc intalls api server as a self-starting Windows service.\n" +
+				$"  All API configuration is located in program settings file.\n\n" +
+				separator +
+				$" WEB API QUERIES: \n" +
+				$"  All api queries (only POST verb is supported) are constructed as follows :\n\n" + 
+				$"    http://<address>:<port>/api/v1/<function>/[?<parameter_name1>=<parameter_value1>][&<parameter_name2>=<parameter_value2>]\n\n" +
+				$"  Only sign function is supported.\n" +
+				$"  All parameters have the same names and values as in non-api mode.\n" +
+				$"  Input file is passed via data_file POST body field.\n" +
+				$"  Output file is passed back to a caller in response body as binary stream.\n" +
+				$"  IMPORTANT!: when operating in API or service mode all parameters (except data_file) should be pased to a service via query string.\n" +
 				$"";
 
 			Console.WriteLine(helpMessage);

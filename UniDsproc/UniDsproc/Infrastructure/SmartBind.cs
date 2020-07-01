@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace SmartBind
+namespace UniDsproc.Infrastructure
 {
 	[AttributeUsage(AttributeTargets.Property)]
 	public class ArgBindingAttribute : Attribute

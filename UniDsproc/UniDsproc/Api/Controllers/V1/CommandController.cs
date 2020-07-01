@@ -53,6 +53,7 @@ namespace UniDsproc.Api.Controllers.V1
 			try
 			{
 				Program.WebApiHost.ClientConnected();
+				context.SetRawInputParameters(Request.RequestUri.Query, command);
 
 				var inputParameters = await ReadSignerParameters(Request, command, context);
 				
@@ -97,7 +98,7 @@ namespace UniDsproc.Api.Controllers.V1
 						Log.Debug(
 							"Successfully signed file from ip {requesterIp} with following parameters: [{parameters}]",
 							Request.GetRemoteIp(),
-							inputParameters.ArgsInfo.ToString());
+							context.RawInputParameters);
 
 						return SuccessResult(returnMessage, context);
 					default:
@@ -191,7 +192,6 @@ namespace UniDsproc.Api.Controllers.V1
 
 		private async Task<SignerInputParameters> ReadSignerParameters(HttpRequestMessage request, string command, OperationContext context)
 		{
-			context.SetRawInputParameters(request.RequestUri.Query, command);
 			var clientDisconnected = request.GetOwinContext()?.Request?.CallCancelled ?? CancellationToken.None;
 
 			//NOTE: this is not an in-memory way of doing the same thing

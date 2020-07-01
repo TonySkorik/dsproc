@@ -81,7 +81,7 @@
     <Compile Include="DataModel\ResultInfo.cs" />
     <Compile Include="DataModel\ErrorInfo.cs" />
     <Compile Include="DataModel\PrintableInfo.cs" />
-    <Compile Include="SmartBind.cs" />
+    <Compile Include="Infrastructure\SmartBind.cs" />
     <Compile Include="DataModel\StatusInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
