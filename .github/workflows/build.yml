@@ -17,11 +17,14 @@ jobs:
     - name: Setup NuGet
       uses: NuGet/setup-nuget@v1.0.2
     
-    - name: Navigate to Workspace
+    - name: Test list files - root
       run: ls
     
-    #- name: Navigate to Workspace
-    #  run: cd $GITHUB_WORKSPACE/UniDsproc
+    - name: Navigate to solution directory
+      run: cd UniDsproc
+
+    - name: Test list files - solution dir
+      run: ls
 
     #- name: Create Build Directory
     #  run: mkdir _build
