@@ -28,8 +28,8 @@ jobs:
     #- name: Test list files - solution dir
     #  run: ls
 
-    #- name: Create Build Directory
-    #  run: mkdir _build
+    - name: Create Build Directory
+      run: mkdir _artifacts
       
     - name: Restore Packages
       working-directory: ./UniDsproc
@@ -38,7 +38,12 @@ jobs:
     - name: Build Solution
       working-directory: ./UniDsproc
       run: |
-        msbuild.exe UniDsproc.sln /nologo /nr:false /p:DeleteExistingFiles=True /p:platform="Any CPU" /p:configuration="Release" /p:PublishUrl="../_build"
+        msbuild.exe UniDsproc.sln /nologo /nr:false /p:DeleteExistingFiles=True /p:platform="Any CPU" /p:configuration="Release" /p:OutputPath="../_artifacts"
+      
+    - uses: actions/upload-artifact@v2
+      with:
+        name: my-artifact
+        path: _artifacts # or path/to/artifact
       
     - name: Create Release
       id: create_release
