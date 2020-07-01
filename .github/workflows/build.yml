@@ -41,8 +41,13 @@ jobs:
         msbuild.exe UniDsproc.sln /nologo /nr:false /p:DeleteExistingFiles=True /p:platform="Any CPU" /p:configuration="Release" /p:PublishUrl="../_build"
         
     - name: GitHub Releases
-      uses: fnkr/github-action-ghr@v1.3
+      uses: softprops/action-gh-release@v1
       env:
-          GHR_COMPRESS: zip
-          GHR_PATH: ./_build
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+    #- name: GitHub Releases
+    #  uses: fnkr/github-action-ghr@v1.3
+    #  env:
+    #      GHR_COMPRESS: zip
+    #      GHR_PATH: ./_build
+    #      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
