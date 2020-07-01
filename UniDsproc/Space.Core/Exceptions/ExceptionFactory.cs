@@ -122,7 +122,7 @@ namespace Space.Core.Exceptions
 
 		public static Exception GetException(ExceptionType type, params object[] additionalInfo)
 		{
-			return new Exception($"{type.ToString().ToUpper()}] {string.Format(Messages[type], additionalInfo)}");
+			return new Exception($"[{type.ToString().ToUpper()}] {string.Format(Messages[type], additionalInfo)}");
 		}
 
 	}

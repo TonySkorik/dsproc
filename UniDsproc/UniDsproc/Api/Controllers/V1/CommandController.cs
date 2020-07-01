@@ -54,7 +54,7 @@ namespace UniDsproc.Api.Controllers.V1
 			{
 				Program.WebApiHost.ClientConnected();
 
-				var inputParameters = await ReadSignerParameters(Request, command);
+				var inputParameters = await ReadSignerParameters(Request, command, context);
 				
 				context.SetInputParameters(inputParameters);
 
@@ -62,7 +62,7 @@ namespace UniDsproc.Api.Controllers.V1
 
 				if (!validationResult.isParametersOk)
 				{
-					return ErrorResult(validationResult.errorReason, context);
+					return ErrorResultBadRequest(validationResult.errorReason, context);
 				}
 				
 				switch (inputParameters.ArgsInfo.Function)
@@ -76,13 +76,13 @@ namespace UniDsproc.Api.Controllers.V1
 							inputParameters.ArgsInfo.NodeId,
 							inputParameters.ArgsInfo.IgnoreExpiredCertificate,
 							inputParameters.ArgsInfo.IsAddSigningTime);
-
-						context.SetSignerResponse(signerResponse);
-
+						
 						var binaryData = signerResponse.IsResultBase64Bytes
 							? Convert.FromBase64String(signerResponse.SignedData)
 							: Encoding.UTF8.GetBytes(signerResponse.SignedData);
-						
+
+						context.SetSignerResponse(signerResponse);
+
 						var streamToReturn = new MemoryStream(binaryData);
 
 						var returnMessage= new HttpResponseMessage(HttpStatusCode.OK)
@@ -91,7 +91,6 @@ namespace UniDsproc.Api.Controllers.V1
 						};
 
 						returnMessage.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-
 						returnMessage.Headers.Add("UniApp", "UnDsProc");
 						returnMessage.Headers.Add("UniVersion", Program.Version);
 
@@ -102,18 +101,18 @@ namespace UniDsproc.Api.Controllers.V1
 
 						return SuccessResult(returnMessage, context);
 					default:
-						return ErrorResult($"Command {command} not supported.", context);
+						return ErrorResultBadRequest($"Command {command} not supported.", context);
 				}
 			}
 			catch (OperationCanceledException opce)
 			{
 				Log.Warning("Client disconnected prior to singing completion.");
-				return ErrorResult(opce, context);
+				return ErrorResultBadRequest(opce, context);
 			}
 			catch (Exception ex)
 			{
 				Log.Error(ex, "Error occured during signing process with command: {command}", command);
-				return ErrorResult(ex, context);
+				return ErrorResultBadRequest(ex, context);
 			}
 			finally
 			{
@@ -126,17 +125,17 @@ namespace UniDsproc.Api.Controllers.V1
 
 		private IHttpActionResult SuccessResult(HttpResponseMessage message, OperationContext context)
 		{
-			context.SetStatusCode(HttpStatusCode.OK);
+			context.SetStatusCode(message.StatusCode);
 			return ResponseMessage(message);
 		}
 
-		private IHttpActionResult ErrorResult(Exception exception, OperationContext context)
+		private IHttpActionResult ErrorResultBadRequest(Exception exception, OperationContext context)
 		{
 			context.SetException(exception);
-			return BadRequest(exception.Message);
+			return ErrorResultBadRequest(exception.Message, context);
 		}
 
-		private IHttpActionResult ErrorResult(string message, OperationContext context)
+		private IHttpActionResult ErrorResultBadRequest(string message, OperationContext context)
 		{
 			context.SetStatusCode(HttpStatusCode.BadRequest);
 			return BadRequest(message);
@@ -175,9 +174,9 @@ namespace UniDsproc.Api.Controllers.V1
 			string inputDataFileName = Path.Combine(path, "input.bin");
 			string outputDataFileName = Path.Combine(path, $"output.{context.ReturnedStatusCode}");
 
-			File.WriteAllText(requestParametersFileName, context.InputParameters.ArgsInfo.ToString());
+			File.WriteAllText(requestParametersFileName, context.RawInputParameters);
 			File.WriteAllBytes(inputDataFileName, context.InputParameters?.DataToSign ?? new byte[0]);
-			File.WriteAllText(outputDataFileName, context.SignerResponse?.SignedData);
+			File.WriteAllText(outputDataFileName, context.SignerResponse?.SignedData ?? context.ExceptionMessage);
 		}
 
 		private (bool isParametersOk, string errorReason) ValidateParameters(SignerInputParameters parameters)
@@ -190,14 +189,15 @@ namespace UniDsproc.Api.Controllers.V1
 			return (true, string.Empty);
 		}
 
-		private async Task<SignerInputParameters> ReadSignerParameters(HttpRequestMessage request, string command)
+		private async Task<SignerInputParameters> ReadSignerParameters(HttpRequestMessage request, string command, OperationContext context)
 		{
+			context.SetRawInputParameters(request.RequestUri.Query, command);
 			var clientDisconnected = request.GetOwinContext()?.Request?.CallCancelled ?? CancellationToken.None;
 
 			//NOTE: this is not an in-memory way of doing the same thing
 			//var root = HttpContext.Current.Server.MapPath("~/App_Data/");
 			//var streamProvider = new MultipartFormDataStreamProvider(root);
-
+			
 			var streamProvider = new InMemoryMultipartFormDataStreamProvider();
 			await request.Content.ReadAsMultipartAsync(streamProvider, clientDisconnected);
 
@@ -213,7 +213,7 @@ namespace UniDsproc.Api.Controllers.V1
 				args.Add($"-{key}={value}");
 			}
 
-			ArgsInfo argsInfo = ArgsInfo.Parse(args.ToArray(), true, _settings.Singner.KnownThumbprints);
+			ArgsInfo argsInfo = ArgsInfo.Parse(args.ToArray(), true, _settings.Signer.KnownThumbprints);
 
 			var dataToSignFile = streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == "data_file");
 

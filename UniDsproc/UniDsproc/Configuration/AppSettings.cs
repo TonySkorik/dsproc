@@ -11,7 +11,7 @@ namespace UniDsproc.Configuration
 	{
 		public WebApiHostConfiguration ApiHost { set;get; }
 		public LoggerConfiguration Logger { set; get; }
-		public SignerConfiguration Singner { set; get; }
+		public SignerConfiguration Signer { set; get; }
 
 		public class WebApiHostConfiguration
 		{

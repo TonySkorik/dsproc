@@ -11,10 +11,16 @@ namespace UniDsproc.Api.Model
 	internal class OperationContext
 	{
 		private DateTime RequestDateTime { get; } = DateTime.Now;
+		public string RawInputParameters { private set; get; }
 		public SignerInputParameters InputParameters { private set; get; }
 		public SignerResponse SignerResponse { private set; get; }
 		public int ReturnedStatusCode { private set; get; }
 		public string ExceptionMessage { private set; get; }
+
+		public void SetRawInputParameters(string parametersString, string command)
+		{
+			RawInputParameters = $"{command}/{parametersString}";
+		}
 
 		public void SetInputParameters(SignerInputParameters parameters)
 		{

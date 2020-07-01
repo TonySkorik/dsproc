@@ -57,7 +57,7 @@ namespace UniDsproc
 				return;
 			}
 
-			ArgsInfo inputArguments = ArgsInfo.Parse(args, false, configuration.Singner.KnownThumbprints);
+			ArgsInfo inputArguments = ArgsInfo.Parse(args, false, configuration.Signer.KnownThumbprints);
 			var statusInfo = MainCore(inputArguments);
 			Console.WriteLine(statusInfo.ToJsonString());
 		}
@@ -83,9 +83,9 @@ namespace UniDsproc
 			AppSettings ret = configRoot.Get<AppSettings>();
 
 			// normalize Thumbprints settings
-			if(ret.Singner.KnownThumbprints != null && ret.Singner.KnownThumbprints.Count > 0)
+			if(ret.Signer.KnownThumbprints != null && ret.Signer.KnownThumbprints.Count > 0)
 			{
-				ret.Singner.KnownThumbprints = ret.Singner.KnownThumbprints.ToDictionary(
+				ret.Signer.KnownThumbprints = ret.Signer.KnownThumbprints.ToDictionary(
 					kv => kv.Key.ToLowerInvariant(), // lower the keys
 					kv => kv.Value.Replace(" ", "") // remove extra spaces
 				); 
