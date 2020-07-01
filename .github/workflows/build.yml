@@ -20,20 +20,22 @@ jobs:
     - name: Test list files - root
       run: ls
     
-    - name: Navigate to solution directory
-      run: cd UniDsproc
-      working-directory: $GITHUB_WORKSPACE
+    #- name: Navigate to solution directory
+    #  run: cd UniDsproc
+    #  working-directory: $GITHUB_WORKSPACE
 
-    - name: Test list files - solution dir
-      run: ls
+    #- name: Test list files - solution dir
+    #  run: ls
 
     #- name: Create Build Directory
     #  run: mkdir _build
       
     - name: Restore Packages
+      working-directory: $GITHUB_WORKSPACE/UniDsproc
       run: nuget restore UniDsproc.sln
 
     - name: Build Solution
+      working-directory: $GITHUB_WORKSPACE/UniDsproc
       run: |
         msbuild.exe UniDsproc.sln /nologo /nr:false /p:DeleteExistingFiles=True /p:platform="Any CPU" /p:configuration="Release" /p:PublishUrl="../_build"
         
