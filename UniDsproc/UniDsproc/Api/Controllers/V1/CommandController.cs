@@ -48,7 +48,7 @@ namespace UniDsproc.Api.Controllers.V1
 				return StatusCode(HttpStatusCode.Forbidden);
 			}
 
-			var context = new OperationContext();
+			var context = new OperationContext(Request);
 			
 			try
 			{
@@ -171,13 +171,17 @@ namespace UniDsproc.Api.Controllers.V1
 			string path = $"data\\{now.Year:D4}\\{now.Month:D2}\\{now.Day:D2}\\{now.Hour:D2}-{now.Minute:D2}-{now.Second:D2}_{now.Millisecond:D3}";
 			Directory.CreateDirectory(path);
 
+			var clientIpAddress = context.Request.GetRemoteIp();
+
 			string requestParametersFileName = Path.Combine(path, "parameters.txt");
 			string inputDataFileName = Path.Combine(path, "input.bin");
 			string outputDataFileName = Path.Combine(path, $"output.{context.ReturnedStatusCode}");
+			string ipDataFile = Path.Combine(path, $"{clientIpAddress}.ip");
 
 			File.WriteAllText(requestParametersFileName, context.RawInputParameters);
 			File.WriteAllBytes(inputDataFileName, context.InputParameters?.DataToSign ?? new byte[0]);
 			File.WriteAllText(outputDataFileName, context.SignerResponse?.SignedData ?? context.ExceptionMessage);
+			File.WriteAllText(ipDataFile, clientIpAddress);
 		}
 
 		private (bool isParametersOk, string errorReason) ValidateParameters(SignerInputParameters parameters)
