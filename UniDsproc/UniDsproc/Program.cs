@@ -70,7 +70,7 @@ namespace UniDsproc
 				.WriteTo
 				.File(settings.Logger.FilePath)
 				.WriteTo
-				.Console()
+				.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
 				.MinimumLevel
 				.Is(settings.Logger.MinimumEventLevel);
 
