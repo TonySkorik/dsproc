@@ -51,6 +51,9 @@ namespace Space.Core
 				SigningKey = certificate.PrivateKey
 			};
 
+			XmlDsigSmevTransform smevTransform = new XmlDsigSmevTransform();
+			sxml.SafeCanonicalizationMethods.Add(smevTransform.Algorithm);
+
 			//=====================================================================================REFERENCE TRASFORMS
 			Reference reference = new Reference
 			{
@@ -64,8 +67,6 @@ namespace Space.Core
 
 			XmlDsigExcC14NTransform excC14N = new XmlDsigExcC14NTransform();
 			reference.AddTransform(excC14N);
-
-			XmlDsigSmevTransform smevTransform = new XmlDsigSmevTransform();
 			reference.AddTransform(smevTransform);
 
 			if (isAck)
