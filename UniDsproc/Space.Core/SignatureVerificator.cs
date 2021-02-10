@@ -225,6 +225,8 @@ namespace Space.Core
 					break;
 				case SignatureType.Unknown:
 				case SignatureType.SigDetached:
+				case SignatureType.SigDetachedAllCert:
+				case SignatureType.SigDetachedNoCert:
 				case SignatureType.Smev3Ack:
 				case SignatureType.Rsa2048Sha256String:
 				case SignatureType.RsaSha256String:
