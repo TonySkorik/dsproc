@@ -138,7 +138,9 @@ namespace Space.Core
 			{
 				stringToSign = File.ReadAllText(signThisPath, Encoding.UTF8);
 			}
-			else if (mode == SignatureType.SigDetached)
+			else if (mode == SignatureType.SigDetached
+				|| mode == SignatureType.SigDetachedAllCert
+				|| mode == SignatureType.SigDetachedNoCert)
 			{
 				bytesToSign = File.ReadAllBytes(signThisPath);
 			}
