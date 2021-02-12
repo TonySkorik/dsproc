@@ -20,6 +20,8 @@ namespace Space.Core.Interfaces
 			string certificateThumb = null,
 			string nodeId = null);
 
+		(bool IsSignatureValid, string Message) VerifyDetachedSignature(byte[] signedFileBytes, byte[] signatureFileBytes);
+
 		bool CheckSignatureDs(XmlDocument xmlDoc, RSACryptoServiceProvider key);
 	}
 }

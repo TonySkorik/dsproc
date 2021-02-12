@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Resources;
 using System.Security.Cryptography;
+using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Xml;
@@ -56,6 +57,60 @@ namespace Space.Core
 			}
 
 			return VerifySignature(mode, xd, certificateFilePath, certificateThumb, nodeId);
+		}
+
+		public (bool IsSignatureValid, string Message) VerifyDetachedSignature(
+			byte[] signedFileBytes,
+			byte[] signatureFileBytes)
+		{
+			ContentInfo contentInfo = new ContentInfo(signedFileBytes);
+			SignedCms signedCms = new SignedCms(contentInfo, true);
+			signedCms.Decode(signatureFileBytes);
+
+			if (signedCms.SignerInfos.Count == 0)
+			{
+				return (false, "No signatures found in singature file");
+			}
+
+			// NOTE we are working only with the first signature here. If there are more of those in file - alter this logic
+
+			SignerInfo signerInfo = signedCms.SignerInfos[0];
+
+			var signingDateTime =
+				(signerInfo.SignedAttributes
+						.Cast<CryptographicAttributeObject>()
+						.FirstOrDefault(x => x.Oid.Value == "1.2.840.113549.1.9.5")?.Values[0]
+					as Pkcs9SigningTime)?.SigningTime;
+			
+			try
+			{
+				signerInfo.CheckSignature(verifySignatureOnly: false);
+			}
+			catch (CryptographicException e)
+			{
+				return (false, $"Signature is matematically invalid with message : {e.Message}");
+			}
+
+			X509Certificate2 certificate = signerInfo.Certificate;
+
+			if(signingDateTime.HasValue)
+			{
+				bool isSigningDateValid =
+					signingDateTime.Value < certificate.NotAfter
+					&& signingDateTime.Value > certificate.NotBefore;
+
+				if (!isSigningDateValid)
+				{
+					return (false,
+						$"Signature is matematically valid but signing date {signingDateTime.Value} lies outside of certificate validity range [{certificate.NotBefore}, {certificate.NotAfter}]");
+				}
+			}
+			else
+			{
+				return (true, "Can't extract signing DateTime. Unable to check certificate validity on signing date.");
+			}
+
+			return (true, "Signature is valid");
 		}
 
 		public bool VerifySignature(
@@ -207,6 +262,7 @@ namespace Space.Core
 					}
 
 					break;
+
 				case SignatureType.Smev2SidebysideDetached:
 				case SignatureType.Smev3BaseDetached:
 				case SignatureType.Smev3SidebysideDetached:
@@ -223,17 +279,22 @@ namespace Space.Core
 					}
 
 					break;
-				case SignatureType.Unknown:
+
+				case SignatureType.Pkcs7String:
+				case SignatureType.Pkcs7StringAllCert:
+				case SignatureType.Pkcs7StringNoCert: 
 				case SignatureType.SigDetached:
 				case SignatureType.SigDetachedAllCert:
 				case SignatureType.SigDetachedNoCert:
+					throw new NotSupportedException(
+						$"Detached signature verification is not supported by this method. Use {nameof(VerifyDetachedSignature)} method instead.");
+
+				case SignatureType.Unknown:
 				case SignatureType.Smev3Ack:
 				case SignatureType.Rsa2048Sha256String:
 				case SignatureType.RsaSha256String:
-				case SignatureType.Pkcs7String:
-				case SignatureType.Pkcs7StringAllCert:
-				case SignatureType.Pkcs7StringNoCert:
 					throw ExceptionFactory.GetException(ExceptionType.UnsupportedSignatureType, mode);
+
 				default:
 					throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
 			}
@@ -259,7 +320,7 @@ namespace Space.Core
 		}
 
 		#endregion
-
+		
 		#region [DS: PREFIXED DOCUMENT] Some heavy wizardry here
 
 		private static readonly Type SignedXmlType = typeof(SignedXml);
