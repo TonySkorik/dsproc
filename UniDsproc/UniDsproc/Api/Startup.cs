@@ -8,10 +8,10 @@ using System.Web.Http;
 using Autofac;
 using Autofac.Integration.WebApi;
 using Owin;
-using Space.CertificateSerialization;
 using Space.Core;
 using Space.Core.Interfaces;
 using Space.Core.Processor;
+using Space.Core.Serializer;
 using Space.Core.Verifier;
 using UniDsproc.Configuration;
 

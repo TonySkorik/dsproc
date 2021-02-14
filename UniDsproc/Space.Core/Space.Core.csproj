@@ -52,7 +52,9 @@
   <ItemGroup>
     <Compile Include="Communication\SignerResponse.cs" />
     <Compile Include="Communication\VerifierResponse.cs" />
+    <Compile Include="Communication\X509CertificateSerializable.cs" />
     <Compile Include="Configuration\CertificateLocation.cs" />
+    <Compile Include="Interfaces\ICertificateSerializer.cs" />
     <Compile Include="Processor\CertificateProcessor.Check.cs" />
     <Compile Include="Processor\CertificateProcessor.Get.cs" />
     <Compile Include="Processor\CertificateProcessor.Extract.cs" />
@@ -67,6 +69,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Configuration\ShaAlgorithmType.cs" />
     <Compile Include="Configuration\SignatureType.cs" />
+    <Compile Include="Serializer\CertificateSerializer.cs" />
     <Compile Include="Verifier\SignatureVerifier.DsPrefixed.cs" />
     <Compile Include="Verifier\SignatureVerifier.cs" />
     <Compile Include="Signer\Signer.cs" />

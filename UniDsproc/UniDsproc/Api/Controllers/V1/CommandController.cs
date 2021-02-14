@@ -16,7 +16,6 @@ using System.Web.Http.Results;
 using System.Xml.Linq;
 using Newtonsoft.Json;
 using Serilog;
-using Space.CertificateSerialization;
 using Space.Core;
 using Space.Core.Communication;
 using Space.Core.Interfaces;

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 using Newtonsoft.Json;
-using Space.CertificateSerialization.DataModel;
+using Space.Core.Communication;
 
 namespace UniDsproc.DataModel
 {
