@@ -51,6 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Communication\SignerResponse.cs" />
+    <Compile Include="Communication\VerifierResponse.cs" />
     <Compile Include="Configuration\CertificateLocation.cs" />
     <Compile Include="CertificateProcessor.cs" />
     <Compile Include="Exceptions\ExceptionFactory.cs" />
@@ -58,12 +59,13 @@
     <Compile Include="Infrastructure\GostAlgorithmSelector.cs" />
     <Compile Include="Infrastructure\GostFlavor.cs" />
     <Compile Include="Interfaces\ICertificateProcessor.cs" />
-    <Compile Include="Interfaces\ISignatureVerificator.cs" />
+    <Compile Include="Interfaces\ISignatureVerifier.cs" />
     <Compile Include="Interfaces\ISigner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Configuration\ShaAlgorithmType.cs" />
     <Compile Include="Configuration\SignatureType.cs" />
-    <Compile Include="SignatureVerificator.cs" />
+    <Compile Include="Verifier\SignatureVerifier.DsPrefixed.cs" />
+    <Compile Include="Verifier\SignatureVerifier.cs" />
     <Compile Include="Signer\Signer.cs" />
     <Compile Include="Signer\Signer.DetachedPkcs7.cs" />
     <Compile Include="Signer\Signer.Enveloped.cs" />

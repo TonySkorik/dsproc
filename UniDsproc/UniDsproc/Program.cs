@@ -8,6 +8,7 @@ using Space.CertificateSerialization;
 using Space.Core;
 using Space.Core.Configuration;
 using Space.Core.Interfaces;
+using Space.Core.Verifier;
 using Topshelf;
 using UniDsproc.Api;
 using UniDsproc.Configuration;
@@ -304,8 +305,8 @@ namespace UniDsproc
 		{
 			try
 			{
-				ISignatureVerificator verificator = new SignatureVerificator();
-				bool isValid = verificator.VerifySignature(
+				ISignatureVerifier verifier = new SignatureVerifier();
+				var verifierResult = verifier.VerifySignature(
 					arguments.SigType,
 					arguments.InputFile,
 					arguments.CertificateLocation == CertificateLocation.CerFile
@@ -316,7 +317,7 @@ namespace UniDsproc
 						: null,
 					arguments.NodeId
 				);
-				return isValid
+				return verifierResult.IsSignatureMathematicallyValid && verifierResult.IsSignatureSigningDateValid
 					? new StatusInfo(new ResultInfo("Signature is correct", true))
 					: new StatusInfo(new ResultInfo("Signature is invalid", false));
 			}

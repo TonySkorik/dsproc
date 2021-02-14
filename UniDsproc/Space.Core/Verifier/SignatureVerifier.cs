@@ -1,27 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Resources;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Xml;
 using System.Xml.Linq;
+using Space.Core.Communication;
 using Space.Core.Configuration;
 using Space.Core.Exceptions;
 using Space.Core.Extensions;
 using Space.Core.Interfaces;
-using exp = System.Linq.Expressions;
 
-namespace Space.Core
+namespace Space.Core.Verifier
 {
-	public class SignatureVerificator : ISignatureVerificator
+	public partial class SignatureVerifier : ISignatureVerifier
 	{
 		#region Standard signed xml
 
-		public bool VerifySignature(
+		public VerifierResponse VerifySignature(
 			SignatureType mode,
 			string documentPath,
 			string certificateFilePath = null,
@@ -59,7 +57,7 @@ namespace Space.Core
 			return VerifySignature(mode, xd, certificateFilePath, certificateThumb, nodeId);
 		}
 
-		public (bool IsSignatureValid, string Message) VerifyDetachedSignature(
+		public VerifierResponse VerifyDetachedSignature(
 			byte[] signedFileBytes,
 			byte[] signatureFileBytes)
 		{
@@ -69,7 +67,7 @@ namespace Space.Core
 
 			if (signedCms.SignerInfos.Count == 0)
 			{
-				return (false, "No signatures found in singature file");
+				return VerifierResponse.Invalid("No signatures found in singature file");
 			}
 
 			// NOTE we are working only with the first signature here. If there are more of those in file - alter this logic
@@ -84,11 +82,11 @@ namespace Space.Core
 			
 			try
 			{
-				signerInfo.CheckSignature(verifySignatureOnly: false);
+				signerInfo.CheckSignature(verifySignatureOnly: true);
 			}
 			catch (CryptographicException e)
 			{
-				return (false, $"Signature is matematically invalid with message : {e.Message}");
+				return VerifierResponse.Invalid($"Signature is matematically invalid with message : {e.Message}");
 			}
 
 			X509Certificate2 certificate = signerInfo.Certificate;
@@ -101,19 +99,29 @@ namespace Space.Core
 
 				if (!isSigningDateValid)
 				{
-					return (false,
-						$"Signature is matematically valid but signing date {signingDateTime.Value} lies outside of certificate validity range [{certificate.NotBefore}, {certificate.NotAfter}]");
+					return new VerifierResponse()
+					{
+						IsSignatureMathematicallyValid = true,
+						IsSignatureSigningDateValid = false,
+						Message =
+							$"Signature is matematically valid but signing date {signingDateTime.Value} lies outside of certificate validity range [{certificate.NotBefore}, {certificate.NotAfter}]"
+					};
 				}
 			}
 			else
 			{
-				return (true, "Can't extract signing DateTime. Unable to check certificate validity on signing date.");
+				return new VerifierResponse()
+				{
+					IsSignatureMathematicallyValid = true,
+					IsSignatureSigningDateValid = false,
+					Message = "Can't extract signing DateTime. Unable to check certificate validity on signing date."
+				};
 			}
 
-			return (true, "Signature is valid");
+			return VerifierResponse.Valid;
 		}
 
-		public bool VerifySignature(
+		public VerifierResponse VerifySignature(
 			SignatureType mode,
 			XmlDocument message,
 			string certificateFilePath = null,
@@ -299,11 +307,16 @@ namespace Space.Core
 					throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
 			}
 
-			bool result = smev2SignedXml?.CheckSignature(cert.PublicKey.Key) ?? (cert == null
-				? signedXml.CheckSignature()
-				: signedXml.CheckSignature(cert, true));
+			var isSignatureValid = smev2SignedXml?.CheckSignature(cert.PublicKey.Key)
+				??
+				(cert == null
+					? signedXml.CheckSignature()
+					: signedXml.CheckSignature(cert, true)
+				);
 
-			return result;
+			return isSignatureValid
+				? VerifierResponse.Valid
+				: VerifierResponse.Invalid("Signature is invalid");
 		}
 
 		private bool ChargeStructureOk(XmlDocument charge)
@@ -319,86 +332,6 @@ namespace Space.Core
 			return false;
 		}
 
-		#endregion
-		
-		#region [DS: PREFIXED DOCUMENT] Some heavy wizardry here
-
-		private static readonly Type SignedXmlType = typeof(SignedXml);
-		private static readonly ResourceManager SecurityResources =
-			new ResourceManager("system.security", SignedXmlType.Assembly);
-
-		//these methods from the SignedXml class still work with prefixed Signature elements, but they are private
-		private static readonly exp.ParameterExpression ThisSignedXmlParam = exp.Expression.Parameter(SignedXmlType);
-		private static readonly Func<SignedXml, bool> CheckSignatureFormat
-			= exp.Expression.Lambda<Func<SignedXml, bool>>(
-				exp.Expression.Call(
-					ThisSignedXmlParam,
-					SignedXmlType.GetMethod("CheckSignatureFormat", BindingFlags.NonPublic | BindingFlags.Instance)),
-				ThisSignedXmlParam).Compile();
-		private static readonly Func<SignedXml, bool> CheckDigestedReferences
-			= exp.Expression.Lambda<Func<SignedXml, bool>>(
-				exp.Expression.Call(
-					ThisSignedXmlParam,
-					SignedXmlType.GetMethod("CheckDigestedReferences", BindingFlags.NonPublic | BindingFlags.Instance)),
-				ThisSignedXmlParam).Compile();
-
-		public bool CheckSignatureDs(XmlDocument xmlDoc, RSACryptoServiceProvider key)
-		{
-			if (key == null)
-				throw new ArgumentNullException(nameof(key));
-
-			SignedXml signedXml = new SignedXml(xmlDoc);
-
-			//For XPath
-			XmlNamespaceManager namespaceManager = new XmlNamespaceManager(xmlDoc.NameTable);
-			namespaceManager.AddNamespace("ds", "http://www.w3.org/2000/09/xmldsig#");
-			//this prefix is arbitrary and used only for XPath
-
-			XmlElement xmlSignature = xmlDoc.SelectSingleNode("//ds:Signature", namespaceManager) as XmlElement;
-
-			signedXml.LoadXml(xmlSignature);
-
-			//These are the three methods called in SignedXml's CheckSignature method, but the built-in CheckSignedInfo will not validate prefixed Signature elements
-			return CheckSignatureFormat(signedXml) && CheckDigestedReferences(signedXml)
-				&& CheckSignedInfo(signedXml, key);
-		}
-
-		private bool CheckSignedInfo(SignedXml signedXml, AsymmetricAlgorithm key)
-		{
-			//Copied from reflected System.Security.Cryptography.Xml.SignedXml
-			SignatureDescription signatureDescription =
-				CryptoConfig.CreateFromName(signedXml.SignatureMethod) as SignatureDescription;
-			if (signatureDescription == null)
-				throw new CryptographicException(
-					SecurityResources.GetString("Cryptography_Xml_SignatureDescriptionNotCreated"));
-
-			Type type = Type.GetType(signatureDescription.KeyAlgorithm);
-			Type type2 = key.GetType();
-			if (type != type2
-				&& !type.IsSubclassOf(type2)
-				&& !type2.IsSubclassOf(type))
-				return false;
-
-			HashAlgorithm hashAlgorithm = signatureDescription.CreateDigest();
-			if (hashAlgorithm == null)
-				throw new CryptographicException(
-					SecurityResources.GetString("Cryptography_Xml_CreateHashAlgorithmFailed"));
-
-			//Except this. The SignedXml class creates and cananicalizes a Signature element without any prefix, rather than using the element from the document provided
-			byte[] c14NDigest = GetC14NDigest(signedXml, hashAlgorithm);
-
-			AsymmetricSignatureDeformatter asymmetricSignatureDeformatter = signatureDescription.CreateDeformatter(key);
-			return asymmetricSignatureDeformatter.VerifySignature(c14NDigest, signedXml.Signature.SignatureValue);
-		}
-
-		private byte[] GetC14NDigest(SignedXml signedXml, HashAlgorithm hashAlgorithm)
-		{
-			Transform canonicalizeTransform = signedXml.SignedInfo.CanonicalizationMethodObject;
-			XmlDocument xmlDoc = new XmlDocument();
-			xmlDoc.LoadXml(signedXml.SignedInfo.GetXml().OuterXml);
-			canonicalizeTransform.LoadInput(xmlDoc);
-			return canonicalizeTransform.GetDigestedOutput(hashAlgorithm);
-		}
 		#endregion
 	}
 }

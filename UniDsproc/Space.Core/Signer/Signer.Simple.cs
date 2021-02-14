@@ -25,7 +25,10 @@ namespace Space.Core
 				if (xn.HasChildNodes)
 				{
 					ret = GetNodeWithAttributeValue(xn.ChildNodes, attributeValue);
-					if (ret != null) break;
+					if (ret != null)
+					{
+						break;
+					}
 				}
 
 				if (xn.Attributes != null

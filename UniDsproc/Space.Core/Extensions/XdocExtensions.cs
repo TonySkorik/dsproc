@@ -11,7 +11,10 @@ namespace Space.Core.Extensions
 		{
 			XDocument xDoc = new XDocument();
 			using (XmlWriter xmlWriter = xDoc.CreateWriter())
+			{
 				node.WriteTo(xmlWriter);
+			}
+
 			return xDoc.Root;
 		}
 

@@ -257,7 +257,10 @@ namespace Space.Core
 
 		public bool IsCertificateExpired(X509Certificate2 certificate)
 		{
-			if (certificate == null) return true;
+			if (certificate == null)
+			{
+				return true;
+			}
 
 			DateTime dtNow = DateTime.Now.ToUniversalTime();
 			return !(dtNow > certificate.NotBefore.ToUniversalTime() && dtNow < certificate.NotAfter.ToUniversalTime());
