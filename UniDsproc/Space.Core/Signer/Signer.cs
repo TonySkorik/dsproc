@@ -15,6 +15,7 @@ using Space.Core.Exceptions;
 using Space.Core.Extensions;
 using Space.Core.Infrastructure;
 using Space.Core.Interfaces;
+using Space.Core.Processor;
 
 namespace Space.Core
 {

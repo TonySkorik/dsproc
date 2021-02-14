@@ -72,7 +72,7 @@
     <Compile Include="Api\Helpers\HttpRequestHelper.cs" />
     <Compile Include="Api\Infrastructure\InMemoryMultipartFormDataStreamProvider.cs" />
     <Compile Include="Api\Model\OperationContext.cs" />
-    <Compile Include="Api\Model\SignerInputParameters.cs" />
+    <Compile Include="Api\Model\ApiInputParameters.cs" />
     <Compile Include="Api\Startup.cs" />
     <Compile Include="Api\WebApiHost.cs" />
     <Compile Include="Configuration\AppSettings.cs" />

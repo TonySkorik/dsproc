@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Space.Core.Communication
 {
@@ -11,6 +12,8 @@ namespace Space.Core.Communication
 		public bool IsSignatureMathematicallyValid { set; get; }
 		public bool IsSignatureSigningDateValid { set; get; }
 		public string Message { set; get; }
+		[JsonProperty("IsSignatureValid")]
+		public bool IsSignatureValid => IsSignatureMathematicallyValid && IsSignatureSigningDateValid;
 
 		public static VerifierResponse Invalid(string message) => new VerifierResponse()
 		{

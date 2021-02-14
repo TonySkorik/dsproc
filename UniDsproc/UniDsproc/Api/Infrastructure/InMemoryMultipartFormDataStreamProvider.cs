@@ -12,54 +12,53 @@ namespace UniDsproc.Api.Infrastructure
 {
 	public class InMemoryMultipartFormDataStreamProvider : MultipartStreamProvider
 	{
-		// Set of indexes of which HttpContents we designate as form data  
+		// Set of indexes of which HttpContents we designate as form data
 		private readonly Collection<bool> _isFormData = new Collection<bool>();
 
-		/// <summary>  
-		/// Gets a <see cref="NameValueCollection"/> of form data passed as part of the multipart form data.  
-		/// </summary>  
+		/// <summary>
+		/// Gets a <see cref="NameValueCollection"/> of form data passed as part of the multipart form data.
+		/// </summary>
 		public NameValueCollection FormData { get; } = new NameValueCollection();
 
-		/// <summary>  
-		/// Gets list of <see cref="HttpContent"/>s which contain uploaded files as in-memory representation.  
-		/// </summary>  
+		/// <summary>
+		/// Gets list of <see cref="HttpContent"/>s which contain uploaded files as in-memory representation.
+		/// </summary>
 		public List<HttpContent> Files { get; } = new List<HttpContent>();
 
 		public override Stream GetStream(HttpContent parent, HttpContentHeaders headers)
 		{
-			// For form data, Content-Disposition header is a requirement  
+			// For form data, Content-Disposition header is a requirement
 			ContentDispositionHeaderValue contentDisposition = headers.ContentDisposition;
 			if (contentDisposition != null)
 			{
-				// We will post process this as form data  
+				// We will post process this as form data
 				_isFormData.Add(string.IsNullOrEmpty(contentDisposition.FileName));
 
 				return new MemoryStream();
 			}
 
-			// If no Content-Disposition header was present.  
+			// If no Content-Disposition header was present
 			throw new InvalidOperationException(
 				"Did not find required 'Content-Disposition' header field in MIME multipart body part..");
 		}
 
-		/// <summary>  
-		/// Read the non-file contents as form data.  
-		/// </summary>  
-		/// <returns></returns>  
+		/// <summary>
+		/// Read the non-file contents as form data.
+		/// </summary>
 		public override async Task ExecutePostProcessingAsync()
 		{
-			// Find instances of non-file HttpContents and read them asynchronously  
-			// to get the string content and then add that as form data  
+			// Find instances of non-file HttpContents and read them asynchronously
+			// to get the string content and then add that as form data
 			for (int index = 0; index < Contents.Count; index++)
 			{
 				if (_isFormData[index])
 				{
 					HttpContent formContent = Contents[index];
-					// Extract name from Content-Disposition header. We know from earlier that the header is present.  
+					// Extract name from Content-Disposition header. We know from earlier that the header is present.
 					ContentDispositionHeaderValue contentDisposition = formContent.Headers.ContentDisposition;
 					string formFieldName = UnquoteToken(contentDisposition.Name) ?? string.Empty;
 
-					// Read the contents as string data and add to form data  
+					// Read the contents as string data and add to form data
 					string formFieldValue = await formContent.ReadAsStringAsync();
 					FormData.Add(formFieldName, formFieldValue);
 				}
@@ -105,11 +104,11 @@ namespace UniDsproc.Api.Infrastructure
 			return targetString;
 		}
 
-		/// <summary>  
-		/// Remove bounding quotes on a token if present  
-		/// </summary>  
-		/// <param name="token">Token to unquote.</param>  
-		/// <returns>Unquoted token.</returns>  
+		/// <summary>
+		/// Remove bounding quotes on a token if present
+		/// </summary>
+		/// <param name="token">Token to unquote.</param>
+		/// <returns>Unquoted token.</returns>
 		private static string UnquoteToken(string token)
 		{
 			if (string.IsNullOrWhiteSpace(token))

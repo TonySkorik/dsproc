@@ -40,18 +40,18 @@ namespace Space.CertificateSerialization.DataModel
 
 		#region Ctor
 
-		public X509CertificateSerializable(X509Certificate2 cer)
+		public X509CertificateSerializable(X509Certificate2 certificate)
 		{
-			SerializedSubject = cer.Subject?.Replace("\"\"", "\"").Replace("\"", "\'");
-			SerializedIssuer = cer.Issuer?.Replace("\"\"", "\"").Replace("\"", "\'");
-			SerializedNotBefore = cer.NotBefore.ToString("s").Replace("T", " ");
-			SerializedNotAfter = cer.NotAfter.ToString("s").Replace("T", " ");
-			SerializedSerial = cer.SerialNumber;
-			SerializedThumbprint = cer.Thumbprint;
-			SerializedFriendlyName = !string.IsNullOrEmpty(cer.FriendlyName)
-				? cer.FriendlyName
+			SerializedSubject = certificate.Subject?.Replace("\"\"", "\"").Replace("\"", "\'");
+			SerializedIssuer = certificate.Issuer?.Replace("\"\"", "\"").Replace("\"", "\'");
+			SerializedNotBefore = certificate.NotBefore.ToString("s").Replace("T", " ");
+			SerializedNotAfter = certificate.NotAfter.ToString("s").Replace("T", " ");
+			SerializedSerial = certificate.SerialNumber;
+			SerializedThumbprint = certificate.Thumbprint;
+			SerializedFriendlyName = !string.IsNullOrEmpty(certificate.FriendlyName)
+				? certificate.FriendlyName
 				: null;
-			Version = cer.Version;
+			Version = certificate.Version;
 			Certificates = null;
 		}
 

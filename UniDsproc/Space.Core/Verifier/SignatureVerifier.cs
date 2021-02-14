@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
@@ -12,52 +13,87 @@ using Space.Core.Configuration;
 using Space.Core.Exceptions;
 using Space.Core.Extensions;
 using Space.Core.Interfaces;
+using Space.Core.Processor;
 
 namespace Space.Core.Verifier
 {
 	public partial class SignatureVerifier : ISignatureVerifier
 	{
-		#region Standard signed xml
-
 		public VerifierResponse VerifySignature(
 			SignatureType mode,
-			string documentPath,
+			string documentPath = null,
 			string certificateFilePath = null,
 			string certificateThumb = null,
-			string nodeId = null)
+			string nodeId = null,
+			byte[] signedFileBytes = null,
+			byte[] signatureFileBytes = null)
 		{
-			if (new List<SignatureType>
-				{
-					SignatureType.Rsa2048Sha256String,
-					SignatureType.RsaSha256String,
-
-					SignatureType.Pkcs7String,
-					SignatureType.Pkcs7StringAllCert,
-					SignatureType.Pkcs7StringNoCert,
-
-					SignatureType.SigDetached,
-					SignatureType.SigDetachedAllCert,
-					SignatureType.SigDetachedNoCert
-				}.Contains(mode)
-			)
+			switch (mode)
 			{
-				throw ExceptionFactory.GetException(ExceptionType.UnsupportedSignatureType, mode);
-			}
+				case SignatureType.Pkcs7String:
+				case SignatureType.Pkcs7StringAllCert:
+				case SignatureType.Pkcs7StringNoCert:
+				case SignatureType.SigDetached:
+				case SignatureType.SigDetachedAllCert:
+				case SignatureType.SigDetachedNoCert:
+					if (signedFileBytes == null)
+					{
+						throw new InvalidOperationException(
+							"Signed file data required for detached signature verification");
+					}
 
-			XmlDocument xd = new XmlDocument();
-			try
-			{
-				xd.Load(documentPath);
-			}
-			catch (Exception e)
-			{
-				throw ExceptionFactory.GetException(ExceptionType.InputXmlMissingOrCorrupted, documentPath, e.Message);
-			}
+					if (signatureFileBytes == null)
+					{
+						throw new InvalidOperationException(
+							"Signature file data required for detached signature verification");
+					}
 
-			return VerifySignature(mode, xd, certificateFilePath, certificateThumb, nodeId);
+					return VerifyDetachedSignature(signedFileBytes, signatureFileBytes);
+
+				case SignatureType.Smev2SidebysideDetached:
+				case SignatureType.Smev2ChargeEnveloped:
+				case SignatureType.Smev2BaseDetached:
+				case SignatureType.Smev3BaseDetached:
+				case SignatureType.Smev3SidebysideDetached:
+				case SignatureType.Smev3Ack:
+					XmlDocument xd = new XmlDocument();
+
+					if(documentPath != null)
+					{
+						try
+						{
+							xd.Load(documentPath);
+						}
+						catch (Exception e)
+						{
+							throw ExceptionFactory.GetException(
+								ExceptionType.InputXmlMissingOrCorrupted,
+								documentPath,
+								e.Message);
+						}
+					}
+					else
+					{
+						if (signedFileBytes == null)
+						{
+							throw new InvalidOperationException("Signed file data is not provided.");
+						}
+
+						xd.Load(new MemoryStream(signedFileBytes));
+					}
+
+					return VerifySignature(mode, xd, certificateFilePath, certificateThumb, nodeId);
+
+				case SignatureType.Rsa2048Sha256String:
+				case SignatureType.RsaSha256String:
+					throw ExceptionFactory.GetException(ExceptionType.UnsupportedSignatureType, mode);
+
+				default:
+					throw new InvalidOperationException($"Unsupported signature mode {mode}");
+			}
 		}
 
-		public VerifierResponse VerifyDetachedSignature(
+		private VerifierResponse VerifyDetachedSignature(
 			byte[] signedFileBytes,
 			byte[] signatureFileBytes)
 		{
@@ -161,15 +197,13 @@ namespace Space.Core.Verifier
 				}
 			}
 
-			Dictionary<string, XmlElement> signatures = new Dictionary<string, XmlElement>();
-
 			XmlNodeList signaturesInDoc =
 				message.GetElementsByTagName(
 					"Signature",
 					SignedXml.XmlDsigNamespaceUrl
 				);
 
-			signatures =
+			var signatures =
 				signaturesInDoc
 					.Cast<XmlElement>()
 					.ToDictionary(
@@ -331,7 +365,5 @@ namespace Space.Core.Verifier
 
 			return false;
 		}
-
-		#endregion
 	}
 }

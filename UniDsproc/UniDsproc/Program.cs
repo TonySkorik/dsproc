@@ -8,6 +8,7 @@ using Space.CertificateSerialization;
 using Space.Core;
 using Space.Core.Configuration;
 using Space.Core.Interfaces;
+using Space.Core.Processor;
 using Space.Core.Verifier;
 using Topshelf;
 using UniDsproc.Api;
@@ -336,7 +337,7 @@ namespace UniDsproc
 				si =
 					new StatusInfo(
 						new ResultInfo(
-							serializer.CertificateToSerializableCertificate(
+							serializer.CertificateToSerializable(
 								arguments.CertificateSource,
 								arguments.InputFile,
 								arguments.NodeId)));
@@ -358,7 +359,7 @@ namespace UniDsproc
 			{
 				if (si.Result.SignatureIsCorrect.HasValue && si.Result.SignatureIsCorrect.Value)
 				{
-					arguments.CertificateSource = CertificateProcessor.CertificateSource.Xml;
+					arguments.CertificateSource = CertificateSource.Xml;
 					si = Extract(arguments);
 				}
 			}

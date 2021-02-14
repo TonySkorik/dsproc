@@ -10,7 +10,7 @@ using System.Linq.Expressions;
 
 namespace Space.Core.Verifier
 {
-	public partial class SignatureVerifier : ISignatureVerifier
+	public partial class SignatureVerifier
 	{
 		#region [DS: PREFIXED DOCUMENT] Some heavy wizardry here
 

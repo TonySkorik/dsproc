@@ -14,7 +14,9 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Results;
 using System.Xml.Linq;
+using Newtonsoft.Json;
 using Serilog;
+using Space.CertificateSerialization;
 using Space.Core;
 using Space.Core.Communication;
 using Space.Core.Interfaces;
@@ -31,11 +33,22 @@ namespace UniDsproc.Api.Controllers.V1
 	{
 		private readonly AppSettings _settings;
 		private readonly ISigner _signer;
-		
-		public CommandController(AppSettings settings, ISigner signer)
+		private readonly ISignatureVerifier _verifier;
+		private readonly ICertificateProcessor _certificateProcessor;
+		private readonly ICertificateSerializer _certificateSerializer;
+
+		public CommandController(
+			AppSettings settings,
+			ISigner signer,
+			ISignatureVerifier verifier,
+			ICertificateProcessor certificateProcessor,
+			ICertificateSerializer certificateSerializer)
 		{
 			_settings = settings;
 			_signer = signer;
+			_verifier = verifier;
+			_certificateProcessor = certificateProcessor;
+			_certificateSerializer = certificateSerializer;
 		}
 
 		[HttpPost]
@@ -44,19 +57,19 @@ namespace UniDsproc.Api.Controllers.V1
 		{
 			if (!Request.IsAuthorized())
 			{
-				Log.Fatal("Blocked WebApiHost request from {blockedIp}.", Request.GetRemoteIp());
+				Log.Fatal("Blocked WebApiHost request from {blockedIp}", Request.GetRemoteIp());
 				return StatusCode(HttpStatusCode.Forbidden);
 			}
 
 			var context = new OperationContext(Request);
-			
+
 			try
 			{
 				Program.WebApiHost.ClientConnected();
 				context.SetRawInputParameters(Request.RequestUri.Query, command);
 
-				var inputParameters = await ReadSignerParameters(Request, command, context);
-				
+				var inputParameters = await ReadInputParameters(Request, command);
+
 				context.SetInputParameters(inputParameters);
 
 				var validationResult = ValidateParameters(inputParameters);
@@ -65,7 +78,7 @@ namespace UniDsproc.Api.Controllers.V1
 				{
 					return ErrorResultBadRequest(validationResult.errorReason, context);
 				}
-				
+
 				switch (inputParameters.ArgsInfo.Function)
 				{
 					case ProgramFunction.Sign:
@@ -77,7 +90,7 @@ namespace UniDsproc.Api.Controllers.V1
 							inputParameters.ArgsInfo.NodeId,
 							inputParameters.ArgsInfo.IgnoreExpiredCertificate,
 							inputParameters.ArgsInfo.IsAddSigningTime);
-						
+
 						var binaryData = signerResponse.IsResultBase64Bytes
 							? Convert.FromBase64String(signerResponse.SignedData)
 							: Encoding.UTF8.GetBytes(signerResponse.SignedData);
@@ -86,14 +99,12 @@ namespace UniDsproc.Api.Controllers.V1
 
 						var streamToReturn = new MemoryStream(binaryData);
 
-						var returnMessage= new HttpResponseMessage(HttpStatusCode.OK)
+						var returnMessage = new HttpResponseMessage(HttpStatusCode.OK)
 						{
 							Content = new StreamContent(streamToReturn),
 						};
 
-						returnMessage.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-						returnMessage.Headers.Add("UniApp", "UnDsProc");
-						returnMessage.Headers.Add("UniVersion", Program.Version);
+						SetAdditionalResponseProperties(returnMessage);
 
 						Log.Debug(
 							"Successfully signed file from ip {requesterIp} with following parameters: [{parameters}]",
@@ -101,13 +112,57 @@ namespace UniDsproc.Api.Controllers.V1
 							context.RawInputParameters);
 
 						return SuccessResult(returnMessage, context);
+
+					case ProgramFunction.Verify:
+						var verifierResponse = _verifier.VerifySignature(
+							inputParameters.ArgsInfo.SigType,
+							nodeId: inputParameters.ArgsInfo.NodeId,
+							signedFileBytes: inputParameters.DataToSign,
+							signatureFileBytes: inputParameters.SignatureFileBytes);
+						
+							var verifierRetrurnMessge = new HttpResponseMessage(HttpStatusCode.OK)
+							{
+								Content = new StringContent(JsonConvert.SerializeObject(verifierResponse))
+							};
+
+							SetAdditionalResponseProperties(verifierRetrurnMessge);
+
+							Log.Debug(
+								"Successfully checked signature from ip {requesterIp} with following parameters: [{parameters}]",
+								Request.GetRemoteIp(),
+								context.RawInputParameters);
+
+							return SuccessResult(verifierRetrurnMessge, context);
+
+					case ProgramFunction.Extract:
+						var readCertificate = _certificateProcessor.ReadCertificateFromSignedFile(
+							inputParameters.ArgsInfo.SigType,
+							signedFileBytes: inputParameters.DataToSign,
+							signatureFileBytes: inputParameters.SignatureFileBytes,
+							nodeId: inputParameters.ArgsInfo.NodeId);
+
+						var serializableCertificate = _certificateSerializer.CertificateToSerializable(readCertificate);
+
+						var extractedCertificateRetrurnMessge = new HttpResponseMessage(HttpStatusCode.OK)
+						{
+							Content = new StringContent(JsonConvert.SerializeObject(serializableCertificate))
+						};
+
+						SetAdditionalResponseProperties(extractedCertificateRetrurnMessge);
+
+						Log.Debug(
+							"Successfully extracted certificate from signed file from ip {requesterIp} with following parameters: [{parameters}]",
+							Request.GetRemoteIp(),
+							context.RawInputParameters);
+
+						return SuccessResult(extractedCertificateRetrurnMessge, context);
 					default:
-						return ErrorResultBadRequest($"Command {command} not supported.", context);
+						return ErrorResultBadRequest($"Command {command} is not supported.", context);
 				}
 			}
 			catch (OperationCanceledException opce)
 			{
-				Log.Warning("Client disconnected prior to singing completion.");
+				Log.Warning("Client disconnected prior to singing completion");
 				return ErrorResultBadRequest(opce, context);
 			}
 			catch (Exception ex)
@@ -123,6 +178,14 @@ namespace UniDsproc.Api.Controllers.V1
 		}
 
 		#region Methods for creating responses
+
+		private void SetAdditionalResponseProperties(HttpResponseMessage returnMessage)
+		{
+			returnMessage.Content.Headers.ContentType =
+				new MediaTypeHeaderValue("application/octet-stream");
+			returnMessage.Headers.Add("UniApp", "UnDsProc");
+			returnMessage.Headers.Add("UniVersion", Program.Version);
+		}
 
 		private IHttpActionResult SuccessResult(HttpResponseMessage message, OperationContext context)
 		{
@@ -157,9 +220,9 @@ namespace UniDsproc.Api.Controllers.V1
 		}
 
 		#endregion
-		
+
 		#region Service methods
-		
+
 		private void SaveOperationContext(OperationContext context)
 		{
 			if (!_settings.Logger.IsVerboseModeOn)
@@ -168,7 +231,8 @@ namespace UniDsproc.Api.Controllers.V1
 			}
 
 			var now = DateTime.Now;
-			string path = $"data\\{now.Year:D4}\\{now.Month:D2}\\{now.Day:D2}\\{now.Hour:D2}-{now.Minute:D2}-{now.Second:D2}_{now.Millisecond:D3}";
+			string path =
+				$"data\\{now.Year:D4}\\{now.Month:D2}\\{now.Day:D2}\\{now.Hour:D2}-{now.Minute:D2}-{now.Second:D2}_{now.Millisecond:D3}";
 			Directory.CreateDirectory(path);
 
 			var clientIpAddress = context.Request.GetRemoteIp();
@@ -184,26 +248,27 @@ namespace UniDsproc.Api.Controllers.V1
 			File.WriteAllText(ipDataFile, clientIpAddress);
 		}
 
-		private (bool isParametersOk, string errorReason) ValidateParameters(SignerInputParameters parameters)
+		private (bool isParametersOk, string errorReason) ValidateParameters(ApiInputParameters parameters)
 		{
 			if (parameters.DataToSign == null)
 			{
-				return (false, $"No data to sign.");
+				return (false, "No data to sign.");
 			}
 
 			return (true, string.Empty);
 		}
 
-		private async Task<SignerInputParameters> ReadSignerParameters(HttpRequestMessage request, string command, OperationContext context)
+		private async Task<ApiInputParameters> ReadInputParameters(HttpRequestMessage request, string command)
 		{
-			var clientDisconnected = request.GetOwinContext()?.Request?.CallCancelled ?? CancellationToken.None;
+			var clientDisconnectedCancellationToken =
+				request.GetOwinContext()?.Request?.CallCancelled ?? CancellationToken.None;
 
 			//NOTE: this is not an in-memory way of doing the same thing
 			//var root = HttpContext.Current.Server.MapPath("~/App_Data/");
 			//var streamProvider = new MultipartFormDataStreamProvider(root);
-			
+
 			var streamProvider = new InMemoryMultipartFormDataStreamProvider();
-			await request.Content.ReadAsMultipartAsync(streamProvider, clientDisconnected);
+			await request.Content.ReadAsMultipartAsync(streamProvider, clientDisconnectedCancellationToken);
 
 			var querySegments = request.RequestUri.ParseQueryString();
 
@@ -219,7 +284,8 @@ namespace UniDsproc.Api.Controllers.V1
 
 			ArgsInfo argsInfo = ArgsInfo.Parse(args.ToArray(), true, _settings.Signer.KnownThumbprints);
 
-			var dataToSignFile = streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == "data_file");
+			var dataToSignFile =
+				streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == "data_file");
 
 			byte[] dataToSign = null;
 			if (dataToSignFile != null)
@@ -228,18 +294,27 @@ namespace UniDsproc.Api.Controllers.V1
 			}
 			else
 			{
-				Log.Error("File to sign is not found.");
+				Log.Error("File to sign is not found");
 			}
 
-			SignerInputParameters ret = new SignerInputParameters()
+			var signatureFile =
+				streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == "signature_file");
+			byte[] signatureBytes = null;
+			if (signatureFile != null)
+			{
+				signatureBytes = await signatureFile.ReadAsByteArrayAsync();
+			}
+
+			ApiInputParameters ret = new ApiInputParameters()
 			{
 				ArgsInfo = argsInfo,
-				DataToSign = dataToSign
+				DataToSign = dataToSign,
+				SignatureFileBytes = signatureBytes
 			};
 
 			return ret;
 		}
-		
+
 		#endregion
 	}
 }

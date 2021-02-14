@@ -13,13 +13,11 @@ namespace UniDsproc.Api.Model
 	internal class OperationContext
 	{
 		public HttpRequestMessage Request { get; }
-		private DateTime RequestDateTime { get; } = DateTime.Now;
 		public string RawInputParameters { private set; get; }
-		public SignerInputParameters InputParameters { private set; get; }
+		public ApiInputParameters InputParameters { private set; get; }
 		public SignerResponse SignerResponse { private set; get; }
 		public int ReturnedStatusCode { private set; get; }
 		public string ExceptionMessage { private set; get; }
-		public string IpAddress => Request.GetRemoteIp();
 
 		public OperationContext(HttpRequestMessage request)
 		{
@@ -31,7 +29,7 @@ namespace UniDsproc.Api.Model
 			RawInputParameters = $"{command}/{parametersString}";
 		}
 
-		public void SetInputParameters(SignerInputParameters parameters)
+		public void SetInputParameters(ApiInputParameters parameters)
 		{
 			InputParameters = parameters;
 		}

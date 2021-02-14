@@ -9,19 +9,12 @@ namespace Space.Core.Interfaces
 	{
 		VerifierResponse VerifySignature(
 			SignatureType mode,
-			string documentPath,
+			string documentPath = null,
 			string certificateFilePath = null,
 			string certificateThumb = null,
-			string nodeId = null);
-
-		VerifierResponse VerifySignature(
-			SignatureType mode,
-			XmlDocument message,
-			string certificateFilePath = null,
-			string certificateThumb = null,
-			string nodeId = null);
-
-		VerifierResponse VerifyDetachedSignature(byte[] signedFileBytes, byte[] signatureFileBytes);
+			string nodeId = null, 
+			byte[] signedFileBytes = null,
+			byte[] signatureFileBytes = null);
 
 		VerifierResponse CheckSignatureDs(XmlDocument xmlDoc, RSACryptoServiceProvider key);
 	}

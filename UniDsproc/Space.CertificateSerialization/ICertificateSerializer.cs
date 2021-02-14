@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using Space.CertificateSerialization.DataModel;
 using Space.Core;
+using Space.Core.Processor;
 
 namespace Space.CertificateSerialization
 {
@@ -17,9 +19,15 @@ namespace Space.CertificateSerialization
 		/// <param name="filePath">Path of th file to read</param>
 		/// <param name="nodeId">Id of the signed node</param>
 		/// <returns><see cref="X509CertificateSerializable"/></returns>
-		X509CertificateSerializable CertificateToSerializableCertificate(
-			CertificateProcessor.CertificateSource source,
+		X509CertificateSerializable CertificateToSerializable(
+			CertificateSource source,
 			string filePath,
 			string nodeId);
+
+		/// <summary>
+		/// Creates serializable certificate from provided <see cref="X509Certificate2"/> instance.
+		/// </summary>
+		/// <param name="certificate">The certificate to create serializable from.</param>
+		X509CertificateSerializable CertificateToSerializable(X509Certificate2 certificate);
 	}
 }

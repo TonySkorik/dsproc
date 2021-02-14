@@ -8,8 +8,11 @@ using System.Web.Http;
 using Autofac;
 using Autofac.Integration.WebApi;
 using Owin;
+using Space.CertificateSerialization;
 using Space.Core;
 using Space.Core.Interfaces;
+using Space.Core.Processor;
+using Space.Core.Verifier;
 using UniDsproc.Configuration;
 
 namespace UniDsproc.Api
@@ -51,6 +54,9 @@ namespace UniDsproc.Api
 
 			builder.RegisterInstance(_settings).AsSelf().SingleInstance();
 			builder.RegisterType<Signer>().As<ISigner>().SingleInstance();
+			builder.RegisterType<SignatureVerifier>().As<ISignatureVerifier>().SingleInstance();
+			builder.RegisterType<CertificateProcessor>().As<ICertificateProcessor>().SingleInstance();
+			builder.RegisterType<CertificateSerializer>().As<ICertificateSerializer>().SingleInstance();
 
 			var container = builder.Build();
 

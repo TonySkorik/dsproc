@@ -8,6 +8,7 @@ using System.Reflection;
 using Space.Core;
 using Space.Core.Configuration;
 using Space.Core.Infrastructure;
+using Space.Core.Processor;
 using UniDsproc.Infrastructure;
 
 namespace UniDsproc.DataModel
@@ -56,7 +57,7 @@ namespace UniDsproc.DataModel
 		[ArgBinding("add_signing_time")]
 		public bool IsAddSigningTime { set; get; }
 		[ArgBinding(_certificateSourceKey)]
-		public CertificateProcessor.CertificateSource CertificateSource { set; get; } 
+		public CertificateSource CertificateSource { set; get; } 
 
 		#endregion
 
@@ -81,7 +82,7 @@ namespace UniDsproc.DataModel
 			SigType = SignatureType.Unknown;
 			IgnoreExpiredCertificate = false;
 			IsAddSigningTime = false;
-			CertificateSource = CertificateProcessor.CertificateSource.Unknown;
+			CertificateSource = CertificateSource.Unknown;
 		}
 		
 		#endregion
@@ -222,13 +223,13 @@ namespace UniDsproc.DataModel
 							? gostFlavor
 							: GostFlavor.Gost_Obsolete);
 				}
-				else if (_knownArgs[keyName].PropertyType.Name == nameof(CertificateProcessor.CertificateSource))
+				else if (_knownArgs[keyName].PropertyType.Name == nameof(CertificateSource))
 				{
 					//parse CertificateSource
 					if (Enum.TryParse(
 						argvs[1].Replace(".", "").Replace("_", ""),
 						true,
-						out CertificateProcessor.CertificateSource csource))
+						out CertificateSource csource))
 					{
 						_knownArgs[keyName].SetValue(target, csource);
 					}
@@ -330,7 +331,7 @@ namespace UniDsproc.DataModel
 
 					break;
 				case ProgramFunction.Extract:
-					if (target.CertificateSource == CertificateProcessor.CertificateSource.Unknown)
+					if (target.CertificateSource == CertificateSource.Unknown)
 					{
 						target.InitError = new ErrorInfo(
 							ErrorCodes.ArgumentNullValue,

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Xml.Linq;
+using Space.Core.Configuration;
 
 namespace Space.Core.Interfaces
 {
@@ -42,6 +43,19 @@ namespace Space.Core.Interfaces
 		/// <param name="nodeId">Identifier of the signed node</param>
 		/// <returns><see cref="X509Certificate2"/></returns>
 		X509Certificate2 ReadCertificateFromXml(string signedXmlPath, string nodeId);
+
+		/// <summary>
+		/// Loads signed XML document from disk and reads a certificate which a specified node is signed with
+		/// </summary>
+		/// <param name="signedFileBytes">Signed file bytes.</param>
+		/// <param name="signatureType">The signature type to determine how to read the provided file.</param>
+		/// <param name="nodeId">The signed node id for XML signature cases.</param>
+		/// <returns><see cref="X509Certificate2"/></returns>
+		X509Certificate2 ReadCertificateFromSignedFile(
+			SignatureType signatureType,
+			byte[] signedFileBytes,
+			byte[] signatureFileBytes = null,
+			string nodeId = null);
 
 		/// <summary>
 		/// Reads a certificate which a specified node is signed with

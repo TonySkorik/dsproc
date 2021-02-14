@@ -7,9 +7,10 @@ using UniDsproc.DataModel;
 
 namespace UniDsproc.Api.Model
 {
-	internal class SignerInputParameters
+	internal class ApiInputParameters
 	{
 		public ArgsInfo ArgsInfo { set; get; }
 		public byte[] DataToSign { set; get; }
+		public byte[] SignatureFileBytes { set; get; }
 	}
 }
