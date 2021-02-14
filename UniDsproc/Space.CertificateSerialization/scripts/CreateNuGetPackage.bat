@@ -1,1 +1,0 @@
-nuget pack ../Space.CertificateSerialization.csproj -properties Configuration=Release -IncludeReferencedProjects -OutputDirectory ../
