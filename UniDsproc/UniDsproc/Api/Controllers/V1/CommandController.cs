@@ -155,6 +155,42 @@ namespace UniDsproc.Api.Controllers.V1
 							context.RawInputParameters);
 
 						return SuccessResult(extractedCertificateRetrurnMessge, context);
+
+					case ProgramFunction.VerifyAndExtract:
+						var verifierResponsePart = _verifier.VerifySignature(
+							inputParameters.ArgsInfo.SigType,
+							signedFileBytes: inputParameters.DataToSign,
+							signatureFileBytes: inputParameters.SignatureFileBytes,
+							nodeId: inputParameters.ArgsInfo.NodeId);
+
+						var readCertificatePart = _certificateProcessor.ReadCertificateFromSignedFile(
+							inputParameters.ArgsInfo.SigType,
+							signedFileBytes: inputParameters.DataToSign,
+							signatureFileBytes: inputParameters.SignatureFileBytes,
+							nodeId: inputParameters.ArgsInfo.NodeId);
+
+						var serializableCertificatePart = _certificateSerializer.CertificateToSerializable(readCertificatePart);
+
+						var combinedResponse = new CombinedResponse()
+						{
+							VerificationResult = verifierResponsePart,
+							ExtractedCertificate = serializableCertificatePart
+						};
+
+						var verifyAndExtractRetrurnMessge = new HttpResponseMessage(HttpStatusCode.OK)
+						{
+							Content = new StringContent(JsonConvert.SerializeObject(combinedResponse))
+						};
+
+						SetAdditionalResponseProperties(verifyAndExtractRetrurnMessge);
+
+						Log.Debug(
+							"Successfully verified and extracted certificate from signed file from ip {requesterIp} with following parameters: [{parameters}]",
+							Request.GetRemoteIp(),
+							context.RawInputParameters);
+
+						return SuccessResult(verifyAndExtractRetrurnMessge, context);
+
 					default:
 						return ErrorResultBadRequest($"Command {command} is not supported.", context);
 				}

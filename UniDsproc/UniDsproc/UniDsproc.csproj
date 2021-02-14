@@ -71,6 +71,7 @@
     <Compile Include="Api\Controllers\V1\CommandController.cs" />
     <Compile Include="Api\Helpers\HttpRequestHelper.cs" />
     <Compile Include="Api\Infrastructure\InMemoryMultipartFormDataStreamProvider.cs" />
+    <Compile Include="Api\Model\CombinedResponse.cs" />
     <Compile Include="Api\Model\OperationContext.cs" />
     <Compile Include="Api\Model\ApiInputParameters.cs" />
     <Compile Include="Api\Startup.cs" />
