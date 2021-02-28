@@ -66,7 +66,7 @@ namespace Space.Core
 			bool ignoreExpiredCert = false,
 			bool? isAddSigningTime = null)
 		{
-			XmlDocument signThis = null;
+			XmlDocument xmlToSign = null;
 			string stringToSign = null;
 			bool isResultBase64Bytes = false;
 
@@ -77,21 +77,31 @@ namespace Space.Core
 				|| mode == SignatureType.Rsa2048Sha256String
 				|| mode == SignatureType.RsaSha256String)
 			{
+				// read binary content as string
 				stringToSign = Encoding.UTF8.GetString(bytesToSign);
 				isResultBase64Bytes = true;
 			}
+			else if (mode == SignatureType.SigDetached
+				|| mode == SignatureType.SigDetachedAllCert
+				|| mode == SignatureType.SigDetachedNoCert)
+			{
+				// TODO: this is a quick and dirty fix
+				// here we already have content in bytesToSign - just do nothing
+			}
 			else
 			{
-				signThis = new XmlDocument();
+				xmlToSign = new XmlDocument();
 				var stringContent = Encoding.UTF8.GetString(bytesToSign);
-				signThis.LoadXml(stringContent);
+				xmlToSign.LoadXml(stringContent);
 			}
+
+			//TODO: this is a very convoluted way to pass arguments. Wrap all possible input data into a class!!!
 
 			var signedData = Sign(
 				mode,
 				gostFlavor,
 				certificateThumbprint,
-				signThis,
+				xmlToSign,
 				false,
 				nodeToSign,
 				ignoreExpiredCert,
@@ -114,7 +124,7 @@ namespace Space.Core
 			bool ignoreExpiredCert = false,
 			bool? isAddSigningTime = null)
 		{
-			XmlDocument signThis = null;
+			XmlDocument xmlToSign = null;
 			string stringToSign = null;
 			byte[] bytesToSign = null;
 
@@ -147,15 +157,15 @@ namespace Space.Core
 			}
 			else
 			{
-				signThis = new XmlDocument();
-				signThis.Load(signThisPath);
+				xmlToSign = new XmlDocument();
+				xmlToSign.Load(signThisPath);
 			}
 
 			return Sign(
 				mode,
 				gostFlavor,
 				certificateThumbprint,
-				signThis,
+				xmlToSign,
 				assignDs,
 				nodeToSign,
 				ignoreExpiredCert,

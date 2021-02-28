@@ -334,12 +334,13 @@ namespace UniDsproc.Api.Controllers.V1
 
 			var signatureFile =
 				streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == "signature_file");
+
 			byte[] signatureBytes = null;
 			if (signatureFile != null)
 			{
 				signatureBytes = await signatureFile.ReadAsByteArrayAsync();
 			}
-
+			
 			ApiInputParameters ret = new ApiInputParameters()
 			{
 				ArgsInfo = argsInfo,
