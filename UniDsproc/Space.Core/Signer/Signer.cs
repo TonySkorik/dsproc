@@ -87,6 +87,7 @@ namespace Space.Core
 			{
 				// TODO: this is a quick and dirty fix
 				// here we already have content in bytesToSign - just do nothing
+				isResultBase64Bytes = true;
 			}
 			else
 			{
