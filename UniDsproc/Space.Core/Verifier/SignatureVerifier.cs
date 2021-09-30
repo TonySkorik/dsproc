@@ -8,6 +8,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Xml;
 using System.Xml.Linq;
+using CryptoPro.Sharpei.Xml;
 using Space.Core.Communication;
 using Space.Core.Configuration;
 using Space.Core.Exceptions;
@@ -55,7 +56,6 @@ namespace Space.Core.Verifier
 				case SignatureType.Smev2BaseDetached:
 				case SignatureType.Smev3BaseDetached:
 				case SignatureType.Smev3SidebysideDetached:
-				case SignatureType.Smev3Ack:
 					XmlDocument xd = new XmlDocument();
 
 					if(documentPath != null)
@@ -88,6 +88,7 @@ namespace Space.Core.Verifier
 				case SignatureType.RsaSha256String:
 					throw ExceptionFactory.GetException(ExceptionType.UnsupportedSignatureType, mode);
 
+				case SignatureType.Smev3Ack:
 				default:
 					throw new InvalidOperationException($"Unsupported signature mode {mode}");
 			}
@@ -210,8 +211,6 @@ namespace Space.Core.Verifier
 						(elt) =>
 						{
 							XNamespace ns = elt.GetXElement().Name.Namespace;
-							string sigRef = elt.GetXElement().Descendants(ns + "Reference").First().Attributes("URI")
-								.First().Value;
 							return elt.GetXElement().Descendants(ns + "Reference").First().Attributes("URI").First()
 								.Value.Replace("#", "");
 						},
@@ -224,7 +223,7 @@ namespace Space.Core.Verifier
 				throw ExceptionFactory.GetException(ExceptionType.ReferencedSignatureNotFound, nodeId);
 			}
 
-			if (signaturesInDoc.Count < 1)
+			if (signaturesInDoc.Count == 0)
 			{
 				throw ExceptionFactory.GetException(ExceptionType.NoSignaturesFound);
 			}
@@ -310,6 +309,9 @@ namespace Space.Core.Verifier
 				case SignatureType.Smev3SidebysideDetached:
 					try
 					{
+						XmlDsigSmevTransform smevTransform = new XmlDsigSmevTransform();
+						signedXml.SafeCanonicalizationMethods.Add(smevTransform.Algorithm);
+
 						signedXml.LoadXml(
 							!string.IsNullOrEmpty(nodeId)
 								? signatures[nodeId]
