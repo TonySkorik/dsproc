@@ -1,0 +1,52 @@
+Работа с сертификатами в Active Directory PowerShell
+
+https://blogs.technet.microsoft.com/adpowershell_ru/2009/11/30/active-directory-powershell/
+
+==============================
+
+Microsoft
+X509Certificate Class
+
+https://msdn.microsoft.com/en-us/library/system.security.cryptography.x509certificates.x509certificate.aspx
+
+==============================
+
+Microsoft
+ConvertFrom-Json
+
+https://docs.microsoft.com/en-us/powershell/module/Microsoft.PowerShell.Utility/ConvertFrom-Json?view=powershell-5.0
+
+==============================
+
+16 февраля 2011 в 16:10
+Первые шаги для пауэршельшиков 
+
+https://habrahabr.ru/post/113913/
+
+==============================
+
+
+FAQ по PowerShell
+
+https://social.msdn.microsoft.com/Forums/ru-RU/ae5a2186-3e20-4988-becf-dca45a1775ad/faq-powershell?forum=scrlangru
+
+==============================
+
+
+Основы PowerShell: форматирование
+29.11.2013 Джеффри Хикс 
+
+https://www.osp.ru/winitpro/2013/12/13038969
+
+==============================
+
+Основы PowerShell: настройка консоли
+27.11.2013 Роберт Шелдон
+
+https://www.osp.ru/winitpro/2013/11/13038889
+
+==============================
+
+Основные справочные материалы powershell 5.1
+
+https://docs.microsoft.com/ru-ru/powershell/scripting/getting-started/cookbooks/basic-cookbooks-reference?view=powershell-5.1
