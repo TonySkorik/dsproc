@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using CryptoPro.Sharpei.Xml;
@@ -27,7 +28,8 @@ namespace Space.Core.Verifier
 			string certificateThumb = null,
 			string nodeId = null,
 			byte[] signedFileBytes = null,
-			byte[] signatureFileBytes = null)
+			byte[] signatureFileBytes = null,
+			bool isVerifyCertificateChain = false)
 		{
 			switch (mode)
 			{
@@ -82,7 +84,7 @@ namespace Space.Core.Verifier
 						xd.Load(new MemoryStream(signedFileBytes));
 					}
 
-					return VerifySignature(mode, xd, certificateFilePath, certificateThumb, nodeId);
+					return VerifyXmlSignature(mode, xd, certificateFilePath, certificateThumb, nodeId);
 
 				case SignatureType.Rsa2048Sha256String:
 				case SignatureType.RsaSha256String:
@@ -96,7 +98,8 @@ namespace Space.Core.Verifier
 
 		private VerifierResponse VerifyDetachedSignature(
 			byte[] signedFileBytes,
-			byte[] signatureFileBytes)
+			byte[] signatureFileBytes,
+			bool isVerifyCertificateChain = false)
 		{
 			ContentInfo contentInfo = new ContentInfo(signedFileBytes);
 			SignedCms signedCms = new SignedCms(contentInfo, true);
@@ -107,7 +110,7 @@ namespace Space.Core.Verifier
 				return VerifierResponse.Invalid("No signatures found in singature file");
 			}
 
-			// NOTE we are working only with the first signature here. If there are more of those in file - alter this logic
+			//TODO: we are working only with the first signature here. If there are more of those in file - alter this logic
 
 			SignerInfo signerInfo = signedCms.SignerInfos[0];
 
@@ -119,7 +122,7 @@ namespace Space.Core.Verifier
 			
 			try
 			{
-				signerInfo.CheckSignature(verifySignatureOnly: true);
+				signerInfo.CheckSignature(verifySignatureOnly: isVerifyCertificateChain);
 			}
 			catch (CryptographicException e)
 			{
@@ -158,12 +161,13 @@ namespace Space.Core.Verifier
 			return VerifierResponse.Valid;
 		}
 
-		public VerifierResponse VerifySignature(
+		public VerifierResponse VerifyXmlSignature(
 			SignatureType mode,
 			XmlDocument message,
 			string certificateFilePath = null,
 			string certificateThumb = null,
-			string nodeId = null)
+			string nodeId = null,
+			bool isVerifyCertificateChain = false)
 		{
 			SignedXml signedXml = new SignedXml(message);
 			Signer.Smev2SignedXml smev2SignedXml = null;
@@ -350,9 +354,29 @@ namespace Space.Core.Verifier
 					: signedXml.CheckSignature(cert, true)
 				);
 
-			return isSignatureValid
-				? VerifierResponse.Valid
-				: VerifierResponse.Invalid("Signature is invalid");
+			var isCertificateChainValid = cert?.Verify() ?? true;
+
+			StringBuilder verificationMessage = new StringBuilder();
+
+			if (!isSignatureValid)
+			{
+				verificationMessage.AppendLine("Signature is invalid");
+			}
+
+			if (!isCertificateChainValid)
+			{
+				verificationMessage.AppendLine("Certificate chain is invalid");
+			}
+
+			var verifierResponse = new VerifierResponse()
+			{
+				IsCertificateChainValid = isCertificateChainValid,
+				IsSignatureMathematicallyValid = isSignatureValid,
+				IsSignatureSigningDateValid = true, // we do not check this for this type of signature
+				Message = verificationMessage.ToString()
+			};
+
+			return verifierResponse;
 		}
 
 		private bool ChargeStructureOk(XmlDocument charge)

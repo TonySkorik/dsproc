@@ -316,7 +316,8 @@ namespace UniDsproc
 					arguments.CertificateLocation == CertificateLocation.Thumbprint
 						? arguments.CertificateThumbprint
 						: null,
-					arguments.NodeId
+					arguments.NodeId,
+					isVerifyCertificateChain: arguments.IsVerifyCertificateChain
 				);
 				return verifierResult.IsSignatureMathematicallyValid && verifierResult.IsSignatureSigningDateValid
 					? new StatusInfo(new ResultInfo("Signature is correct", true))

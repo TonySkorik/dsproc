@@ -14,7 +14,8 @@ namespace Space.Core.Interfaces
 			string certificateThumb = null,
 			string nodeId = null, 
 			byte[] signedFileBytes = null,
-			byte[] signatureFileBytes = null);
+			byte[] signatureFileBytes = null,
+			bool isVerifyCertificateChain = false);
 
 		VerifierResponse CheckSignatureDs(XmlDocument xmlDoc, RSACryptoServiceProvider key);
 	}

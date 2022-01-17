@@ -30,6 +30,8 @@ namespace UniDsproc.DataModel
 		private const string _certificateNickKey = "cert_nick";
 		private const string _cerFilePathKey = "cer_file";
 		private const string _certificateSourceKey = "certificate_source";
+		private const string _isVerifyCertificateChainKey = "is_check_cert_chain";
+
 		private static readonly Dictionary<string, PropertyInfo> _knownArgs = CommandLineBind.BuildBindings(typeof(ArgsInfo));
 
 		#endregion
@@ -40,24 +42,36 @@ namespace UniDsproc.DataModel
 
 		[ArgBinding(_signatureTypeKey)]
 		public SignatureType SigType { set; get; }
+
 		[ArgBinding("gost_flavor")]
 		public GostFlavor GostFlavor { set; get; } = GostFlavor.Gost_Obsolete;
+
 		[ArgBinding("node_id")]
 		public string NodeId { set; get; }
+
 		[ArgBinding(_certificateThumbprintKey)]
 		public string CertificateThumbprint { set; get; }
+
 		[ArgBinding(_certificateNickKey)]
 		public string CertificateNick { set; get; }
+
 		[ArgBinding(_cerFilePathKey)]
 		public string CertificateFilePath { set; get; }
+
 		[ArgBinding("ds")]
 		public bool AssignDsInSignature { set; get; } // digital signature nodes will be put in XML namespace ds:
+
 		[ArgBinding("ignore_expired")]
 		public bool IgnoreExpiredCertificate { set; get; } //means there will be no expiration check before signing
+
 		[ArgBinding("add_signing_time")]
 		public bool IsAddSigningTime { set; get; }
+
 		[ArgBinding(_certificateSourceKey)]
-		public CertificateSource CertificateSource { set; get; } 
+		public CertificateSource CertificateSource { set; get; }
+
+		[ArgBinding(_isVerifyCertificateChainKey)]
+		public bool IsVerifyCertificateChain { set; get; }
 
 		#endregion
 

@@ -117,7 +117,8 @@ namespace UniDsproc.Api.Controllers.V1
 							inputParameters.ArgsInfo.SigType,
 							nodeId: inputParameters.ArgsInfo.NodeId,
 							signedFileBytes: inputParameters.DataToSign,
-							signatureFileBytes: inputParameters.SignatureFileBytes);
+							signatureFileBytes: inputParameters.SignatureFileBytes,
+							isVerifyCertificateChain: inputParameters.ArgsInfo.IsVerifyCertificateChain);
 						
 							var verifierRetrurnMessge = new HttpResponseMessage(HttpStatusCode.OK)
 							{
@@ -161,7 +162,8 @@ namespace UniDsproc.Api.Controllers.V1
 							inputParameters.ArgsInfo.SigType,
 							signedFileBytes: inputParameters.DataToSign,
 							signatureFileBytes: inputParameters.SignatureFileBytes,
-							nodeId: inputParameters.ArgsInfo.NodeId);
+							nodeId: inputParameters.ArgsInfo.NodeId,
+							isVerifyCertificateChain: inputParameters.ArgsInfo.IsVerifyCertificateChain);
 
 						var readCertificatePart = _certificateProcessor.ReadCertificateFromSignedFile(
 							inputParameters.ArgsInfo.SigType,
@@ -311,6 +313,7 @@ namespace UniDsproc.Api.Controllers.V1
 			{
 				command
 			};
+
 			foreach (var key in querySegments.AllKeys)
 			{
 				var value = querySegments[key];
