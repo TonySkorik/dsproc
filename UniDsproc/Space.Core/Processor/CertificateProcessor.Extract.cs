@@ -17,8 +17,6 @@ namespace Space.Core.Processor
 {
 	public partial class CertificateProcessor : ICertificateProcessor
 	{
-		#region Extract from signed document \ file
-
 		public X509Certificate2 ReadCertificateFromXml(string signedXmlPath, string nodeId)
 		{
 			return ReadCertificateFromXmlDocument(XDocument.Load(signedXmlPath), nodeId);
@@ -60,13 +58,46 @@ namespace Space.Core.Processor
 				throw new InvalidOperationException("No signatures found in singature file");
 			}
 
-			// NOTE we are working only with the first signature here. If there are more of those in file - alter this logic
+			if(signedCms.SignerInfos.Count > 1)
+			{
+				throw new InvalidOperationException(
+					$"{signedCms.SignerInfos.Count} signatures found in singature file. Only single-signature files are supported at the moment.");
+			}
 
 			SignerInfo signerInfo = signedCms.SignerInfos[0];
 
 			X509Certificate2 certificate = signerInfo.Certificate;
 
 			return certificate;
+		}
+
+		public DateTime? ReadSigningDateFromSignedFile(byte[] signedFileBytes,
+			byte[] signatureFileBytes)
+		{
+			ContentInfo contentInfo = new ContentInfo(signedFileBytes);
+			SignedCms signedCms = new SignedCms(contentInfo, true);
+			signedCms.Decode(signatureFileBytes);
+
+			if (signedCms.SignerInfos.Count == 0)
+			{
+				return null;
+			}
+
+			if (signedCms.SignerInfos.Count > 1)
+			{
+				throw new InvalidOperationException(
+					$"{signedCms.SignerInfos.Count} signatures found in singature file. Only single-signature files are supported at the moment.");
+			}
+
+			SignerInfo signerInfo = signedCms.SignerInfos[0];
+
+			var signingDateTime =
+				(signerInfo.SignedAttributes
+					.Cast<CryptographicAttributeObject>()
+					.FirstOrDefault(x => x.Oid.Value == "1.2.840.113549.1.9.5")?.Values[0] as Pkcs9SigningTime)
+				?.SigningTime;
+
+			return signingDateTime;
 		}
 
 		public X509Certificate2 ReadCertificateFromXmlDocument(XDocument signedXml, string nodeId)
@@ -190,7 +221,5 @@ namespace Space.Core.Processor
 
 			return cert;
 		}
-
-		#endregion
 	}
 }

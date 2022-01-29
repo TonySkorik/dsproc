@@ -110,7 +110,10 @@ namespace Space.Core.Verifier
 				return VerifierResponse.Invalid("No signatures found in singature file");
 			}
 
-			//TODO: we are working only with the first signature here. If there are more of those in file - alter this logic
+			if (signedCms.SignerInfos.Count > 1)
+			{
+				return VerifierResponse.Invalid($"{signedCms.SignerInfos.Count} signatures found in singature file. Only single-signature files are supported at the moment.");
+			}
 
 			SignerInfo signerInfo = signedCms.SignerInfos[0];
 
@@ -143,6 +146,7 @@ namespace Space.Core.Verifier
 					{
 						IsSignatureMathematicallyValid = true,
 						IsSignatureSigningDateValid = false,
+						SigningDateTime = signingDateTime,
 						Message =
 							$"Signature is matematically valid but signing date {signingDateTime.Value} lies outside of certificate validity range [{certificate.NotBefore}, {certificate.NotAfter}]"
 					};

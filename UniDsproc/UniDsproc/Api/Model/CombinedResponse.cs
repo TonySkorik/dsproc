@@ -10,6 +10,9 @@ namespace UniDsproc.Api.Model
 	public class CombinedResponse
 	{
 		public VerifierResponse VerificationResult { set; get; }
+
 		public X509CertificateSerializable ExtractedCertificate { set; get; }
+
+		public AdditionalResponse AdditionalResponse { set; get; } // TODO: Rename
 	}
 }

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace Space.Core.Communication
 {
@@ -7,6 +8,13 @@ namespace Space.Core.Communication
 		public bool IsSignatureMathematicallyValid { set; get; }
 
 		public bool IsSignatureSigningDateValid { set; get; }
+
+		/// <summary>
+		/// Valid for detached binary signatures only. We do not return this as part othe verifier response.
+		/// Instead we return this in the separate response part.
+		/// </summary>
+		[JsonIgnore]
+		public DateTime? SigningDateTime { set; get; }
 
 		public bool IsCertificateChainValid { set; get; } = true; // default value for cases when we do not need to check certificate chain
 

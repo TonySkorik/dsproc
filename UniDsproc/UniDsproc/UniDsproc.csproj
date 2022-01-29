@@ -38,6 +38,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -47,6 +48,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
@@ -71,6 +73,7 @@
     <Compile Include="Api\Controllers\V1\CommandController.cs" />
     <Compile Include="Api\Helpers\HttpRequestHelper.cs" />
     <Compile Include="Api\Infrastructure\InMemoryMultipartFormDataStreamProvider.cs" />
+    <Compile Include="Api\Model\AdditionalResponse.cs" />
     <Compile Include="Api\Model\CombinedResponse.cs" />
     <Compile Include="Api\Model\OperationContext.cs" />
     <Compile Include="Api\Model\ApiInputParameters.cs" />
