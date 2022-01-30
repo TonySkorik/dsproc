@@ -2,11 +2,15 @@
 using System.Xml;
 using Space.Core.Communication;
 using Space.Core.Configuration;
+using Space.Core.Model;
+using Space.Core.Model.SignedFile;
 
 namespace Space.Core.Interfaces
 {
 	public interface ISignatureVerifier
 	{
+		VerifierResponse VerifySignature(InputDataBase signedFile);
+
 		VerifierResponse VerifySignature(
 			SignatureType mode,
 			string documentPath = null,

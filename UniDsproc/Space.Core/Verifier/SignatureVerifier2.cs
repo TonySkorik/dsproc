@@ -1,13 +1,12 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using CryptoPro.Sharpei.Xml;
@@ -16,170 +15,14 @@ using Space.Core.Configuration;
 using Space.Core.Exceptions;
 using Space.Core.Extensions;
 using Space.Core.Interfaces;
-using Space.Core.Model;
 using Space.Core.Model.SignedFile;
 using Space.Core.Processor;
 
 namespace Space.Core.Verifier
 {
-	public partial class SignatureVerifier : ISignatureVerifier
+	internal class SignatureVerifier2 : IVerifier
 	{
-		private readonly IVerifier _verifier = new SignatureVerifier2();
-
-		public VerifierResponse VerifySignature(InputDataBase signedFile)
-		{
-			return signedFile.Verify(_verifier);
-		}
-
-		public VerifierResponse VerifySignature(
-			SignatureType mode,
-			string documentPath = null,
-			string certificateFilePath = null,
-			string certificateThumb = null,
-			string nodeId = null,
-			byte[] signedFileBytes = null,
-			byte[] signatureFileBytes = null,
-			bool isVerifyCertificateChain = false)
-		{
-			switch (mode)
-			{
-				case SignatureType.Pkcs7String:
-				case SignatureType.Pkcs7StringAllCert:
-				case SignatureType.Pkcs7StringNoCert:
-				case SignatureType.SigDetached:
-				case SignatureType.SigDetachedAllCert:
-				case SignatureType.SigDetachedNoCert:
-					if (signedFileBytes == null)
-					{
-						throw new InvalidOperationException(
-							"Signed file data required for detached signature verification");
-					}
-
-					if (signatureFileBytes == null)
-					{
-						throw new InvalidOperationException(
-							"Signature file data required for detached signature verification");
-					}
-
-					return VerifyDetachedSignature(signedFileBytes, signatureFileBytes);
-
-				case SignatureType.Smev2SidebysideDetached:
-				case SignatureType.Smev2ChargeEnveloped:
-				case SignatureType.Smev2BaseDetached:
-				case SignatureType.Smev3BaseDetached:
-				case SignatureType.Smev3SidebysideDetached:
-					XmlDocument xd = new XmlDocument();
-
-					if(documentPath != null)
-					{
-						try
-						{
-							xd.Load(documentPath);
-						}
-						catch (Exception e)
-						{
-							throw ExceptionFactory.GetException(
-								ExceptionType.InputXmlMissingOrCorrupted,
-								documentPath,
-								e.Message);
-						}
-					}
-					else
-					{
-						if (signedFileBytes == null)
-						{
-							throw new InvalidOperationException("Signed file data is not provided.");
-						}
-
-						xd.Load(new MemoryStream(signedFileBytes));
-					}
-
-					return VerifyXmlSignature(mode, xd, certificateFilePath, certificateThumb, nodeId);
-
-				case SignatureType.Rsa2048Sha256String:
-				case SignatureType.RsaSha256String:
-				case SignatureType.Smev3Ack:
-				default:
-					throw ExceptionFactory.GetException(ExceptionType.UnsupportedSignatureType, mode);
-			}
-		}
-
-		private VerifierResponse VerifyDetachedSignature(
-			byte[] signedFileBytes,
-			byte[] signatureFileBytes,
-			bool isVerifyCertificateChain = false)
-		{
-			ContentInfo contentInfo = new ContentInfo(signedFileBytes);
-			SignedCms signedCms = new SignedCms(contentInfo, true);
-			signedCms.Decode(signatureFileBytes);
-
-			if (signedCms.SignerInfos.Count == 0)
-			{
-				return VerifierResponse.Invalid("No signatures found in singature file");
-			}
-
-			if (signedCms.SignerInfos.Count > 1)
-			{
-				return VerifierResponse.Invalid($"{signedCms.SignerInfos.Count} signatures found in singature file. Only single-signature files are supported at the moment.");
-			}
-
-			SignerInfo signerInfo = signedCms.SignerInfos[0];
-
-			var signingDateTime =
-				(signerInfo.SignedAttributes
-						.Cast<CryptographicAttributeObject>()
-						.FirstOrDefault(x => x.Oid.Value == "1.2.840.113549.1.9.5")?.Values[0]
-					as Pkcs9SigningTime)?.SigningTime;
-			
-			try
-			{
-				signerInfo.CheckSignature(verifySignatureOnly: isVerifyCertificateChain);
-			}
-			catch (CryptographicException e)
-			{
-				return VerifierResponse.Invalid($"Signature is matematically invalid with message : {e.Message}");
-			}
-
-			X509Certificate2 certificate = signerInfo.Certificate;
-
-			if(signingDateTime.HasValue)
-			{
-				bool isSigningDateValid =
-					signingDateTime.Value < certificate.NotAfter
-					&& signingDateTime.Value > certificate.NotBefore;
-
-				if (!isSigningDateValid)
-				{
-					return new VerifierResponse()
-					{
-						IsSignatureMathematicallyValid = true,
-						IsSignatureSigningDateValid = false,
-						SigningDateTime = signingDateTime,
-						Message =
-							$"Signature is matematically valid but signing date {signingDateTime.Value} lies outside of certificate validity range [{certificate.NotBefore}, {certificate.NotAfter}]"
-					};
-				}
-			}
-			else
-			{
-				return new VerifierResponse()
-				{
-					IsSignatureMathematicallyValid = true,
-					IsSignatureSigningDateValid = false,
-					Message = "Can't extract signing DateTime. Unable to check certificate validity on signing date."
-				};
-			}
-
-			return VerifierResponse.Valid;
-		}
-
-		public VerifierResponse VerifyXmlSignature(
-			SignatureType mode,
-			XmlDocument message,
-			string certificateFilePath = null,
-			string certificateThumb = null,
-			string nodeId = null,
-			bool isVerifyCertificateChain = false)
+		public VerifierResponse Verify(SignedXmlFile signedFile, SignatureVerificationParameters parameters)
 		{
 			static bool CheckChargeStructure(XmlDocument charge)
 			{
@@ -193,6 +36,8 @@ namespace Space.Core.Verifier
 
 				return false;
 			}
+
+			var message = signedFile.GetXmlDocument();
 
 			SignedXml signedXml = new SignedXml(message);
 			Signer.Smev2SignedXml smev2SignedXml = null;
@@ -355,7 +200,7 @@ namespace Space.Core.Verifier
 
 				case SignatureType.Pkcs7String:
 				case SignatureType.Pkcs7StringAllCert:
-				case SignatureType.Pkcs7StringNoCert: 
+				case SignatureType.Pkcs7StringNoCert:
 				case SignatureType.SigDetached:
 				case SignatureType.SigDetachedAllCert:
 				case SignatureType.SigDetachedNoCert:
@@ -400,6 +245,85 @@ namespace Space.Core.Verifier
 			};
 
 			return verifierResponse;
+		}
+
+		public VerifierResponse Verify(SignedDetachedSignatureFile signedFile, SignatureVerificationParameters parameters)
+		{
+			if (signedFile.FileBytes == null)
+			{
+				throw new InvalidOperationException(
+					"Signed file data required for detached signature verification");
+			}
+
+			if (signedFile.SignatureFileBytes == null)
+			{
+				throw new InvalidOperationException(
+					"Signature file data required for detached signature verification");
+			}
+
+			ContentInfo contentInfo = new ContentInfo(signedFile.FileBytes);
+			SignedCms signedCms = new SignedCms(contentInfo, true);
+			signedCms.Decode(signedFile.SignatureFileBytes);
+
+			if (signedCms.SignerInfos.Count == 0)
+			{
+				return VerifierResponse.Invalid("No signatures found in singature file");
+			}
+
+			if (signedCms.SignerInfos.Count > 1)
+			{
+				return VerifierResponse.Invalid($"{signedCms.SignerInfos.Count} signatures found in singature file. Only single-signature files are supported at the moment.");
+			}
+
+			SignerInfo signerInfo = signedCms.SignerInfos[0];
+
+			var signingDateTime =
+				(signerInfo.SignedAttributes
+						.Cast<CryptographicAttributeObject>()
+						.FirstOrDefault(x => x.Oid.Value == "1.2.840.113549.1.9.5")?.Values[0]
+					as Pkcs9SigningTime)?.SigningTime;
+
+			signedFile.SigningDateTime = signingDateTime;
+
+			try
+			{
+				signerInfo.CheckSignature(verifySignatureOnly: parameters.IsVerifyCertificateChain);
+			}
+			catch (CryptographicException e) 
+			{
+				return VerifierResponse.Invalid($"Signature is matematically invalid with message : {e.Message}");
+			}
+
+			X509Certificate2 certificate = signerInfo.Certificate;
+
+			if (signingDateTime.HasValue)
+			{
+				bool isSigningDateValid =
+					signingDateTime.Value < certificate.NotAfter
+					&& signingDateTime.Value > certificate.NotBefore;
+
+				if (!isSigningDateValid)
+				{
+					return new VerifierResponse()
+					{
+						IsSignatureMathematicallyValid = true,
+						IsSignatureSigningDateValid = false,
+						Message =
+							$"Signature is matematically valid but signing date {signingDateTime.Value} lies outside of certificate validity range [{certificate.NotBefore}, {certificate.NotAfter}]"
+					};
+				}
+			}
+			else
+			{
+				return new VerifierResponse()
+				{
+					IsSignatureMathematicallyValid = true,
+					IsSignatureSigningDateValid = false,
+					Message = "Can't extract signing DateTime. Unable to check certificate validity on signing date."
+				};
+			}
+
+			return VerifierResponse.Valid;
 		}
 	}
 }

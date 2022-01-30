@@ -7,11 +7,13 @@ using Space.Core.Interfaces;
 
 namespace Space.Core.Processor
 {
-	public partial class CertificateProcessor : ICertificateProcessor
+	public static partial class CertificateUtils
 	{
-		#region Checks
-
-		public bool IsCertificateExpired(X509Certificate2 certificate)
+		/// <summary>
+		/// Determines wheter certificate is expired
+		/// </summary>
+		/// <param name="certificate"><see cref="X509Certificate2"/> to analyze</param>
+		public static bool IsCertificateExpired(X509Certificate2 certificate)
 		{
 			if (certificate == null)
 			{
@@ -22,7 +24,11 @@ namespace Space.Core.Processor
 			return !(dtNow > certificate.NotBefore.ToUniversalTime() && dtNow < certificate.NotAfter.ToUniversalTime());
 		}
 
-		public bool MessageIsSmev2Base(XDocument document)
+		/// <summary>
+		/// Determines wheter passed document is built in Smev2 manner (has Header and wsse:Security elements)
+		/// </summary>
+		/// <param name="document"><see cref="XDocument"/> to analyze</param>
+		public static bool MessageIsSmev2Base(XDocument document)
 		{
 			XNamespace wsse = Signer.WsSecurityWsseNamespaceUrl;
 			XNamespace env = "http://schemas.xmlsoap.org/soap/envelope/";
@@ -36,7 +42,5 @@ namespace Space.Core.Processor
 				return false;
 			}
 		}
-
-		#endregion
 	}
 }

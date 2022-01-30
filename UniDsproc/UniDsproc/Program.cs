@@ -7,6 +7,8 @@ using Serilog;
 using Space.Core;
 using Space.Core.Configuration;
 using Space.Core.Interfaces;
+using Space.Core.Model;
+using Space.Core.Model.SignedFile;
 using Space.Core.Processor;
 using Space.Core.Serializer;
 using Space.Core.Verifier;
@@ -69,12 +71,9 @@ namespace UniDsproc
 		private static void InitializeLogger(AppSettings settings)
 		{
 			var loggerConfig = new LoggerConfiguration()
-				.WriteTo
-				.File(settings.Logger.FilePath)
-				.WriteTo
-				.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-				.MinimumLevel
-				.Is(settings.Logger.MinimumEventLevel);
+				.WriteTo.File(settings.Logger.FilePath)
+				.WriteTo.Console(outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+				.MinimumLevel.Is(settings.Logger.MinimumEventLevel);
 
 			Log.Logger = loggerConfig.CreateLogger();
 		}
@@ -315,6 +314,53 @@ namespace UniDsproc
 			try
 			{
 				ISignatureVerifier verifier = new SignatureVerifier();
+				InputDataBase signedFile;
+				switch (arguments.SigType)
+				{
+					case SignatureType.Unknown:
+					case SignatureType.Smev2BaseDetached:
+					case SignatureType.Smev2ChargeEnveloped:
+					case SignatureType.Smev2SidebysideDetached:
+					case SignatureType.Smev3BaseDetached:
+					case SignatureType.Smev3SidebysideDetached:
+					case SignatureType.Smev3Ack:
+						signedFile = new SignedXmlFile()
+						{
+							SignatureType = arguments.SigType,
+							FilePath = arguments.InputFile,
+							CertificateLocation = arguments.CertificateLocation,
+							CertificateThumbprint = arguments.CertificateThumbprint,
+							IsVerifyCertificateChain = arguments.IsVerifyCertificateChain,
+							NodeId = arguments.NodeId
+						};
+						break;
+					case SignatureType.SigDetached:
+					case SignatureType.SigDetachedAllCert:
+					case SignatureType.SigDetachedNoCert:
+						signedFile = new SignedDetachedSignatureFile()
+						{
+							SignatureType = arguments.SigType,
+							CertificateLocation = arguments.CertificateLocation,
+							IsVerifyCertificateChain = arguments.IsVerifyCertificateChain
+						};
+						break;
+					case SignatureType.Pkcs7String:
+					case SignatureType.Pkcs7StringNoCert:
+					case SignatureType.Pkcs7StringAllCert:
+					case SignatureType.Rsa2048Sha256String:
+					case SignatureType.RsaSha256String:
+						signedFile = new SignedString()
+						{
+							SignatureType = arguments.SigType,
+							SignedContent = arguments.InputFile,
+							IsVerifyCertificateChain = arguments.IsVerifyCertificateChain,
+							CertificateLocation = arguments.CertificateLocation
+						};
+						break;
+					default:
+						throw new ArgumentOutOfRangeException();
+				}
+
 				var verifierResult = verifier.VerifySignature(
 					arguments.SigType,
 					arguments.InputFile,
@@ -327,6 +373,7 @@ namespace UniDsproc
 					arguments.NodeId,
 					isVerifyCertificateChain: arguments.IsVerifyCertificateChain
 				);
+
 				return verifierResult.IsSignatureMathematicallyValid && verifierResult.IsSignatureSigningDateValid
 					? new StatusInfo(new ResultInfo("Signature is correct", true))
 					: new StatusInfo(new ResultInfo("Signature is invalid", false));

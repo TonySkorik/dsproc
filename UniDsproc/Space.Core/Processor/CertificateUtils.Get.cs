@@ -5,16 +5,17 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using Space.Core.Exceptions;
-using Space.Core.Interfaces;
 
 namespace Space.Core.Processor
 {
-	public partial class CertificateProcessor : ICertificateProcessor
+	public static partial class CertificateUtils
 	{
-		#region Get certificate
-
-		#region [BY THUMBPRINT]
-		public X509Certificate2 SearchCertificateByThumbprint(string certificateThumbprint)
+		/// <summary>
+		/// Search LocalMachine and then CurrentUser stores for the certificate with matching thumbprint
+		/// </summary>
+		/// <param name="certificateThumbprint">A thumbprint of the certificate to search for</param>
+		/// <returns><see cref="X509Certificate2"/></returns>
+		public static X509Certificate2 SearchCertificateByThumbprint(string certificateThumbprint)
 		{
 			try
 			{
@@ -66,7 +67,13 @@ namespace Space.Core.Processor
 			}
 		}
 
-		public X509Certificate2 GetCertificateByThumbprint(
+		/// <summary>
+		/// Search desired location for the certificate with matching thumbprint
+		/// </summary>
+		/// <param name="certificateThumbprint">A thumbprint of the certificate to search for</param>
+		/// <param name="storeLocation">Desired <see cref="StoreLocation"/></param>
+		/// <returns><see cref="X509Certificate2"/></returns>
+		public static X509Certificate2 GetCertificateByThumbprint(
 			string thumbprint,
 			StoreLocation storeLocation)
 		{
@@ -85,21 +92,24 @@ namespace Space.Core.Processor
 				: null;
 		}
 
-		#endregion
-
-		#region [GET ALL CERTS FROM STORE]
-
-		public IEnumerable<X509Certificate2> GetAllCertificatesFromStore(StoreLocation storeLocation)
+		/// <summary>
+		/// Get all certificates from desired store
+		/// </summary>
+		/// <param name="storeLocation">Desired <see cref="StoreLocation"/></param>
+		/// <returns><see cref="IEnumerable{T}"/> of <see cref="X509Certificate2"/></returns>
+		public static IEnumerable<X509Certificate2> GetAllCertificatesFromStore(StoreLocation storeLocation)
 		{
 			X509Store store = new X509Store("My", storeLocation);
 			store.Open(OpenFlags.OpenExistingOnly | OpenFlags.ReadOnly | OpenFlags.MaxAllowed);
 			return store.Certificates.Cast<X509Certificate2>();
 		}
 
-		#endregion
-
-		#region [SELECT CERTIFICATE UI]
-		public X509Certificate2 SelectCertificateUi(StoreLocation storeLocation)
+		/// <summary>
+		/// Shows standard Windows UI for certificate selection from desired store
+		/// </summary>
+		/// <param name="storeLocation">Desired <see cref="StoreLocation"/></param>
+		/// <returns><see cref="X509Certificate2"/></returns>
+		public static X509Certificate2 SelectCertificateUi(StoreLocation storeLocation)
 		{
 			X509Store store = new X509Store("MY", storeLocation);
 			store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
@@ -117,8 +127,5 @@ namespace Space.Core.Processor
 				? scollection[0]
 				: null;
 		}
-		#endregion
-
-		#endregion
 	}
 }

@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CryptoPro.Sharpei.Base, Version=1.4.0.10, Culture=neutral, PublicKeyToken=473b8c5086e795f5, processorArchitecture=MSIL">
@@ -55,14 +57,16 @@
     <Compile Include="Communication\X509CertificateSerializable.cs" />
     <Compile Include="Configuration\CertificateLocation.cs" />
     <Compile Include="Interfaces\ICertificateSerializer.cs" />
-    <Compile Include="Processor\CertificateProcessor.Check.cs" />
-    <Compile Include="Processor\CertificateProcessor.Get.cs" />
-    <Compile Include="Processor\CertificateProcessor.Extract.cs" />
+    <Compile Include="Model\SignedFile\SignedDetachedSignatureFile.cs" />
+    <Compile Include="Model\InputDataBase.cs" />
+    <Compile Include="Model\SignedFile\SignedXmlFile.cs" />
+    <Compile Include="Processor\CertificateUtils.Check.cs" />
+    <Compile Include="Processor\CertificateUtils.Get.cs" />
+    <Compile Include="Processor\CertificateUtils.Extract.cs" />
     <Compile Include="Exceptions\ExceptionFactory.cs" />
     <Compile Include="Extensions\XdocExtensions.cs" />
     <Compile Include="Infrastructure\GostAlgorithmSelector.cs" />
     <Compile Include="Infrastructure\GostFlavor.cs" />
-    <Compile Include="Interfaces\ICertificateProcessor.cs" />
     <Compile Include="Interfaces\ISignatureVerifier.cs" />
     <Compile Include="Interfaces\ISigner.cs" />
     <Compile Include="Processor\CertificateSource.cs" />
@@ -70,6 +74,8 @@
     <Compile Include="Configuration\ShaAlgorithmType.cs" />
     <Compile Include="Configuration\SignatureType.cs" />
     <Compile Include="Serializer\CertificateSerializer.cs" />
+    <Compile Include="Verifier\IVerifier.cs" />
+    <Compile Include="Verifier\SignatureVerificationParameters.cs" />
     <Compile Include="Verifier\SignatureVerifier.DsPrefixed.cs" />
     <Compile Include="Verifier\SignatureVerifier.cs" />
     <Compile Include="Signer\Signer.cs" />
@@ -79,6 +85,7 @@
     <Compile Include="Signer\Signer.Simple.cs" />
     <Compile Include="Signer\Signer.Smev2.cs" />
     <Compile Include="Signer\Signer.Smev3.cs" />
+    <Compile Include="Verifier\SignatureVerifier2.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json">

@@ -191,7 +191,7 @@ namespace Space.Core
 			byte[] bytesToSign = null,
 			bool? isAddSigningTime = null)
 		{
-			ICertificateProcessor cp = new CertificateProcessor();
+			ICertificateProcessor cp = new CertificateUtils();
 			X509Certificate2 certificate = cp.SearchCertificateByThumbprint(certificateThumbprint);
 
 			if (!certificate.HasPrivateKey)

@@ -55,7 +55,7 @@ namespace UniDsproc.Api
 			builder.RegisterInstance(_settings).AsSelf().SingleInstance();
 			builder.RegisterType<Signer>().As<ISigner>().SingleInstance();
 			builder.RegisterType<SignatureVerifier>().As<ISignatureVerifier>().SingleInstance();
-			builder.RegisterType<CertificateProcessor>().As<ICertificateProcessor>().SingleInstance();
+			builder.RegisterType<CertificateUtils>().As<ICertificateProcessor>().SingleInstance();
 			builder.RegisterType<CertificateSerializer>().As<ICertificateSerializer>().SingleInstance();
 
 			var container = builder.Build();

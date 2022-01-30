@@ -15,14 +15,27 @@ using Space.Core.Interfaces;
 
 namespace Space.Core.Processor
 {
-	public partial class CertificateProcessor : ICertificateProcessor
+	public static partial class CertificateUtils
 	{
-		public X509Certificate2 ReadCertificateFromXml(string signedXmlPath, string nodeId)
+		/// <summary>
+		/// Loads signed XML document from disk and reads a certificate which a specified node is signed with
+		/// </summary>
+		/// <param name="signedXmlPath">Path of the XML document to read</param>
+		/// <param name="nodeId">Identifier of the signed node</param>
+		/// <returns><see cref="X509Certificate2"/></returns>
+		public static X509Certificate2 ReadCertificateFromXml(string signedXmlPath, string nodeId)
 		{
 			return ReadCertificateFromXmlDocument(XDocument.Load(signedXmlPath), nodeId);
 		}
 
-		public X509Certificate2 ReadCertificateFromSignedFile(SignatureType signatureType, byte[] signedFileBytes, byte[] signatureFileBytes = null, string nodeId = null)
+		/// <summary>
+		/// Loads signed XML document from disk and reads a certificate which a specified node is signed with
+		/// </summary>
+		/// <param name="signedFileBytes">Signed file bytes.</param>
+		/// <param name="signatureType">The signature type to determine how to read the provided file.</param>
+		/// <param name="nodeId">The signed node id for XML signature cases.</param>
+		/// <returns><see cref="X509Certificate2"/></returns>
+		public static X509Certificate2 ReadCertificateFromSignedFile(SignatureType signatureType, byte[] signedFileBytes, byte[] signatureFileBytes = null, string nodeId = null)
 		{
 			switch (signatureType)
 			{
@@ -47,7 +60,7 @@ namespace Space.Core.Processor
 			}
 		}
 
-		private X509Certificate2 ReadCertificateFromDetachedSignatureFile(byte[] signedFileBytes, byte[] signatureFileBytes)
+		private static X509Certificate2 ReadCertificateFromDetachedSignatureFile(byte[] signedFileBytes, byte[] signatureFileBytes)
 		{
 			ContentInfo contentInfo = new ContentInfo(signedFileBytes);
 			SignedCms signedCms = new SignedCms(contentInfo, true);
@@ -71,7 +84,7 @@ namespace Space.Core.Processor
 			return certificate;
 		}
 
-		public DateTime? ReadSigningDateFromSignedFile(byte[] signedFileBytes,
+		public static DateTime? ReadSigningDateFromSignedFile(byte[] signedFileBytes,
 			byte[] signatureFileBytes)
 		{
 			ContentInfo contentInfo = new ContentInfo(signedFileBytes);
@@ -100,7 +113,13 @@ namespace Space.Core.Processor
 			return signingDateTime;
 		}
 
-		public X509Certificate2 ReadCertificateFromXmlDocument(XDocument signedXml, string nodeId)
+		/// <summary>
+		/// Reads a certificate which a specified node is signed with
+		/// </summary>
+		/// <param name="signedXml">Signed <see cref="XDocument"/></param>
+		/// <param name="nodeId">Identifier of the signed node</param>
+		/// <returns><see cref="X509Certificate2"/></returns>
+		public static X509Certificate2 ReadCertificateFromXmlDocument(XDocument signedXml, string nodeId)
 		{
 			if (signedXml == null)
 			{

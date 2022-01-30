@@ -179,13 +179,13 @@ namespace UniDsproc.Api.Controllers.V1
 							ExtractedCertificate = serializableCertificatePart
 						};
 
-						if (verifierResponsePart.SigningDateTime.HasValue)
-						{
-							combinedResponse.AdditionalResponse = new()
-							{
-								SigningDateTime = verifierResponsePart.SigningDateTime
-							};
-						}
+						//if (verifierResponsePart.SigningDateTime.HasValue)
+						//{
+						//	combinedResponse.AdditionalResponse = new()
+						//	{
+						//		SigningDateTime = verifierResponsePart.SigningDateTime
+						//	};
+						//}
 
 						var verifyAndExtractRetrurnMessge = new HttpResponseMessage(HttpStatusCode.OK)
 						{

@@ -22,7 +22,7 @@ namespace Space.Core.Serializer
 			switch (source)
 			{
 				case CertificateSource.Xml:
-					ICertificateProcessor cp = new CertificateProcessor();
+					ICertificateProcessor cp = new CertificateUtils();
 					return new X509CertificateSerializable(
 						cp.ReadCertificateFromXmlDocument(XDocument.Load(filePath), nodeId));
 				case CertificateSource.Base64:

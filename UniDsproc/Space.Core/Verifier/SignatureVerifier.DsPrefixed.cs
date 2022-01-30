@@ -12,8 +12,6 @@ namespace Space.Core.Verifier
 {
 	public partial class SignatureVerifier
 	{
-		#region [DS: PREFIXED DOCUMENT] Some heavy wizardry here
-
 		private static readonly Type _signedXmlType = typeof(SignedXml);
 		private static readonly ResourceManager _securityResources =
 			new ResourceManager("system.security", _signedXmlType.Assembly);
@@ -105,6 +103,5 @@ namespace Space.Core.Verifier
 			canonicalizeTransform.LoadInput(xmlDoc);
 			return canonicalizeTransform.GetDigestedOutput(hashAlgorithm);
 		}
-		#endregion
 	}
 }
