@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.OleDb;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Space.Core;
 using Space.Core.Configuration;
 using Space.Core.Infrastructure;
 using Space.Core.Processor;
@@ -18,7 +15,8 @@ namespace UniDsproc.DataModel
 		Sign = 1,
 		Verify = 2,
 		Extract = 3,
-		VerifyAndExtract = 4
+		VerifyAndExtract = 4,
+		Describe = 5
 	}
 
 	public class ArgsInfo

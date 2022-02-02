@@ -19,6 +19,11 @@ namespace UniDsproc
 {
 	internal class Program
 	{
+		private static readonly ISignatureVerifier _verifier = new SignatureVerifier();
+		private static readonly ICertificateSerializer _serializer = new CertificateSerializer();
+		private static readonly ICertificateProcessor _processor = new CertificateProcessor();
+		private static readonly ISigner _signer = new Signer();
+
 		public static string Version { get; } =
 		$"{Assembly.GetExecutingAssembly().GetName().Version.Major}"
 			+ $".{Assembly.GetExecutingAssembly().GetName().Version.Minor}"
@@ -158,6 +163,8 @@ namespace UniDsproc
 				$"\tSign file and save signed one to file\n\n" +
 				$"  verify\n" +
 				$"\tVerify file signature\n\n" +
+				$"  describe\n" +
+				$"\tPrint out the specified certificate information\n\n" +
 				$"  extract\n" +
 				$"\tExtract certificate from file signature and return as JSON\n\n" +
 				$"  verifyAndExtract\n" +
@@ -282,17 +289,19 @@ namespace UniDsproc
 						return Extract(arguments);
 					case ProgramFunction.VerifyAndExtract:
 						return VerifyAndExtract(arguments);
+					case ProgramFunction.Describe:
+						return DescribeCertificate(arguments);
 				}
 			}
+
 			return new StatusInfo(arguments.InitError);
 		}
 
 		private static StatusInfo Sign(ArgsInfo arguments)
 		{
-			ISigner signer = new Signer();
 			try
 			{
-				string signedData = signer.Sign(
+				string signedData = _signer.Sign(
 					arguments.SigType,
 					arguments.GostFlavor,
 					arguments.CertificateThumbprint,
@@ -301,7 +310,9 @@ namespace UniDsproc
 					arguments.NodeId,
 					arguments.IgnoreExpiredCertificate,
 					arguments.IsAddSigningTime);
+
 				File.WriteAllText(arguments.OutputFile, signedData);
+
 				return new StatusInfo($"OK. Signed file path: {arguments.OutputFile}");
 			}
 			catch (Exception e)
@@ -314,8 +325,7 @@ namespace UniDsproc
 		{
 			try
 			{
-				ISignatureVerifier verifier = new SignatureVerifier();
-				var verifierResult = verifier.VerifySignature(
+				var verifierResult = _verifier.VerifySignature(
 					arguments.SigType,
 					arguments.InputFile,
 					arguments.CertificateLocation == CertificateLocation.CerFile
@@ -327,6 +337,7 @@ namespace UniDsproc
 					arguments.NodeId,
 					isVerifyCertificateChain: arguments.IsVerifyCertificateChain
 				);
+
 				return verifierResult.IsSignatureMathematicallyValid && verifierResult.IsSignatureSigningDateValid
 					? new StatusInfo(new ResultInfo("Signature is correct", true))
 					: new StatusInfo(new ResultInfo("Signature is invalid", false));
@@ -342,20 +353,22 @@ namespace UniDsproc
 			StatusInfo si;
 			try
 			{
-				ICertificateSerializer serializer = new CertificateSerializer();
-				si =
-					new StatusInfo(
-						new ResultInfo(
-							serializer.CertificateToSerializable(
-								arguments.CertificateSource,
-								arguments.InputFile,
-								arguments.NodeId)));
+				si = new StatusInfo(
+					new ResultInfo(
+						_serializer.CertificateToSerializable(
+							arguments.CertificateSource,
+							arguments.InputFile,
+							arguments.NodeId)
+					)
+				);
 			}
 			catch (Exception e)
 			{
-				si =
-					new StatusInfo(
-						new ErrorInfo(ErrorCodes.CertificateExtractionException, ErrorType.CertificateExtraction, e.Message));
+				si = new StatusInfo(
+					new ErrorInfo(
+						ErrorCodes.CertificateExtractionException,
+						ErrorType.CertificateExtraction,
+						e.Message));
 			}
 
 			return si;
@@ -373,6 +386,16 @@ namespace UniDsproc
 				}
 			}
 			return si;
+		}
+
+		private static StatusInfo DescribeCertificate(ArgsInfo arguments)
+		{
+			var certificateBytes = File.ReadAllBytes(arguments.InputFile);
+			var readCertificate = _processor.ReadCertificateFromCertificateFile(certificateBytes);
+
+			var serializedCertificate = _serializer.CertificateToSerializable(readCertificate);
+
+			return new StatusInfo(new ResultInfo(serializedCertificate));
 		}
 
 		#endregion

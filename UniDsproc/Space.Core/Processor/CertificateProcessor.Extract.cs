@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using Space.Core.Communication;
 using Space.Core.Configuration;
 using Space.Core.Exceptions;
 using Space.Core.Interfaces;
@@ -20,6 +17,13 @@ namespace Space.Core.Processor
 		public X509Certificate2 ReadCertificateFromXml(string signedXmlPath, string nodeId)
 		{
 			return ReadCertificateFromXmlDocument(XDocument.Load(signedXmlPath), nodeId);
+		}
+
+		public X509Certificate2 ReadCertificateFromCertificateFile(byte[] certificateFileBytes)
+		{
+			X509Certificate2 ret = new X509Certificate2();
+			ret.Import(certificateFileBytes);
+			return ret;
 		}
 
 		public X509Certificate2 ReadCertificateFromSignedFile(SignatureType signatureType, byte[] signedFileBytes, byte[] signatureFileBytes = null, string nodeId = null)

@@ -70,10 +70,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Api\Constants\ApiInputFileContants.cs" />
     <Compile Include="Api\Controllers\V1\CommandController.cs" />
     <Compile Include="Api\Helpers\HttpRequestHelper.cs" />
     <Compile Include="Api\Infrastructure\InMemoryMultipartFormDataStreamProvider.cs" />
-    <Compile Include="Api\Model\AdditionalResponse.cs" />
+    <Compile Include="Api\Model\CertificateInfo.cs" />
     <Compile Include="Api\Model\CombinedResponse.cs" />
     <Compile Include="Api\Model\OperationContext.cs" />
     <Compile Include="Api\Model\ApiInputParameters.cs" />

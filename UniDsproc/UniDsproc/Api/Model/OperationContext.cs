@@ -13,10 +13,15 @@ namespace UniDsproc.Api.Model
 	internal class OperationContext
 	{
 		public HttpRequestMessage Request { get; }
+
 		public string RawInputParameters { private set; get; }
+
 		public ApiInputParameters InputParameters { private set; get; }
+
 		public SignerResponse SignerResponse { private set; get; }
+
 		public int ReturnedStatusCode { private set; get; }
+
 		public string ExceptionMessage { private set; get; }
 
 		public OperationContext(HttpRequestMessage request)

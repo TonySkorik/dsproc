@@ -37,6 +37,12 @@ namespace Space.Core.Interfaces
 		X509Certificate2 SelectCertificateUi(StoreLocation storeLocation);
 
 		/// <summary>
+		/// Reads certificate from specified certificate bytes.
+		/// </summary>
+		/// <param name="certificateFileBytes">The certificate bytes.</param>
+		X509Certificate2 ReadCertificateFromCertificateFile(byte[] certificateFileBytes);
+
+		/// <summary>
 		/// Loads signed XML document from disk and reads a certificate which a specified node is signed with
 		/// </summary>
 		/// <param name="signedXmlPath">Path of the XML document to read</param>

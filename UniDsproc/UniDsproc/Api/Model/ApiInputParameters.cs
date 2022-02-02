@@ -10,7 +10,11 @@ namespace UniDsproc.Api.Model
 	internal class ApiInputParameters
 	{
 		public ArgsInfo ArgsInfo { set; get; }
+		
 		public byte[] DataToSign { set; get; }
+		
 		public byte[] SignatureFileBytes { set; get; }
+
+		public byte[] CertificateFileBytes { set; get; }
 	}
 }

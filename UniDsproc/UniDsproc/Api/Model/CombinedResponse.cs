@@ -13,6 +13,6 @@ namespace UniDsproc.Api.Model
 
 		public X509CertificateSerializable ExtractedCertificate { set; get; }
 
-		public AdditionalResponse AdditionalResponse { set; get; } // TODO: Rename
+		public CertificateInfo CertificateInfo { set; get; }
 	}
 }
