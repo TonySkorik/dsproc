@@ -319,6 +319,7 @@ namespace UniDsproc
 				{
 					IsVerifyCertificateChain = arguments.IsVerifyCertificateChain
 				};
+
 				switch (arguments.SigType)
 				{
 					case SignatureType.Unknown:
@@ -336,17 +337,20 @@ namespace UniDsproc
 							NodeId = arguments.NodeId
 						};
 						break;
+					case SignatureType.Pkcs7String:
+					case SignatureType.Pkcs7StringNoCert:
+					case SignatureType.Pkcs7StringAllCert:
 					case SignatureType.SigDetached:
 					case SignatureType.SigDetachedAllCert:
 					case SignatureType.SigDetachedNoCert:
 						signedFile = new SignedDetachedSignatureFile()
 						{
 							SignatureType = arguments.SigType,
+							FileBytes = arguments,
+							SignatureFileBytes = 
 						};
 						break;
-					case SignatureType.Pkcs7String:
-					case SignatureType.Pkcs7StringNoCert:
-					case SignatureType.Pkcs7StringAllCert:
+					
 					case SignatureType.Rsa2048Sha256String:
 					case SignatureType.RsaSha256String:
 
