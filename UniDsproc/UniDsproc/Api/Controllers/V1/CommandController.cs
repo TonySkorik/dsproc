@@ -196,7 +196,7 @@ namespace UniDsproc.Api.Controllers.V1
 
 						return SuccessResult(verifyAndExtractRetrurnMessge, context);
 
-					case ProgramFunction.DescribeCertificate:
+					case ProgramFunction.Describe:
 						var readInputCertificate = _certificateProcessor.ReadCertificateFromCertificateFile(inputParameters.CertificateFileBytes);
 
 						var describedCertificate =
@@ -306,12 +306,12 @@ namespace UniDsproc.Api.Controllers.V1
 
 		private (bool isParametersOk, string errorReason) ValidateParameters(ApiInputParameters parameters)
 		{
-			if (parameters.ArgsInfo.Function != ProgramFunction.DescribeCertificate && parameters.DataToSign == null)
+			if (parameters.ArgsInfo.Function != ProgramFunction.Describe && parameters.DataToSign == null)
 			{
 				return (false, "No data to sign.");
 			}
 
-			if (parameters.ArgsInfo.Function == ProgramFunction.DescribeCertificate && parameters.CertificateFileBytes == null)
+			if (parameters.ArgsInfo.Function == ProgramFunction.Describe && parameters.CertificateFileBytes == null)
 			{
 				return (false, "No certificate to describe.");
 			}
@@ -349,7 +349,7 @@ namespace UniDsproc.Api.Controllers.V1
 			var dataToSign = await ReadInputFile(streamProvider, ApiInputFileContants.DataToSignFileFormFieldName);
 
 			if (dataToSign == null
-				&& argsInfo.Function != ProgramFunction.DescribeCertificate)
+				&& argsInfo.Function != ProgramFunction.Describe)
 			{
 				Log.Error("File to sign is not found");
 			}
