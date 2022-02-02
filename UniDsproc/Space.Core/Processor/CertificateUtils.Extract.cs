@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using Space.Core.Communication;
 using Space.Core.Configuration;
 using Space.Core.Exceptions;
 using Space.Core.Interfaces;
@@ -28,14 +25,14 @@ namespace Space.Core.Processor
 			return ReadCertificateFromXmlDocument(XDocument.Load(signedXmlPath), nodeId);
 		}
 
-		/// <summary>
-		/// Loads signed XML document from disk and reads a certificate which a specified node is signed with
-		/// </summary>
-		/// <param name="signedFileBytes">Signed file bytes.</param>
-		/// <param name="signatureType">The signature type to determine how to read the provided file.</param>
-		/// <param name="nodeId">The signed node id for XML signature cases.</param>
-		/// <returns><see cref="X509Certificate2"/></returns>
-		public static X509Certificate2 ReadCertificateFromSignedFile(SignatureType signatureType, byte[] signedFileBytes, byte[] signatureFileBytes = null, string nodeId = null)
+		public X509Certificate2 ReadCertificateFromCertificateFile(byte[] certificateFileBytes)
+		{
+			X509Certificate2 ret = new X509Certificate2();
+			ret.Import(certificateFileBytes);
+			return ret;
+		}
+
+		public X509Certificate2 ReadCertificateFromSignedFile(SignatureType signatureType, byte[] signedFileBytes, byte[] signatureFileBytes = null, string nodeId = null)
 		{
 			switch (signatureType)
 			{

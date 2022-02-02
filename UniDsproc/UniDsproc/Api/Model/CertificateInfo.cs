@@ -2,7 +2,7 @@
 
 namespace UniDsproc.Api.Model
 {
-	public class AdditionalResponse
+	public class CertificateInfo
 	{
 		public DateTime? SigningDateTime { set; get; }
 	}

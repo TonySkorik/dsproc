@@ -2,23 +2,17 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Management.Instrumentation;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Formatting;
 using System.Net.Http.Headers;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
-using System.Web.Http.Results;
-using System.Xml.Linq;
 using Newtonsoft.Json;
 using Serilog;
-using Space.Core;
-using Space.Core.Communication;
 using Space.Core.Interfaces;
+using UniDsproc.Api.Constants;
 using UniDsproc.Api.Helpers;
 using UniDsproc.Api.Infrastructure;
 using UniDsproc.Api.Model;
@@ -119,20 +113,20 @@ namespace UniDsproc.Api.Controllers.V1
 							signedFileBytes: inputParameters.DataToSign,
 							signatureFileBytes: inputParameters.SignatureFileBytes,
 							isVerifyCertificateChain: inputParameters.ArgsInfo.IsVerifyCertificateChain);
-						
-							var verifierRetrurnMessge = new HttpResponseMessage(HttpStatusCode.OK)
-							{
-								Content = new StringContent(JsonConvert.SerializeObject(verifierResponse))
-							};
 
-							SetAdditionalResponseProperties(verifierRetrurnMessge);
+						var verifierRetrurnMessge = new HttpResponseMessage(HttpStatusCode.OK)
+						{
+							Content = new StringContent(JsonConvert.SerializeObject(verifierResponse))
+						};
 
-							Log.Debug(
-								"Successfully checked signature from ip {requesterIp} with following parameters: [{parameters}]",
-								Request.GetRemoteIp(),
-								context.RawInputParameters);
+						SetAdditionalResponseProperties(verifierRetrurnMessge);
 
-							return SuccessResult(verifierRetrurnMessge, context);
+						Log.Debug(
+							"Successfully checked signature from ip {requesterIp} with following parameters: [{parameters}]",
+							Request.GetRemoteIp(),
+							context.RawInputParameters);
+
+						return SuccessResult(verifierRetrurnMessge, context);
 
 					case ProgramFunction.Extract:
 						var readCertificate = _certificateProcessor.ReadCertificateFromSignedFile(
@@ -171,7 +165,8 @@ namespace UniDsproc.Api.Controllers.V1
 							signatureFileBytes: inputParameters.SignatureFileBytes,
 							nodeId: inputParameters.ArgsInfo.NodeId);
 
-						var serializableCertificatePart = _certificateSerializer.CertificateToSerializable(readCertificatePart);
+						var serializableCertificatePart =
+							_certificateSerializer.CertificateToSerializable(readCertificatePart);
 
 						var combinedResponse = new CombinedResponse()
 						{
@@ -201,6 +196,22 @@ namespace UniDsproc.Api.Controllers.V1
 
 						return SuccessResult(verifyAndExtractRetrurnMessge, context);
 
+					case ProgramFunction.Describe:
+						var readInputCertificate = _certificateProcessor.ReadCertificateFromCertificateFile(inputParameters.CertificateFileBytes);
+
+						var describedCertificate =
+							_certificateSerializer.CertificateToSerializable(readInputCertificate);
+
+						var certificateDescribeReturnMessge = new HttpResponseMessage(HttpStatusCode.OK)
+						{
+							Content = new StringContent(JsonConvert.SerializeObject(describedCertificate))
+						};
+
+						Log.Debug(
+							"Successfully described extracted certificate from ip {requesterIp}",
+							Request.GetRemoteIp());
+
+						return SuccessResult(certificateDescribeReturnMessge, context);
 					default:
 						return ErrorResultBadRequest($"Command {command} is not supported.", context);
 				}
@@ -295,9 +306,14 @@ namespace UniDsproc.Api.Controllers.V1
 
 		private (bool isParametersOk, string errorReason) ValidateParameters(ApiInputParameters parameters)
 		{
-			if (parameters.DataToSign == null)
+			if (parameters.ArgsInfo.Function != ProgramFunction.Describe && parameters.DataToSign == null)
 			{
 				return (false, "No data to sign.");
+			}
+
+			if (parameters.ArgsInfo.Function == ProgramFunction.Describe && parameters.CertificateFileBytes == null)
+			{
+				return (false, "No certificate to describe.");
 			}
 
 			return (true, string.Empty);
@@ -317,7 +333,7 @@ namespace UniDsproc.Api.Controllers.V1
 
 			var querySegments = request.RequestUri.ParseQueryString();
 
-			List<string> args = new List<string>()
+			List<string> args = new()
 			{
 				command
 			};
@@ -330,36 +346,43 @@ namespace UniDsproc.Api.Controllers.V1
 
 			ArgsInfo argsInfo = ArgsInfo.Parse(args.ToArray(), true, _settings.Signer.KnownThumbprints);
 
-			var dataToSignFile =
-				streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == "data_file");
+			var dataToSign = await ReadInputFile(streamProvider, ApiInputFileContants.DataToSignFileFormFieldName);
 
-			byte[] dataToSign = null;
-			if (dataToSignFile != null)
-			{
-				dataToSign = await dataToSignFile.ReadAsByteArrayAsync();
-			}
-			else
+			if (dataToSign == null
+				&& argsInfo.Function != ProgramFunction.Describe)
 			{
 				Log.Error("File to sign is not found");
 			}
 
-			var signatureFile =
-				streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == "signature_file");
+			var signatureBytes = await ReadInputFile(streamProvider, ApiInputFileContants.SignatureFileFormFieldName);
 
-			byte[] signatureBytes = null;
-			if (signatureFile != null)
-			{
-				signatureBytes = await signatureFile.ReadAsByteArrayAsync();
-			}
-			
-			ApiInputParameters ret = new ApiInputParameters()
+			var certificateBytes = await ReadInputFile(
+				streamProvider,
+				ApiInputFileContants.CertificateFileFormFieldName);
+
+			ApiInputParameters ret = new()
 			{
 				ArgsInfo = argsInfo,
 				DataToSign = dataToSign,
-				SignatureFileBytes = signatureBytes
+				SignatureFileBytes = signatureBytes,
+				CertificateFileBytes = certificateBytes
 			};
 
 			return ret;
+		}
+
+		private async Task<byte[]> ReadInputFile(InMemoryMultipartFormDataStreamProvider streamProvider, string fileName)
+		{
+			var formFile =
+				streamProvider.Files.FirstOrDefault(f => f.Headers.ContentDisposition.Name == fileName);
+
+			byte[] fileBytes = null;
+			if (formFile != null)
+			{
+				fileBytes = await formFile.ReadAsByteArrayAsync();
+			}
+
+			return fileBytes;
 		}
 
 		#endregion
