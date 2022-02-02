@@ -124,6 +124,5 @@ namespace Space.Core.Exceptions
 		{
 			return new Exception($"[{type.ToString().ToUpper()}] {string.Format(Messages[type], additionalInfo)}");
 		}
-
 	}
 }

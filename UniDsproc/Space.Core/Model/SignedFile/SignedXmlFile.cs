@@ -18,7 +18,7 @@ namespace Space.Core.Model.SignedFile
 
 		public XmlDocument GetXmlDocument()
 		{
-			XmlDocument ret = new XmlDocument();
+			XmlDocument ret = new();
 
 			if (FilePath != null)
 			{

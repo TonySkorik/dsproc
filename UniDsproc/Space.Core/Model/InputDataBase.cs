@@ -57,6 +57,8 @@ namespace Space.Core.Model
 			{
 				ret = CertificateUtils.SearchCertificateByThumbprint(CertificateThumbprint);
 			}
+
+			return ret;
 		}
 	}
 }

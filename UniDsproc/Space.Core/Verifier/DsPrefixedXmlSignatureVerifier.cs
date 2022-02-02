@@ -10,7 +10,7 @@ using System.Linq.Expressions;
 
 namespace Space.Core.Verifier
 {
-	public partial class SignatureVerifier
+	public class DsPrefixedXmlSignatureVerifier
 	{
 		private static readonly Type _signedXmlType = typeof(SignedXml);
 		private static readonly ResourceManager _securityResources =

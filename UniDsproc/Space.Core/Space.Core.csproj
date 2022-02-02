@@ -76,7 +76,7 @@
     <Compile Include="Serializer\CertificateSerializer.cs" />
     <Compile Include="Verifier\IVerifier.cs" />
     <Compile Include="Verifier\SignatureVerificationParameters.cs" />
-    <Compile Include="Verifier\SignatureVerifier.DsPrefixed.cs" />
+    <Compile Include="Verifier\DsPrefixedXmlSignatureVerifier.cs" />
     <Compile Include="Verifier\SignatureVerifier.cs" />
     <Compile Include="Signer\Signer.cs" />
     <Compile Include="Signer\Signer.DetachedPkcs7.cs" />
@@ -85,7 +85,7 @@
     <Compile Include="Signer\Signer.Simple.cs" />
     <Compile Include="Signer\Signer.Smev2.cs" />
     <Compile Include="Signer\Signer.Smev3.cs" />
-    <Compile Include="Verifier\SignatureVerifier2.cs" />
+    <Compile Include="Verifier\DigitalSignatureVerifier.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json">

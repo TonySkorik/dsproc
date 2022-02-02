@@ -315,6 +315,10 @@ namespace UniDsproc
 			{
 				ISignatureVerifier verifier = new SignatureVerifier();
 				InputDataBase signedFile;
+				SignatureVerificationParameters signatureVerificationParameters = new()
+				{
+					IsVerifyCertificateChain = arguments.IsVerifyCertificateChain
+				};
 				switch (arguments.SigType)
 				{
 					case SignatureType.Unknown:
@@ -328,9 +332,7 @@ namespace UniDsproc
 						{
 							SignatureType = arguments.SigType,
 							FilePath = arguments.InputFile,
-							CertificateLocation = arguments.CertificateLocation,
 							CertificateThumbprint = arguments.CertificateThumbprint,
-							IsVerifyCertificateChain = arguments.IsVerifyCertificateChain,
 							NodeId = arguments.NodeId
 						};
 						break;
@@ -340,8 +342,6 @@ namespace UniDsproc
 						signedFile = new SignedDetachedSignatureFile()
 						{
 							SignatureType = arguments.SigType,
-							CertificateLocation = arguments.CertificateLocation,
-							IsVerifyCertificateChain = arguments.IsVerifyCertificateChain
 						};
 						break;
 					case SignatureType.Pkcs7String:
@@ -349,6 +349,7 @@ namespace UniDsproc
 					case SignatureType.Pkcs7StringAllCert:
 					case SignatureType.Rsa2048Sha256String:
 					case SignatureType.RsaSha256String:
+
 						signedFile = new SignedString()
 						{
 							SignatureType = arguments.SigType,
@@ -362,16 +363,8 @@ namespace UniDsproc
 				}
 
 				var verifierResult = verifier.VerifySignature(
-					arguments.SigType,
-					arguments.InputFile,
-					arguments.CertificateLocation == CertificateLocation.CerFile
-						? arguments.CertificateFilePath
-						: null,
-					arguments.CertificateLocation == CertificateLocation.Thumbprint
-						? arguments.CertificateThumbprint
-						: null,
-					arguments.NodeId,
-					isVerifyCertificateChain: arguments.IsVerifyCertificateChain
+					signedFile,
+					signatureVerificationParameters
 				);
 
 				return verifierResult.IsSignatureMathematicallyValid && verifierResult.IsSignatureSigningDateValid

@@ -191,8 +191,7 @@ namespace Space.Core
 			byte[] bytesToSign = null,
 			bool? isAddSigningTime = null)
 		{
-			ICertificateProcessor cp = new CertificateUtils();
-			X509Certificate2 certificate = cp.SearchCertificateByThumbprint(certificateThumbprint);
+			X509Certificate2 certificate = CertificateUtils.SearchCertificateByThumbprint(certificateThumbprint);
 
 			if (!certificate.HasPrivateKey)
 			{
@@ -200,7 +199,7 @@ namespace Space.Core
 			}
 
 			if (!ignoreExpiredCert
-				&& cp.IsCertificateExpired(certificate))
+				&& CertificateUtils.IsCertificateExpired(certificate))
 			{
 				throw ExceptionFactory.GetException(ExceptionType.CertExpired, certificate.Thumbprint);
 			}

@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using CryptoPro.Sharpei.Xml;
@@ -14,13 +12,11 @@ using Space.Core.Communication;
 using Space.Core.Configuration;
 using Space.Core.Exceptions;
 using Space.Core.Extensions;
-using Space.Core.Interfaces;
 using Space.Core.Model.SignedFile;
-using Space.Core.Processor;
 
 namespace Space.Core.Verifier
 {
-	internal class SignatureVerifier2 : IVerifier
+	internal class DigitalSignatureVerifier : IVerifier
 	{
 		public VerifierResponse Verify(SignedXmlFile signedFile, SignatureVerificationParameters parameters)
 		{
@@ -42,35 +38,7 @@ namespace Space.Core.Verifier
 			SignedXml signedXml = new SignedXml(message);
 			Signer.Smev2SignedXml smev2SignedXml = null;
 
-			X509Certificate2 cert = null;
-			bool isCerFile;
-
-			if ((isCerFile = !string.IsNullOrEmpty(certificateFilePath))
-				|| !string.IsNullOrEmpty(certificateThumb))
-			{
-				//means we are testing signature on external certificate
-				if (isCerFile)
-				{
-					cert = new X509Certificate2();
-					try
-					{
-						cert.Import(certificateFilePath);
-					}
-					catch (Exception e)
-					{
-						throw ExceptionFactory.GetException(
-							ExceptionType.CertificateImportException,
-							certificateFilePath,
-							e.Message);
-					}
-				}
-				else
-				{
-					//throws if not found
-					ICertificateProcessor cp = new CertificateUtils();
-					cert = cp.SearchCertificateByThumbprint(certificateThumb);
-				}
-			}
+			X509Certificate2 cert = signedFile.GetCertificate();
 
 			XmlNodeList signaturesInDoc =
 				message.GetElementsByTagName(
@@ -91,10 +59,10 @@ namespace Space.Core.Verifier
 						(elt => elt)
 					);
 
-			if (!string.IsNullOrEmpty(nodeId)
-				&& !signatures.ContainsKey(nodeId))
+			if (!string.IsNullOrEmpty(signedFile.NodeId)
+				&& !signatures.ContainsKey(signedFile.NodeId))
 			{
-				throw ExceptionFactory.GetException(ExceptionType.ReferencedSignatureNotFound, nodeId);
+				throw ExceptionFactory.GetException(ExceptionType.ReferencedSignatureNotFound, signedFile.NodeId);
 			}
 
 			if (signaturesInDoc.Count == 0)
@@ -102,15 +70,15 @@ namespace Space.Core.Verifier
 				throw ExceptionFactory.GetException(ExceptionType.NoSignaturesFound);
 			}
 
-			switch (mode)
+			switch (signedFile.SignatureType)
 			{
 				case SignatureType.Smev2BaseDetached:
 					smev2SignedXml = new Signer.Smev2SignedXml(message);
 					try
 					{
 						smev2SignedXml.LoadXml(
-							!string.IsNullOrEmpty(nodeId)
-								? signatures[nodeId]
+							!string.IsNullOrEmpty(signedFile.NodeId)
+								? signatures[signedFile.NodeId]
 								: signatures["body"]);
 					}
 					catch (Exception e)
@@ -187,8 +155,8 @@ namespace Space.Core.Verifier
 						signedXml.SafeCanonicalizationMethods.Add(smevTransform.Algorithm);
 
 						signedXml.LoadXml(
-							!string.IsNullOrEmpty(nodeId)
-								? signatures[nodeId]
+							!string.IsNullOrEmpty(signedFile.NodeId)
+								? signatures[signedFile.NodeId]
 								: signatures.First().Value);
 					}
 					catch (Exception e)
@@ -205,14 +173,14 @@ namespace Space.Core.Verifier
 				case SignatureType.SigDetachedAllCert:
 				case SignatureType.SigDetachedNoCert:
 					throw new NotSupportedException(
-						$"Detached signature verification is not supported by this method. Use {nameof(VerifyDetachedSignature)} method instead.");
+						$"Detached signature verification is not supported by this method.");
 
 				case SignatureType.Unknown:
 				case SignatureType.Smev3Ack:
 				case SignatureType.Rsa2048Sha256String:
 				case SignatureType.RsaSha256String:
 				default:
-					throw ExceptionFactory.GetException(ExceptionType.UnsupportedSignatureType, mode);
+					throw ExceptionFactory.GetException(ExceptionType.UnsupportedSignatureType, signedFile.SignatureType);
 			}
 
 			var isSignatureValid = smev2SignedXml?.CheckSignature(cert.PublicKey.Key)
@@ -224,7 +192,7 @@ namespace Space.Core.Verifier
 
 			var isCertificateChainValid = cert?.Verify() ?? true;
 
-			StringBuilder verificationMessage = new StringBuilder();
+			StringBuilder verificationMessage = new();
 
 			if (!isSignatureValid)
 			{
@@ -261,8 +229,8 @@ namespace Space.Core.Verifier
 					"Signature file data required for detached signature verification");
 			}
 
-			ContentInfo contentInfo = new ContentInfo(signedFile.FileBytes);
-			SignedCms signedCms = new SignedCms(contentInfo, true);
+			ContentInfo contentInfo = new(signedFile.FileBytes);
+			SignedCms signedCms = new(contentInfo, true);
 			signedCms.Decode(signedFile.SignatureFileBytes);
 
 			if (signedCms.SignerInfos.Count == 0)

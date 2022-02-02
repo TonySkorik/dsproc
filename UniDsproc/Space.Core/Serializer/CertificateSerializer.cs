@@ -12,7 +12,7 @@ namespace Space.Core.Serializer
 	public class CertificateSerializer : ICertificateSerializer
 	{
 		public X509CertificateSerializable CertificateToSerializable(X509Certificate2 certificate) 
-			=> new X509CertificateSerializable(certificate);
+			=> new(certificate);
 
 		public X509CertificateSerializable CertificateToSerializable(
 			CertificateSource source,
@@ -22,9 +22,8 @@ namespace Space.Core.Serializer
 			switch (source)
 			{
 				case CertificateSource.Xml:
-					ICertificateProcessor cp = new CertificateUtils();
 					return new X509CertificateSerializable(
-						cp.ReadCertificateFromXmlDocument(XDocument.Load(filePath), nodeId));
+						CertificateUtils.ReadCertificateFromXmlDocument(XDocument.Load(filePath), nodeId));
 				case CertificateSource.Base64:
 					try
 					{
@@ -37,10 +36,10 @@ namespace Space.Core.Serializer
 				case CertificateSource.Cer:
 					try
 					{
-						X509Certificate2 cer = new X509Certificate2();
+						X509Certificate2 cer = new();
 						if (Path.GetExtension(filePath) == ".p7b")
 						{
-							X509Certificate2Collection collection = new X509Certificate2Collection();
+							X509Certificate2Collection collection = new();
 							collection.Import(filePath);
 							if (collection.Count < 1)
 							{
