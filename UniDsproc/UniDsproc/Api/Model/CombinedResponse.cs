@@ -13,6 +13,6 @@ namespace UniDsproc.Api.Model
 
 		public X509CertificateSerializable ExtractedCertificate { set; get; }
 
-		public CertificateInfo CertificateInfo { set; get; }
+		public CertificateInfo SignatureInfo { set; get; }
 	}
 }

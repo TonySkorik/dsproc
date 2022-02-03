@@ -176,7 +176,7 @@ namespace UniDsproc.Api.Controllers.V1
 
 						if (verifierResponsePart.SigningDateTime.HasValue)
 						{
-							combinedResponse.CertificateInfo = new()
+							combinedResponse.SignatureInfo = new()
 							{
 								SigningDateTime = verifierResponsePart.SigningDateTime
 							};
