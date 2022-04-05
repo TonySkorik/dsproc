@@ -81,7 +81,7 @@ namespace UniDsproc.Api.Infrastructure
 			{
 				var unquotedHeaderValues = header.Value.Select(UnquoteString);
 				content.Headers.Remove(header.Key);
-				content.Headers.Add(header.Key, unquotedHeaderValues);
+				content.Headers.TryAddWithoutValidation(header.Key, unquotedHeaderValues);
 			}
 		}
 
