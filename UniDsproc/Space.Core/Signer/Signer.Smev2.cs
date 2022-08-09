@@ -2,7 +2,6 @@
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Xml;
-using CryptoPro.Sharpei.Xml;
 using Space.Core.Infrastructure;
 
 namespace Space.Core

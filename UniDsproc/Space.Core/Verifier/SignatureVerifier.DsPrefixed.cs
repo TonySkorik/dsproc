@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
 using System.Xml;
 using Space.Core.Communication;
-using Space.Core.Interfaces;
 using System.Linq.Expressions;
 
 namespace Space.Core.Verifier
