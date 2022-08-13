@@ -30,13 +30,6 @@ namespace Space.Core.Interfaces
 		IEnumerable<X509Certificate2> GetAllCertificatesFromStore(StoreLocation storeLocation);
 
 		/// <summary>
-		/// Shows standard Windows UI for certificate selection from desired store
-		/// </summary>
-		/// <param name="storeLocation">Desired <see cref="StoreLocation"/></param>
-		/// <returns><see cref="X509Certificate2"/></returns>
-		X509Certificate2 SelectCertificateUi(StoreLocation storeLocation);
-
-		/// <summary>
 		/// Reads certificate from specified certificate bytes.
 		/// </summary>
 		/// <param name="certificateFileBytes">The certificate bytes.</param>

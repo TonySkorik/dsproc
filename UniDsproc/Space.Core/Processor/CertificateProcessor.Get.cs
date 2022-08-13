@@ -97,27 +97,6 @@ namespace Space.Core.Processor
 
 		#endregion
 
-		#region [SELECT CERTIFICATE UI]
-		public X509Certificate2 SelectCertificateUi(StoreLocation storeLocation)
-		{
-			X509Store store = new X509Store("MY", storeLocation);
-			store.Open(OpenFlags.ReadOnly | OpenFlags.OpenExistingOnly);
-			X509Certificate2Collection collection =
-				store.Certificates;
-
-			X509Certificate2Collection scollection =
-				X509Certificate2UI.SelectFromCollection(
-					collection,
-					$"Выбор сертификата. Хранилище : {storeLocation}",
-					"Выберите сертификат для взаимодействия.",
-					X509SelectionFlag.SingleSelection);
-
-			return scollection.Count > 0
-				? scollection[0]
-				: null;
-		}
-		#endregion
-
 		#endregion
 	}
 }
