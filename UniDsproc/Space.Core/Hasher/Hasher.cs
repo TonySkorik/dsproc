@@ -10,22 +10,22 @@ namespace Space.Core.Hasher
     {
         public byte[] ComputeHash(Stream input, GostFlavor gostFlavor)
         {
-            HashAlgorithm hashAlgorithm =
-                GostAlgorithmSelector.GetHashAlgorithm(gostFlavor);
-
-            var hash = hashAlgorithm.ComputeHash(input);
-
-            return hash;
+            using (HashAlgorithm hashAlgorithm =
+                GostAlgorithmSelector.GetHashAlgorithm(gostFlavor))
+            {
+                var hash = hashAlgorithm.ComputeHash(input);
+                return hash;
+            }
         }
 
         public byte[] ComputeHash(byte[] input, GostFlavor gostFlavor)
         {
-            HashAlgorithm hashAlgorithm =
-                GostAlgorithmSelector.GetHashAlgorithm(gostFlavor);
-
-            var hash = hashAlgorithm.ComputeHash(input);
-
-            return hash;
+            using (HashAlgorithm hashAlgorithm =
+                GostAlgorithmSelector.GetHashAlgorithm(gostFlavor))
+            {
+                var hash = hashAlgorithm.ComputeHash(input);
+                return hash;
+            }
         }
 
         public string ComputeHashString(byte[] input, GostFlavor gostFlavor)
