@@ -54,7 +54,9 @@
     <Compile Include="Communication\VerifierResponse.cs" />
     <Compile Include="Communication\X509CertificateSerializable.cs" />
     <Compile Include="Configuration\CertificateLocation.cs" />
+    <Compile Include="Hasher\Hasher.cs" />
     <Compile Include="Interfaces\ICertificateSerializer.cs" />
+    <Compile Include="Interfaces\IHasher.cs" />
     <Compile Include="Processor\CertificateProcessor.Check.cs" />
     <Compile Include="Processor\CertificateProcessor.Get.cs" />
     <Compile Include="Processor\CertificateProcessor.Extract.cs" />
@@ -81,6 +83,9 @@
     <Compile Include="Signer\Signer.Smev3.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography">
+      <Version>2.6.2</Version>
+    </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.1</Version>
     </PackageReference>
