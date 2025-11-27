@@ -56,8 +56,7 @@ namespace Space.Core
             SignedXml sxml = new SignedXml(doc) { SigningKey = certificate.PrivateKey };
 
             XmlDsigSmevTransform smevTransform = new XmlDsigSmevTransform();
-            // Commented out to try and find working signature solution
-            //sxml.SafeCanonicalizationMethods.Add(smevTransform.Algorithm);
+            sxml.SafeCanonicalizationMethods.Add(smevTransform.Algorithm);
 
             //=====================================================================================REFERENCE TRASFORMS
             Reference reference = new Reference
