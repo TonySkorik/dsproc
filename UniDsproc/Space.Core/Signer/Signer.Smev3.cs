@@ -1,10 +1,10 @@
-﻿using System;
+﻿using CryptoPro.Sharpei.Xml;
+using Space.Core.Infrastructure;
+using System;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Xml;
-using CryptoPro.Sharpei.Xml;
-using Space.Core.Infrastructure;
 
 namespace Space.Core
 {
@@ -56,7 +56,8 @@ namespace Space.Core
             SignedXml sxml = new SignedXml(doc) { SigningKey = certificate.PrivateKey };
 
             XmlDsigSmevTransform smevTransform = new XmlDsigSmevTransform();
-            sxml.SafeCanonicalizationMethods.Add(smevTransform.Algorithm);
+            // Commented out to try and find working signature solution
+            //sxml.SafeCanonicalizationMethods.Add(smevTransform.Algorithm);
 
             //=====================================================================================REFERENCE TRASFORMS
             Reference reference = new Reference
