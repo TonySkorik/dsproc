@@ -33,11 +33,17 @@
   <ItemGroup>
     <Reference Include="CryptoPro.Sharpei.Base, Version=1.4.0.10, Culture=neutral, PublicKeyToken=473b8c5086e795f5, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>lib\CryptoPro.Sharpei.Base.dll</HintPath>
+      <HintPath>lib\2024\CryptoPro.Sharpei.Base.dll</HintPath>
+    </Reference>
+    <Reference Include="CryptoPro.Sharpei.ServiceModel">
+      <HintPath>lib\2024\CryptoPro.Sharpei.ServiceModel.dll</HintPath>
+    </Reference>
+    <Reference Include="CryptoPro.Sharpei.ServiceModel45">
+      <HintPath>lib\2024\CryptoPro.Sharpei.ServiceModel45.dll</HintPath>
     </Reference>
     <Reference Include="CryptoPro.Sharpei.Xml, Version=1.4.0.10, Culture=neutral, PublicKeyToken=473b8c5086e795f5, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>lib\CryptoPro.Sharpei.Xml.dll</HintPath>
+      <HintPath>lib\2024\CryptoPro.Sharpei.Xml.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
