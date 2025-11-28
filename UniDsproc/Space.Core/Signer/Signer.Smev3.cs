@@ -39,18 +39,33 @@ namespace Space.Core
             string signingNodeId,
             bool assignDs,
             bool isAck = false,
-            bool isSidebyside = false
+            bool isSidebyside = false,
+            params (string NamespacePrefix, string NamespaceUri)[] xmlNamespaces
         )
         {
             XmlNamespaceManager nsm = new XmlNamespaceManager(doc.NameTable);
-            nsm.AddNamespace(
-                "ns",
-                "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1"
-            );
-            nsm.AddNamespace(
-                "ns1",
-                "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/basic/1.1"
-            );
+
+            // Override default namespaces if any provided
+            if (xmlNamespaces != null)
+            {
+                foreach (var ns in xmlNamespaces)
+                {
+                    nsm.AddNamespace(ns.NamespacePrefix, ns.NamespaceUri);
+                }
+            }
+            else
+            {
+                nsm.AddNamespace(
+                    "ns",
+                    "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1"
+                );
+
+                nsm.AddNamespace(
+                    "ns1",
+                    "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/basic/1.1"
+                );
+            }
+
             nsm.AddNamespace("ds", "http://www.w3.org/2000/09/xmldsig#");
 
             SignedXml sxml = new SignedXml(doc) { SigningKey = certificate.PrivateKey };
@@ -118,6 +133,7 @@ namespace Space.Core
                 SignatureDescription description =
                     CryptoConfig.CreateFromName(sxml.SignedInfo.SignatureMethod)
                     as SignatureDescription;
+
                 if (description == null)
                 {
                     throw new CryptographicException(
@@ -147,11 +163,13 @@ namespace Space.Core
             //=============================================================================APPEND SIGNATURE TO DOCUMENT
             if (!isSidebyside)
             {
-                //TODO: is using SMEV types 1.2 edit this code!
+                //TODO: if using SMEV types 1.2 or 1.3 edit this code!
+
                 doc.GetElementsByTagName(
                     "CallerInformationSystemSignature",
                     "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1"
                 )[0].InnerXml = "";
+
                 doc.GetElementsByTagName(
                         "CallerInformationSystemSignature",
                         "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1"
@@ -160,8 +178,7 @@ namespace Space.Core
             }
             else
             {
-                GetNodeWithAttributeValue(doc.ChildNodes, signingNodeId)
-                    ?.ParentNode?.AppendChild(signature);
+                GetNodeWithAttributeValue(doc.ChildNodes, signingNodeId)?.ParentNode?.AppendChild(signature);
             }
 
             return doc;
