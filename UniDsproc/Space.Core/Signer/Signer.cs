@@ -293,7 +293,15 @@ namespace Space.Core
 							throw ExceptionFactory.GetException(ExceptionType.NodeIdRequired);
 						}
 
-						signedXmlDoc = SignSmev3(gostFlavor, signThis, cert, nodeToSign, assignDs, xmlNamespaces: xmlNamespaces);
+						signedXmlDoc = SignSmev3(
+							gostFlavor,
+							signThis,
+							cert,
+							nodeToSign,
+							assignDs,
+							signatureTargetTag: signatureTargetTag,
+							signatureTargetTagNamespace: signatureTargetTagNamespace,
+							xmlNamespaces: xmlNamespaces);
 						break;
 
 					case SignatureType.Smev3SidebysideDetached:
