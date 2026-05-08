@@ -302,6 +302,7 @@ namespace Space.Core
 							signatureTargetTag: signatureTargetTag,
 							signatureTargetTagNamespace: signatureTargetTagNamespace,
 							xmlNamespaces: xmlNamespaces);
+
 						break;
 
 					case SignatureType.Smev3SidebysideDetached:
@@ -370,8 +371,6 @@ namespace Space.Core
 					$"Exception happened during node {nodeToSign} with target {signatureTargetTag} namespace {signatureTargetTagNamespace} of the following xml signing : \n{signThis.InnerXml}", e);
 
 				throw exceptionToThrow;
-
-				//throw ExceptionFactory.GetException(ExceptionType.UnknownSigningException, e.Message);
 			}
 
 			return signedXmlDoc.InnerXml;
