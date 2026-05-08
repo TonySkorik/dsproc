@@ -14,22 +14,6 @@ namespace Space.Core
     /// <seealso cref="Space.Core.Interfaces.ISigner" />
     public partial class Signer
     {
-        #region [UTILITY]
-
-        private void AssignNsPrefix(XmlElement element, string prefix)
-        {
-            element.Prefix = prefix;
-            foreach (var child in element.ChildNodes)
-            {
-                if (child is XmlElement)
-                {
-                    AssignNsPrefix(child as XmlElement, prefix);
-                }
-            }
-        }
-
-        #endregion
-
         #region [SIGN SMEV 3]
 
         private XmlDocument SignSmev3(
@@ -40,6 +24,8 @@ namespace Space.Core
             bool assignDs,
             bool isAck = false,
             bool isSidebyside = false,
+            string signatureTargetTag = null,
+            string signatureTargetTagNamespace = null,
             params (string NamespacePrefix, string NamespaceUri)[] xmlNamespaces
         )
         {
@@ -163,18 +149,13 @@ namespace Space.Core
             //=============================================================================APPEND SIGNATURE TO DOCUMENT
             if (!isSidebyside)
             {
-                //TODO: if using SMEV types 1.2 or 1.3 edit this code!
+                var signatureTargetElement = doc.GetElementsByTagName(
+                    signatureTargetTag ?? "CallerInformationSystemSignature",
+                    signatureTargetTagNamespace ?? "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1"
+                )[0];
 
-                doc.GetElementsByTagName(
-                    "CallerInformationSystemSignature",
-                    "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1"
-                )[0].InnerXml = "";
-
-                doc.GetElementsByTagName(
-                        "CallerInformationSystemSignature",
-                        "urn://x-artefacts-smev-gov-ru/services/message-exchange/types/1.1"
-                    )[0]
-                    .AppendChild(signature);
+                signatureTargetElement.InnerXml = "";
+                signatureTargetElement.AppendChild(signature);
             }
             else
             {
@@ -184,5 +165,17 @@ namespace Space.Core
             return doc;
         }
         #endregion
+
+        private void AssignNsPrefix(XmlElement element, string prefix)
+        {
+            element.Prefix = prefix;
+            foreach (var child in element.ChildNodes)
+            {
+                if (child is XmlElement)
+                {
+                    AssignNsPrefix(child as XmlElement, prefix);
+                }
+            }
+        }
     }
 }

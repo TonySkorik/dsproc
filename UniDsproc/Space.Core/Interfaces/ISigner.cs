@@ -17,6 +17,8 @@ namespace Space.Core.Interfaces
             string nodeToSign,
             bool ignoreExpiredCert = false,
             bool? isAddSigningTime = null,
+            string signatureTargetTag = null,
+            string signatureTargetTagNamespace = null,
             params (string NamespacePrefix, string NamespaceUri)[] xmlNamespaces);
 
         string Sign(
@@ -28,6 +30,8 @@ namespace Space.Core.Interfaces
             bool assignDs = false,
             bool ignoreExpiredCert = false,
             bool? isAddSigningTime = null,
+            string signatureTargetTag = null,
+            string signatureTargetTagNamespace = null,
             params (string NamespacePrefix, string NamespaceUri)[] xmlNamespaces);
 
         string Sign(
@@ -39,6 +43,8 @@ namespace Space.Core.Interfaces
             bool assignDs = false,
             bool ignoreExpiredCert = false,
             bool? isAddSigningTime = null,
+            string signatureTargetTag = null,
+            string signatureTargetTagNamespace = null,
             params (string NamespacePrefix, string NamespaceUri)[] xmlNamespaces);
 
         SignerResponse Sign(
@@ -49,6 +55,8 @@ namespace Space.Core.Interfaces
             string nodeToSign,
             bool ignoreExpiredCert = false,
             bool? isAddSigningTime = null,
+            string signatureTargetTag = null,
+            string signatureTargetTagNamespace = null,
             params (string NamespacePrefix, string NamespaceUri)[] xmlNamespaces);
     }
 }

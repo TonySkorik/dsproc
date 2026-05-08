@@ -28,6 +28,8 @@ namespace Space.Core
             bool assignDs = false,
             bool ignoreExpiredCert = false,
             bool? isAddSigningTime = null,
+            string signatureTargetTag = null,
+            string signatureTargetTagNamespace = null,
             params (string NamespacePrefix, string NamespaceUri)[] xmlNamespaces)
         {
             return Sign(
@@ -39,6 +41,8 @@ namespace Space.Core
                 nodeToSign,
                 ignoreExpiredCert,
                 isAddSigningTime: isAddSigningTime,
+                signatureTargetTag: signatureTargetTag,
+                signatureTargetTagNamespace: signatureTargetTagNamespace,
                 xmlNamespaces: xmlNamespaces);
         }
 
@@ -51,6 +55,8 @@ namespace Space.Core
             bool assignDs = false,
             bool ignoreExpiredCert = false,
             bool? isAddSigningTime = null,
+            string signatureTargetTag = null,
+            string signatureTargetTagNamespace = null,
             params (string NamespacePrefix, string NamespaceUri)[] xmlNamespaces)
         {
             return Sign(
@@ -62,6 +68,8 @@ namespace Space.Core
                 nodeToSign,
                 ignoreExpiredCert,
                 isAddSigningTime: isAddSigningTime,
+                signatureTargetTag: signatureTargetTag,
+                signatureTargetTagNamespace: signatureTargetTagNamespace,
                 xmlNamespaces: xmlNamespaces);
         }
 
@@ -73,6 +81,8 @@ namespace Space.Core
             string nodeToSign,
             bool ignoreExpiredCert = false,
             bool? isAddSigningTime = null,
+            string signatureTargetTag = null,
+            string signatureTargetTagNamespace = null,
             params (string NamespacePrefix, string NamespaceUri)[] xmlNamespaces)
         {
             XmlDocument xmlToSign = null;
@@ -120,6 +130,8 @@ namespace Space.Core
                     ? bytesToSign
                     : null,
                 isAddSigningTime,
+                signatureTargetTag: signatureTargetTag,
+                signatureTargetTagNamespace: signatureTargetTagNamespace,
                 xmlNamespaces: xmlNamespaces);
 
             return new SignerResponse(signedData, isResultBase64Bytes);
@@ -134,6 +146,8 @@ namespace Space.Core
             string nodeToSign,
             bool ignoreExpiredCert = false,
             bool? isAddSigningTime = null,
+            string signatureTargetTag = null,
+            string signatureTargetTagNamespace = null,
             params (string NamespacePrefix, string NamespaceUri)[] xmlNamespaces)
         {
             XmlDocument xmlToSign = null;
@@ -184,6 +198,8 @@ namespace Space.Core
                 stringToSign,
                 bytesToSign,
                 isAddSigningTime,
+                signatureTargetTag: signatureTargetTag,
+                signatureTargetTagNamespace: signatureTargetTagNamespace,
                 xmlNamespaces: xmlNamespaces);
         }
 
@@ -202,6 +218,8 @@ namespace Space.Core
             string stringToSign = null,
             byte[] bytesToSign = null,
             bool? isAddSigningTime = null,
+            string signatureTargetTag = null,
+            string signatureTargetTagNamespace = null,
             params (string NamespacePrefix, string NamespaceUri)[] xmlNamespaces)
         {
             ICertificateProcessor cp = new CertificateProcessor();
@@ -218,7 +236,19 @@ namespace Space.Core
                 throw ExceptionFactory.GetException(ExceptionType.CertExpired, certificate.Thumbprint);
             }
 
-            return Sign(mode, gostFlavor, certificate, signThis, assignDs, nodeToSign, stringToSign, bytesToSign, isAddSigningTime, xmlNamespaces);
+            return Sign(
+                mode,
+                gostFlavor,
+                certificate,
+                signThis,
+                assignDs,
+                nodeToSign,
+                stringToSign,
+                bytesToSign,
+                isAddSigningTime,
+                signatureTargetTag: signatureTargetTag,
+                signatureTargetTagNamespace: signatureTargetTagNamespace,
+                xmlNamespaces: xmlNamespaces);
         }
 
         private string Sign(
@@ -231,6 +261,8 @@ namespace Space.Core
             string stringToSign = null,
             byte[] bytesToSign = null,
             bool? isAddSigningTime = null,
+            string signatureTargetTag = null,
+            string signatureTargetTagNamespace = null,
             params (string NamespacePrefix, string NamespaceUri)[] xmlNamespaces)
         {
 
@@ -278,7 +310,9 @@ namespace Space.Core
                             assignDs,
                             isAck: false,
                             isSidebyside: true,
-                            xmlNamespaces);
+                            signatureTargetTag: signatureTargetTag,
+                            signatureTargetTagNamespace: signatureTargetTagNamespace,
+                            xmlNamespaces: xmlNamespaces);
 
                         break;
 
@@ -288,7 +322,16 @@ namespace Space.Core
                             throw ExceptionFactory.GetException(ExceptionType.NodeIdRequired);
                         }
 
-                        signedXmlDoc = SignSmev3(gostFlavor, signThis, cert, nodeToSign, assignDs, isAck: true, xmlNamespaces: xmlNamespaces);
+                        signedXmlDoc = SignSmev3(
+                            gostFlavor,
+                            signThis,
+                            cert,
+                            nodeToSign,
+                            assignDs,
+                            isAck: true,
+                            signatureTargetTag: signatureTargetTag,
+                            signatureTargetTagNamespace: signatureTargetTagNamespace,
+                            xmlNamespaces: xmlNamespaces);
                         break;
 
                     case SignatureType.SigDetached:
