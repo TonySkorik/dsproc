@@ -359,7 +359,7 @@ namespace Space.Core
 			catch (Exception e)
 			{
 				var exceptionToThrow = new Exception(
-					$"Exception happened during following xml signing : {signThis}", e);
+					$"Exception happened during node {nodeToSign} with target {signatureTargetTag} namespace {signatureTargetTagNamespace} of the following xml signing : {signThis}", e);
 
 				throw exceptionToThrow;
 
