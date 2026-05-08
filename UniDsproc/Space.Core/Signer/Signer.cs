@@ -358,7 +358,11 @@ namespace Space.Core
 			}
 			catch (Exception e)
 			{
-				throw;
+				var exceptionToThrow = new Exception(
+					$"Exception happened during following xml signing : {signThis}", e);
+
+				throw exceptionToThrow;
+
 				//throw ExceptionFactory.GetException(ExceptionType.UnknownSigningException, e.Message);
 			}
 
